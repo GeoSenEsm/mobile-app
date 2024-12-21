@@ -13,6 +13,7 @@ class SensorDataController extends ControllerBase {
   final SensorConnectionFactory _sensorConnectionFactory;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
   SensorConnection? _currentConnection;
+  bool disconnected = false;
 
   SensorDataController(this._sensorConnectionFactory, this._sendSensorsDataUsecase);
 
@@ -22,11 +23,16 @@ class SensorDataController extends ControllerBase {
     }
 
     try {
+      disconnected = false;
       state.value = SensorDataState.scanning;
       await disconnect();
       _currentConnection = await _sensorConnectionFactory
           .getSensorConnection(const Duration(seconds: 60));
       state.value = SensorDataState.sensorFound;
+      if (disconnected){
+        await disconnect();
+        return;
+      }
       startReadingValueInBackground();
     } on SensorNotFoundExcetion catch (_) {
       state.value = SensorDataState.sensorNotFound;
@@ -54,6 +60,7 @@ class SensorDataController extends ControllerBase {
   }
 
   Future<void> disconnect() async {
+    disconnected = true;
     if (_currentConnection != null) {
       await _currentConnection!.dispose();
       _currentConnection = null;

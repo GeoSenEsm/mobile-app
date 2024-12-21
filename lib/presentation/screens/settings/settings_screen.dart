@@ -56,6 +56,10 @@ class SettingsScreen extends GetView<SettingsController> {
                       height: 30,
                     ),
                     NavItem(
+                        icon: Icons.calendar_month_outlined,
+                        label: getAppLocalizations().calendar,
+                        onTap: controller.calendar),
+                    NavItem(
                         icon: Icons.wb_sunny_outlined,
                         label: getAppLocalizations().sensorData,
                         onTap: controller.sensorData),

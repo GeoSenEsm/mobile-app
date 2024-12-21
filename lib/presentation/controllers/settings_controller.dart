@@ -26,4 +26,8 @@ class SettingsController extends ControllerBase {
   void sensorData() {
     Get.toNamed(Routes.sensorDataScreen);
   }
+
+  void calendar() {
+    Get.toNamed(Routes.calendar);
+  }
 }

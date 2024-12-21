@@ -117,5 +117,11 @@
     "bluetoothTurnedOff": "Bluetooth is turned off",
     "sensorNotFound": "Could not detect sensor",
     "sensorNotSpecified": "Sensor not specified",
-    "sensorData": "Sensor data"
+    "sensorData": "Sensor data",
+    "calendar": "Calendar",
+    "day": "Day",
+    "week": "Week",
+    "surveyName": "Survey name",
+    "start": "Start",
+    "end": "Finish"
 }

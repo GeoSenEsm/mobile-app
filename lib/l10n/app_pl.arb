@@ -101,5 +101,11 @@
     "bluetoothTurnedOff": "Bluetooth jest wyłączone",
     "sensorNotFound": "Nie znaleziono czujnika",
     "sensorNotSpecified": "Nie wybrano czujnika",
-    "sensorData": "Dane z czujnika"
+    "sensorData": "Dane z czujnika",
+    "calendar": "Kalendarz",
+    "day": "Dzień",
+    "week": "Tydzień",
+    "surveyName": "Nazwa ankiety",
+    "start": "Rozpoczęcie",
+    "end": "Zakończenie"
 }

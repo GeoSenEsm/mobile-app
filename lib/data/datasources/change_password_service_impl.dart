@@ -5,15 +5,12 @@ import 'package:survey_frontend/domain/external_services/change_password_service
 import 'package:survey_frontend/domain/models/change_password_dto.dart';
 
 class ChangePasswordServiceImpl extends APIServiceBase implements ChangePasswordService {
-  final GetStorage storage;
   
-  ChangePasswordServiceImpl(super.dio, {required super.tokenProvider, required this.storage});
+  ChangePasswordServiceImpl(super.dio, {required super.tokenProvider});
 
   @override
   Future<APIResponse> changePassword(ChangePasswordDto dto) {
-    final respondentId = storage.read<Map<String, dynamic>>('respondentData')!['id'];
-
-    return patch('/api/respondents/${respondentId!}/password', dto.toJson());
+    return patch('/api/authentication/password', dto.toJson());
   }
 
 }

@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
+import 'package:survey_frontend/core/usecases/calendar_event_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase_impl.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
@@ -36,8 +37,10 @@ import 'package:survey_frontend/domain/usecases/token_provider.dart';
 import 'package:survey_frontend/domain/usecases/token_validity_checker.dart';
 import 'package:survey_frontend/main.dart';
 import 'package:survey_frontend/presentation/controllers/archived_surveys_controller.dart';
+import 'package:survey_frontend/presentation/controllers/calendar_controller.dart';
 import 'package:survey_frontend/presentation/controllers/respondent_data_controller.dart';
 import 'package:survey_frontend/presentation/controllers/survey_question_controller.dart';
+import 'package:survey_frontend/presentation/static/static_variables.dart';
 
 class InitialBindings extends Bindings {
   static bool _registered = false;
@@ -97,6 +100,9 @@ class InitialBindings extends Bindings {
     Get.put(Connectivity());
     Get.put<SubmitSurveyUsecase>(
         SubmitSurveyUsecaseImpl(Get.find(), Get.find(), Get.find()));
+    Get.lazyPut<CalendarEventUsecase>(
+        () => CalendarEventUsecaseImpl(Get.find()), fenix: true);
+    Get.lazyPut(() => CalendarController(Get.find()), fenix: true);
   }
 
   Dio _getDio(GetStorage storage) {

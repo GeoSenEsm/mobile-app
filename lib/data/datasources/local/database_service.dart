@@ -8,6 +8,7 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
+import 'package:survey_frontend/data/models/survey_calendar_event.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
 
@@ -386,5 +387,29 @@ class DatabaseHelper {
       ''', questionsIds));
 
     return {for (var e in numberRanges) e['questionId']: e};
+  }
+
+  Future<List<SurveyCalendarEvent>> getCalendarEvents() async {
+    final db = await database;
+    final currentDate = DateTime.now().toUtc().toIso8601String();
+
+    const String command = '''
+    SELECT timeSlots.id as timeSlotId, 
+    timeSlots.start as "from", 
+    timeSlots.finish as "to", 
+    surveys.name as name
+    FROM timeSlots
+    JOIN surveys on timeSlots.surveyId = surveys.id
+    WHERE timeSlots.finish > ?
+    ''';
+    final result = await db.rawQuery(command, [currentDate]);
+
+    return result
+        .map((e) => SurveyCalendarEvent(
+            surveyName: e['name'] as String,
+            timeSlotId: e['timeSlotId'] as String,
+            from: DateTime.parse(e['from'] as String),
+            to: DateTime.parse(e['to'] as String)))
+        .toList();
   }
 }
