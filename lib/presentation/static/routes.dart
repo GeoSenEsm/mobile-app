@@ -14,4 +14,5 @@ class Routes{
   static String get changePassword => '/changePassword';
   static String get changePasswordConfirmation => '/changePasswordConfirmation';
   static String get acceptPrivacyPolicy => '/acceptPrivacyPolicy';
+  static String get sensorDataScreen => '/sensorDataScreen';
 }

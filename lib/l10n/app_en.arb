@@ -110,5 +110,12 @@
     "multiplePermissionsDenied": "Permissions missing",
     "multiplePermissionsDeniedMessage": "Please enable denied permissions in your device settings by going to Permissions in settings.",
     "surveyFinishTitle": "Finishing Survey",
-    "surveyStartTitle": "New Survey"
+    "surveyStartTitle": "New Survey",
+    "sensorDataHistory": "Historical readings",
+    "saveReading": "Save reading",
+    "scanning": "Scannig",
+    "bluetoothTurnedOff": "Bluetooth is turned off",
+    "sensorNotFound": "Could not detect sensor",
+    "sensorNotSpecified": "Sensor not specified",
+    "sensorData": "Sensor data"
 }

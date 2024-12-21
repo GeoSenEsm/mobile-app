@@ -22,4 +22,8 @@ class SettingsController extends ControllerBase {
   void logout(){
     Get.toNamed(Routes.logoutConfirmation);
   }
+
+  void sensorData() {
+    Get.toNamed(Routes.sensorDataScreen);
+  }
 }

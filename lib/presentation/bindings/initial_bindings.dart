@@ -6,8 +6,8 @@ import 'package:location/location.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase_impl.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
-import 'package:survey_frontend/core/usecases/read_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
+import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
@@ -23,7 +23,6 @@ import 'package:survey_frontend/data/datasources/respondent_group_service_impl.d
 import 'package:survey_frontend/data/datasources/sensors_data_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_response_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_service_impl.dart';
-import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/domain/external_services/initial_survey_service.dart';
 import 'package:survey_frontend/domain/external_services/location_service.dart';
 import 'package:survey_frontend/domain/external_services/login_service.dart';
@@ -85,10 +84,9 @@ class InitialBindings extends Bindings {
         SurveyNotificationUseCaseImpl(Get.find()));
     Get.put<SensorsDataService>(
         SensorsDataServiceImpl(Get.find(), tokenProvider: Get.find()));
+    Get.put(SensorConnectionFactory(Get.find()));
     Get.put<SendSensorsDataUsecase>(
-        SendSensorsDataUsecaseImpl(Get.find(), Get.find()));
-    Get.put<ReadSensorsDataUsecase>(ReadXiaomiSensorsDataUsecase(),
-        tag: SensorKind.xiaomi);
+        SendSensorsDataUsecaseImpl(Get.find(), Get.find(), Get.find()));
     Get.put<LocalizationService>(LocalizationServiceImpl(Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put<SurveyImagesUseCase>(SurveyImagesUseCaseImpl(Get.find()));

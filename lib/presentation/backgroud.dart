@@ -17,7 +17,7 @@ Future<bool> sendSensorsData() async {
     var service = Get.find<SendSensorsDataUsecase>();
     final location = Get.find<Location>();
     location.enableBackgroundMode(enable: true);
-    return await service.sendSensorsDataToTheServer();
+    return await service.readAndSendSensorData();
   } catch (e) {
     Sentry.captureException(e);
     return false;

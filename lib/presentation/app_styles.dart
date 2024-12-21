@@ -28,8 +28,7 @@ class AppStyles {
       shadowColor: Colors.black,
       textTheme: const TextTheme(bodyLarge: TextStyle(fontSize: 20)),
       radioTheme: const RadioThemeData(
-        fillColor: WidgetStatePropertyAll(_appNameColor)
-      ),
+          fillColor: WidgetStatePropertyAll(_appNameColor)),
       dialogTheme: DialogTheme(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -109,8 +108,33 @@ class AppStyles {
           return 0;
         }),
       )),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return _appNameColorDisabled;
+                }
+                return _appNameColor;
+              }),
+              side: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return const BorderSide(
+                      color: _appNameColorDisabled, width: 2);
+                }
+
+                return const BorderSide(color: _appNameColor, width: 2);
+              }),
+              overlayColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return backgroundSecondary;
+                }
+
+                return _primaryColor;
+              }),
+              textStyle: const WidgetStatePropertyAll(
+                  TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
       inputDecorationTheme: InputDecorationTheme(
-        labelStyle: const TextStyle(color: _appNameColor),
+          labelStyle: const TextStyle(color: _appNameColor),
           enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.black, width: 1.0),
               borderRadius: BorderRadius.circular(10)),

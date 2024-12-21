@@ -94,5 +94,12 @@
     "multiplePermissionsDenied": "Brakuje uprawnień",
     "multiplePermissionsDeniedMessage": "Włacz brakujące uprawnienia w ustawieniach urządzenia. Przejdź do Uprawnienia i włącz odrzucone.",
     "surveyFinishTitle": "Koniec Ankiety",
-    "surveyStartTitle": "Nowa Ankieta"
+    "surveyStartTitle": "Nowa Ankieta",
+    "sensorDataHistory": "Historyczne odczyty",
+    "saveReading": "Zapisz odczyt",
+    "scanning": "Skanowanie",
+    "bluetoothTurnedOff": "Bluetooth jest wyłączone",
+    "sensorNotFound": "Nie znaleziono czujnika",
+    "sensorNotSpecified": "Nie wybrano czujnika",
+    "sensorData": "Dane z czujnika"
 }

@@ -88,7 +88,7 @@ class SurveyEndController extends ControllerBase {
 
   Future<void> _submitSensorData() async {
     try {
-      await _sendSensorsDataUsecase.sendSensorsDataToTheServer();
+      await _sendSensorsDataUsecase.readAndSendSensorData();
     } catch (e) {
       Sentry.captureException(e);
     }

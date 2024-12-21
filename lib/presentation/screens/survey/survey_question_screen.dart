@@ -14,6 +14,7 @@ class SurveyQuestionScreen extends GetView<SurveyQuestionController> {
   Widget build(BuildContext context) {
     _controller.readGetArguments();
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         centerTitle: true,
         title: const Text(

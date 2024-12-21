@@ -2,6 +2,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -20,6 +21,7 @@ import 'package:survey_frontend/presentation/bindings/notifications_settings_bin
 import 'package:survey_frontend/presentation/bindings/privacy_settings_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/profile_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/reinsert_credentials_bindings.dart';
+import 'package:survey_frontend/presentation/bindings/sensor_data_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/sensors_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/settings_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/survey_end_bindings.dart';
@@ -37,6 +39,8 @@ import 'package:survey_frontend/presentation/screens/privacy_policy/screens/acce
 import 'package:survey_frontend/presentation/screens/privacy_settings_screen.dart';
 import 'package:survey_frontend/presentation/screens/profile_screen.dart';
 import 'package:survey_frontend/presentation/screens/reinsert_credentials_screen.dart';
+import 'package:survey_frontend/presentation/screens/sensor_data/navigation/sensor_navigator_observer.dart';
+import 'package:survey_frontend/presentation/screens/sensor_data/sensor_data_screen.dart';
 import 'package:survey_frontend/presentation/screens/sensors_screen.dart';
 import 'package:survey_frontend/presentation/screens/settings/settings_screen.dart';
 import 'package:survey_frontend/presentation/screens/survey/survey_end_screen.dart';
@@ -52,6 +56,8 @@ class StaticVariables {
 void main() async {
   await initSentry();
   WidgetsFlutterBinding.ensureInitialized();
+  await FlutterBluePlus.isSupported;
+  await FlutterBluePlus.adapterState.first;
   await GetStorage.init();
   final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
   InitialBindings().dependencies();
@@ -59,10 +65,10 @@ void main() async {
   StaticVariables.lang = await _getCurrentLocale();
   SystemChrome.setPreferredOrientations(
       [DeviceOrientation.portraitUp, DeviceOrientation.portraitDown]);
-  
+
   runApp(GetMaterialApp(
     title: 'UrbEaT',
-    navigatorObservers: [routeObserver],
+    navigatorObservers: [routeObserver, SensorNavigatorObserver()],
     debugShowCheckedModeBanner: false,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -141,7 +147,11 @@ void main() async {
       GetPage(
           name: Routes.acceptPrivacyPolicy,
           page: () => const AcceptPrivacyPolicyScreen(),
-          binding: AcceptPrivacyPolicyBindings())
+          binding: AcceptPrivacyPolicyBindings()),
+      GetPage(
+          name: Routes.sensorDataScreen,
+          page: () => const SensorDataScreen(),
+          binding: SensorDataBindings())
     ],
   ));
 }
