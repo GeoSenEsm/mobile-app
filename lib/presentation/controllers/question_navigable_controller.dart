@@ -11,6 +11,7 @@ class QuestionNavigableController extends ControllerBase {
   late SurveyDto survey;
   late List<QuestionWithSection> questions;
   int questionIndex = -1;
+  int questionsCount = 1;
   late CreateSurveyResponseDto responseModel;
   late List<String?> groupsIds;
   late Map<int, int> triggerableSectionActivationsCounts;
@@ -38,11 +39,14 @@ class QuestionNavigableController extends ControllerBase {
         return;
       }
 
+      int nextQuestionsCount = _getNextQestionsCount(nextQuestionIndex);
+
       screenFactory() => SurveyQuestionScreen();
       Map<String, dynamic> arguments = {
         'responseModel': responseModel,
         'survey': survey,
         'questionIndex': nextQuestionIndex,
+        'questionsCount': nextQuestionsCount,
         'questions': questions,
         "groups": groupsIds,
         "triggerableSectionActivationsCounts":
@@ -63,11 +67,15 @@ class QuestionNavigableController extends ControllerBase {
   }
 
   int _getNextValidQuestionIndex() {
-    if (questionIndex == questions.length - 1) {
+    if (questionIndex == -1){
+      return 0;
+    }
+
+    if (questionIndex + questionsCount == questions.length) {
       return -1;
     }
 
-    for (int i = questionIndex + 1; i < questions.length; i++) {
+    for (int i = questionIndex + questionsCount; i < questions.length; i++) {
       if (questions[i]
           .canQuestionBeShown(groupsIds, triggerableSectionActivationsCounts)) {
         return i;
@@ -83,6 +91,16 @@ class QuestionNavigableController extends ControllerBase {
     }
 
     return -1;
+  }
+
+  int _getNextQestionsCount(int nextQuestionIndex) {
+    final firstQuestion = questions[nextQuestionIndex];
+
+    if (!firstQuestion.section.displayOnOneScreen){
+      return 1;
+    }
+
+    return firstQuestion.section.questions.length;
   }
 
   bool canGoFurther() {
