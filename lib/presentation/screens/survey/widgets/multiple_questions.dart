@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
+import 'package:survey_frontend/presentation/screens/survey/widgets/require_scroll_down_view.dart';
 
 class MultipleQuestions extends StatelessWidget {
   final List<Question> questions;
   final Widget Function(Question, int) questionWidgetBuilder;
   final String surveyName;
   final int firstQuestionIndex;
+  final void Function()? onScrolledDown;
 
   const MultipleQuestions(
       {super.key,
       required this.questions,
       required this.questionWidgetBuilder,
       required this.surveyName,
-      required this.firstQuestionIndex});
+      required this.firstQuestionIndex,
+      this.onScrolledDown});
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: SingleChildScrollView(
+      child: RequireScrollDownView(
+        onScrolledDown: onScrolledDown,
         child: Column(mainAxisAlignment: MainAxisAlignment.start, children: [
           const SizedBox(height: 20),
           Center(

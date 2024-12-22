@@ -36,7 +36,8 @@ class SurveyEndScreen extends GetView<SurveyEndController> {
       ),
       bottomNavigationBar: NextButton(
           nextAction: controller.endSurvey,
-          text: AppLocalizations.of(context)!.finish),
+          text: AppLocalizations.of(context)!.finish,
+          hasToScrollDown: false.obs,),
     );
   }
 }

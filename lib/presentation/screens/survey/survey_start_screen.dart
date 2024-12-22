@@ -33,7 +33,8 @@ class SurveyStartScreen extends GetView<QuestionNavigableController> {
           nextAction: () {
             _controller.navigateToNextQuestion(QuestionNavigationMode.off);
           },
-          text: AppLocalizations.of(context)!.start),
+          text: AppLocalizations.of(context)!.start,
+          hasToScrollDown: false.obs,),
     );
   }
 }

@@ -29,30 +29,36 @@ class SurveyQuestionScreen extends GetView<SurveyQuestionController> {
         child: _buildQuestions(),
       ),
       bottomNavigationBar: NextButton(
-          nextAction: () {
-            _controller.navigateToNextQuestion(QuestionNavigationMode.top);
-          },
-          text: AppLocalizations.of(context)!.next),
+        nextAction: () {
+          _controller.navigateToNextQuestion(QuestionNavigationMode.top);
+        },
+        text: AppLocalizations.of(context)!.next,
+        hasToScrollDown: _controller.hasToScrollDown,
+      ),
     );
   }
 
   Widget _buildQuestions() {
     if (_controller.questionsCount == 1) {
       return SingleQuestion(
-          question: _controller.questions[_controller.questionIndex].question,
-          questionWidgetBuilder: _controller.buildQuestionFromType,
-          surveyName: _controller.survey.name,
-          questionIndex: _controller.questionIndex,);
+        question: _controller.questions[_controller.questionIndex].question,
+        questionWidgetBuilder: _controller.buildQuestionFromType,
+        surveyName: _controller.survey.name,
+        questionIndex: _controller.questionIndex,
+        onScrolledDown: _controller.scrolled,
+      );
     }
 
     return MultipleQuestions(
-        questions: _controller.questions
-            .sublist(_controller.questionIndex,
-                _controller.questionIndex + _controller.questionsCount)
-            .map((e) => e.question)
-            .toList(),
-        questionWidgetBuilder: _controller.buildQuestionFromType,
-        surveyName: _controller.survey.name,
-        firstQuestionIndex: _controller.questionIndex,);
+      questions: _controller.questions
+          .sublist(_controller.questionIndex,
+              _controller.questionIndex + _controller.questionsCount)
+          .map((e) => e.question)
+          .toList(),
+      questionWidgetBuilder: _controller.buildQuestionFromType,
+      surveyName: _controller.survey.name,
+      firstQuestionIndex: _controller.questionIndex,
+      onScrolledDown: _controller.scrolled,
+    );
   }
 }

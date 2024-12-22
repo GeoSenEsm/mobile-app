@@ -15,6 +15,7 @@ import 'package:survey_frontend/presentation/screens/survey/widgets/yes_no_type_
 class SurveyQuestionController extends QuestionNavigableController {
   var answeredQuestionIndexStack = <int>[].obs;
   final SurveyImagesUseCase _surveyImagesUseCase;
+  final RxBool hasToScrollDown = RxBool(true);
 
   SurveyQuestionController(this._surveyImagesUseCase);
 
@@ -60,6 +61,10 @@ class SurveyQuestionController extends QuestionNavigableController {
     super.readGetArguments();
     questionIndex = Get.arguments['questionIndex'];
     questionsCount = Get.arguments['questionsCount'];
+  }
+
+  void scrolled() {
+    hasToScrollDown.value = false;
   }
 
   @override

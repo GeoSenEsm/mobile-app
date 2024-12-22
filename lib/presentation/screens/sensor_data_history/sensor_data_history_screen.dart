@@ -103,30 +103,35 @@ class SensorDataHistoryScreen extends GetView<SensorDataHistoryController> {
   }
 
   Widget _buildDataGrid(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Obx(() => DataTable(
-            columns: [
-              DataColumn(label: Text(getAppLocalizations().date)),
-              DataColumn(label: Text(getAppLocalizations().temperature)),
-              DataColumn(label: Text(getAppLocalizations().humidity)),
-              DataColumn(label: Text(getAppLocalizations().sentToServer))
-            ],
-            rows: controller.entries
-                .map((e) => DataRow(cells: [
-                      DataCell(Center(
-                          child:
-                              Text(dateTimeShortFormat(e.dateTime.toLocal())))),
-                      DataCell(Center(child: Text('${e.temperature} °C'))),
-                      DataCell(Center(child: Text('${e.humidity}%'))),
-                      DataCell(Center(
-                          child: Icon(
-                        e.sentToServer ? Icons.check : Icons.close,
-                        color: e.sentToServer ? Colors.green : Colors.red,
-                      ))),
-                    ]))
-                .toList(),
-          )),
+    return Expanded(
+      child: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Obx(() => DataTable(
+                columns: [
+                  DataColumn(label: Text(getAppLocalizations().date)),
+                  DataColumn(label: Text(getAppLocalizations().temperature)),
+                  DataColumn(label: Text(getAppLocalizations().humidity)),
+                  DataColumn(label: Text(getAppLocalizations().sentToServer))
+                ],
+                rows: controller.entries
+                    .map((e) => DataRow(cells: [
+                          DataCell(Center(
+                              child:
+                                  Text(dateTimeShortFormat(e.dateTime.toLocal())))),
+                          DataCell(Center(child: Text('${e.temperature} °C'))),
+                          DataCell(Center(child: Text('${e.humidity}%'))),
+                          DataCell(Center(
+                              child: Icon(
+                            e.sentToServer ? Icons.check : Icons.close,
+                            color: e.sentToServer ? Colors.green : Colors.red,
+                          ))),
+                        ]))
+                    .toList(),
+              )),
+        ),
+      ),
     );
   }
 }
