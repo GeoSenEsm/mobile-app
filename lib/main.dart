@@ -23,8 +23,9 @@ import 'package:survey_frontend/presentation/bindings/privacy_settings_bindings.
 import 'package:survey_frontend/presentation/bindings/profile_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/reinsert_credentials_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/sensor_data_bindings.dart';
+import 'package:survey_frontend/presentation/bindings/sensor_data_history_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/sensors_bindings.dart';
-import 'package:survey_frontend/presentation/bindings/settings_bindings.dart';
+import 'package:survey_frontend/presentation/bindings/menu_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/survey_end_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/survey_start_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/welcome_screen_bindings.dart';
@@ -44,8 +45,10 @@ import 'package:survey_frontend/presentation/screens/profile_screen.dart';
 import 'package:survey_frontend/presentation/screens/reinsert_credentials_screen.dart';
 import 'package:survey_frontend/presentation/screens/sensor_data/navigation/sensor_navigator_observer.dart';
 import 'package:survey_frontend/presentation/screens/sensor_data/sensor_data_screen.dart';
+import 'package:survey_frontend/presentation/screens/sensor_data_history/navigation/sensor_data_history_navigator_observer.dart';
+import 'package:survey_frontend/presentation/screens/sensor_data_history/sensor_data_history_screen.dart';
 import 'package:survey_frontend/presentation/screens/sensors_screen.dart';
-import 'package:survey_frontend/presentation/screens/settings/settings_screen.dart';
+import 'package:survey_frontend/presentation/screens/menu/menu_screen.dart';
 import 'package:survey_frontend/presentation/screens/survey/survey_end_screen.dart';
 import 'package:survey_frontend/presentation/screens/survey/survey_start_screen.dart';
 import 'package:survey_frontend/presentation/screens/welcome_screen.dart';
@@ -68,7 +71,7 @@ void main() async {
 
   runApp(GetMaterialApp(
     title: 'UrbEaT',
-    navigatorObservers: [routeObserver, SensorNavigatorObserver(), CalendarNavigatorObserver()],
+    navigatorObservers: [routeObserver, SensorNavigatorObserver(), CalendarNavigatorObserver(), SensorDataHistoryNavigatorObserver()],
     debugShowCheckedModeBanner: false,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
@@ -112,8 +115,8 @@ void main() async {
           binding: SensorsBindings()),
       GetPage(
           name: Routes.settings,
-          page: () => const SettingsScreen(),
-          binding: SettingsBindings()),
+          page: () => const MenuScreen(),
+          binding: MenuBindings()),
       GetPage(
         name: Routes.logoutConfirmation,
         page: () => LogoutConfirmationScreen(),
@@ -155,7 +158,11 @@ void main() async {
       GetPage(
           name: Routes.calendar,
           page: () => const CalendarScreen(),
-          binding: CalendarBindings())
+          binding: CalendarBindings()),
+                GetPage(
+          name: Routes.sensorDataHistory,
+          page: () => const SensorDataHistoryScreen(),
+          binding: SensorDataHistoryBindings())
     ],
   ));
 }

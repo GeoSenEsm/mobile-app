@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
@@ -7,6 +8,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:survey_frontend/data/models/sensor_data_model.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/data/models/survey_calendar_event.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
@@ -30,7 +32,8 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'survey_database.db');
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(path,
+        version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -104,6 +107,20 @@ class DatabaseHelper {
         rowVersion INTEGER
       )
     ''');
+  }
+
+  FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('''
+      CREATE TABLE sensor_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "dateTime" DATETIME,
+        temperature REAL,
+        humidity REAL,
+        sentToServer BIT
+      )
+      ''');
+    }
   }
 
   Future<void> upsertSurveys(
@@ -280,7 +297,7 @@ class DatabaseHelper {
         whereArgs: [id, currentDate, currentDate]);
   }
 
-  Future<void> clearAllTables() async {
+  Future<void> clearAllSurveysRelatedTables() async {
     final db = await database;
     await db.delete('timeSlots');
     await db.delete('surveys');
@@ -288,6 +305,12 @@ class DatabaseHelper {
     await db.delete('questions');
     await db.delete('options');
     await db.delete('number_ranges');
+  }
+
+  Future<void> clearAllTables() async {
+    await clearAllSurveysRelatedTables();
+    final db = await database;
+    await db.delete('sensor_data');
   }
 
   Future<void> clearTable(String tableName) async {
@@ -411,5 +434,59 @@ class DatabaseHelper {
             from: DateTime.parse(e['from'] as String),
             to: DateTime.parse(e['to'] as String)))
         .toList();
+  }
+
+  Future<void> addSensorData(SensorDataModel sensorData) async {
+    final db = await database;
+    await db.insert('sensor_data', {
+      'dateTime': sensorData.dateTime.toIso8601String(),
+      'temperature': sensorData.temperature,
+      'humidity': sensorData.humidity,
+      'sentToServer': sensorData.sentToServer ? 1 : 0
+    });
+  }
+
+  Future<List<SensorDataModel>> getAllSensorDataFilterByDate(
+      DateTime from, DateTime to) async {
+    final db = await database;
+    final results = await db.rawQuery('''
+    SELECT "dateTime", temperature, humidity, sentToServer
+    FROM sensor_data 
+    WHERE "dateTime" >= ? AND "dateTime" <= ?
+    ''', [from.toIso8601String(), to.toIso8601String()]);
+
+    return results
+        .map((e) => SensorDataModel(
+            dateTime: DateTime.parse(e['dateTime'] as String),
+            temperature: e['temperature'] as double,
+            humidity: e['humidity'] as double,
+            sentToServer: e['sentToServer'] == 1))
+        .toList();
+  }
+
+  Future<List<SensorDataModel>> getAlSensorDataNotSentToServer() async {
+    final db = await database;
+    final results = await db.rawQuery('''
+    SELECT "dateTime", temperature, humidity, sentToServer
+    FROM sensor_data 
+    WHERE sentToServer = 0
+    ''');
+
+    return results
+        .map((e) => SensorDataModel(
+            dateTime: DateTime.parse(e['dateTime'] as String),
+            temperature: e['temperature'] as double,
+            humidity: e['humidity'] as double,
+            sentToServer: e['sentToServer'] == 1))
+        .toList();
+  }
+
+  Future<void> markAllSensorDataSentToServer() async {
+    final db = await database;
+
+
+    await db.execute('''
+    UPDATE sensor_data SET sentToServer = 1
+    ''');
   }
 }

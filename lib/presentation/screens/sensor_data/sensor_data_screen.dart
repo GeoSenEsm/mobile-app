@@ -13,7 +13,6 @@ class SensorDataScreen extends GetView<SensorDataController> {
 
   @override
   Widget build(BuildContext context) {
-    controller.startScanning();
     return Scaffold(
       body: Column(
         children: [
@@ -77,7 +76,7 @@ class SensorDataScreen extends GetView<SensorDataController> {
                 SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: controller.sensorHistory,
                         child: Text(getAppLocalizations().sensorDataHistory))),
                 const SizedBox(
                   height: 10,

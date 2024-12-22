@@ -4,6 +4,5 @@ import 'package:survey_frontend/presentation/controllers/sensor_data_controller.
 class SensorDataBindings implements Bindings{
   @override
   void dependencies() {
-    Get.lazyPut(() => SensorDataController(Get.find(), Get.find()));
   }
 }

@@ -123,5 +123,18 @@
     "week": "Week",
     "surveyName": "Survey name",
     "start": "Start",
-    "end": "Finish"
+    "end": "Finish",
+    "sensorHistory": "Sensor history",
+    "dateFrom": "Date from",
+    "dateTo": "Date to",
+    "clearFilters": "Clear filters",
+    "apply": "Apply",
+    "thisWeek": "This week",
+    "from": "From",
+    "to": "To",
+    "date": "Date",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "sentToServer": "Sent to the server",
+    "menu": "Menu"
 }

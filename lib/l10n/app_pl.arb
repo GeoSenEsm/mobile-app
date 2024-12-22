@@ -107,5 +107,18 @@
     "week": "Tydzień",
     "surveyName": "Nazwa ankiety",
     "start": "Rozpoczęcie",
-    "end": "Zakończenie"
+    "end": "Zakończenie",
+    "sensorHistory": "Historia czujnika",
+    "dateFrom": "Data od",
+    "dateTo": "Data do",
+    "clearFilters": "Wyczyść filtry",
+    "apply": "Zastosuj",
+    "thisWeek": "Ten tydzień",
+    "from": "Od",
+    "to": "Do",
+    "date": "Data",
+    "temperature": "Temperatura",
+    "humidity": "Wilgotność",
+    "sentToServer": "Przesłano na serwer",
+    "men": "Menu"
 }

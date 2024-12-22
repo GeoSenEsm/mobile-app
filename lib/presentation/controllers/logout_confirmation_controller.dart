@@ -24,6 +24,7 @@ class LogoutConfirmationController extends ControllerBase {
     try {
       await _storage.erase();
       await _databaseHelper.clearAllTables();
+      await _surveyImagesUseCase.clearImages();
       await Workmanager().cancelAll();
       await FlutterLocalNotificationsPlugin().cancelAll();
 

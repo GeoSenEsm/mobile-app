@@ -5,6 +5,7 @@ import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
+import 'package:survey_frontend/presentation/static/routes.dart';
 
 class SensorDataController extends ControllerBase {
   final Rx<SensorDataState> state = SensorDataState.initial.obs;
@@ -23,9 +24,9 @@ class SensorDataController extends ControllerBase {
     }
 
     try {
-      disconnected = false;
       state.value = SensorDataState.scanning;
       await disconnect();
+      disconnected = false;
       _currentConnection = await _sensorConnectionFactory
           .getSensorConnection(const Duration(seconds: 60));
       state.value = SensorDataState.sensorFound;
@@ -81,6 +82,10 @@ class SensorDataController extends ControllerBase {
     } finally {
       isSendingData.value = false;
     }
+  }
+
+  void sensorHistory() {
+    Get.toNamed(Routes.sensorDataHistory);
   }
 }
 

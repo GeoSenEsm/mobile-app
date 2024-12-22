@@ -10,19 +10,6 @@ class ShortSurveyServiceImpl extends APIServiceBase
   ShortSurveyServiceImpl(this._storage, super.dio,
       {required super.tokenProvider});
 
-  // Mocked Data
-  // @override
-  // Future<APIResponse<List<ShortSurveyDto>>> getShortSurvey() async {
-  //   final jsonString =
-  //       await rootBundle.loadString("assets/mocked/pending_survey.json");
-  //   final List<dynamic> json = jsonDecode(jsonString);
-
-  //   final List<ShortSurveyDto> items =
-  //       json.map<ShortSurveyDto>((e) => ShortSurveyDto.fromJson(e)).toList();
-
-  //   return APIResponse(body: items);
-  // }
-
   @override
   Future<APIResponse<List<SurveyWithTimeSlots>>> getSurveysWithTimeSlots() =>
       get<List<SurveyWithTimeSlots>>(

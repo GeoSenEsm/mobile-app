@@ -81,7 +81,7 @@ class HomeController extends ControllerBase {
       return;
     }
     await _surveyImagesUseCase.saveImages(response.body!);
-    await _databaseHelper.clearAllTables();
+    await _databaseHelper.clearAllSurveysRelatedTables();
     await _databaseHelper.upsertSurveys(response.body!);
   }
 

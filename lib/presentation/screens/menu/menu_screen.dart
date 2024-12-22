@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get/get.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
-import 'package:survey_frontend/presentation/controllers/settings_controller.dart';
-import 'package:survey_frontend/presentation/screens/settings/widgets/nav_item.dart';
+import 'package:survey_frontend/presentation/controllers/menu_controller.dart';
+import 'package:survey_frontend/presentation/screens/menu/widgets/nav_item.dart';
 
-class SettingsScreen extends GetView<SettingsController> {
-  const SettingsScreen({super.key});
+class MenuScreen extends GetView<ManuController> {
+  const MenuScreen({super.key});
   final Color settingsBackgroundColor =
       const Color.fromARGB(173, 214, 236, 154);
 
@@ -30,7 +30,7 @@ class SettingsScreen extends GetView<SettingsController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.settings,
+                  AppLocalizations.of(context)!.menu,
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),
@@ -63,6 +63,10 @@ class SettingsScreen extends GetView<SettingsController> {
                         icon: Icons.wb_sunny_outlined,
                         label: getAppLocalizations().sensorData,
                         onTap: controller.sensorData),
+                    NavItem(
+                        icon: Icons.manage_search,
+                        label: getAppLocalizations().sensorHistory,
+                        onTap: controller.sensorHistory),
                     const SizedBox(
                       height: 10,
                     ),

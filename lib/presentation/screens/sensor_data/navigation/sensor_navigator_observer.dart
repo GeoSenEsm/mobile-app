@@ -10,6 +10,10 @@ class SensorNavigatorObserver extends NavigatorObserver {
     if (route.settings.name == Routes.sensorDataScreen){
       Get.find<SensorDataController>().disconnect();
     }
+
+    if (previousRoute != null && previousRoute.settings.name == Routes.sensorDataScreen){
+      Get.find<SensorDataController>().startScanning();
+    }
     super.didPop(route, previousRoute);
   }
 
@@ -17,6 +21,10 @@ class SensorNavigatorObserver extends NavigatorObserver {
   void didPush(Route route, Route? previousRoute) {
     if (previousRoute != null && previousRoute.settings.name == Routes.sensorDataScreen){
       Get.find<SensorDataController>().disconnect();
+    }
+
+    if (route.settings.name == Routes.sensorDataScreen) {
+      Get.find<SensorDataController>().startScanning();
     }
     super.didPush(route, previousRoute);
   }

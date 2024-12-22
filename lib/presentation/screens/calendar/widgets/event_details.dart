@@ -27,14 +27,14 @@ class EventDetails extends StatelessWidget {
               const SizedBox(height: 20,),
               TextFormField(
                 readOnly: true,
-                initialValue: dateShortFormat(event.from.toLocal()),
+                initialValue: dateTimeShortFormat(event.from.toLocal()),
                 decoration: InputDecoration(
                     label: Text(getAppLocalizations().start)),
               ),
               const SizedBox(height: 20,),
               TextFormField(
                 readOnly: true,
-                initialValue: dateShortFormat(event.to.toLocal()),
+                initialValue: dateTimeShortFormat(event.to.toLocal()),
                 decoration: InputDecoration(
                     label: Text(getAppLocalizations().end)),
               )

@@ -82,7 +82,9 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: TimePicker(
                         onChange: (v) {
-                          controller.setTimeFrom(v);
+                          if (v != null) {
+                            controller.setTimeFrom(v);
+                          }
                         },
                         value: controller.timeFrom.value,
                         label: AppLocalizations.of(context)!.timeFrom,
@@ -95,7 +97,9 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: TimePicker(
                         onChange: (v) {
-                          controller.setTimeTo(v);
+                          if (v != null) {
+                            controller.setTimeTo(v);
+                          }
                         },
                         value: controller.timeTo.value,
                         label: AppLocalizations.of(context)!.timeTo,

@@ -27,15 +27,12 @@ class HomeScreen extends GetView<HomeController> implements RouteAware {
         ),
         centerTitle: true,
         title: const Text(
-          'UrBEaT',
+          'UrbEaT',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
         actions: [
           IconButton(
-            icon: SvgPicture.asset(
-              'assets/settings_circle.svg',
-              height: 24,
-            ),
+            icon: const Icon(Icons.menu),
             onPressed: () {
               controller.openSettings();
             },
