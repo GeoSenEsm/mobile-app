@@ -6,6 +6,7 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/presentation/backgroud.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/bindings/accept_privacy_policy_bindings.dart';
@@ -61,6 +62,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await FlutterBluePlus.isSupported;
   await FlutterBluePlus.adapterState.first;
+  await NotificationService.initialize();
   await GetStorage.init();
   final RouteObserver<PageRoute> routeObserver = RouteObserver<PageRoute>();
   InitialBindings().dependencies();
@@ -78,7 +80,7 @@ void main() async {
     locale: Locale(StaticVariables.lang, ''),
     initialBinding: InitialBindings(),
     theme: AppStyles.lightTheme,
-    initialRoute: Routes.loading,
+    initialRoute: Routes.home,
     getPages: [
       GetPage(
           name: Routes.login,

@@ -12,6 +12,7 @@ import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
+import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
@@ -48,6 +49,9 @@ class HomeController extends ControllerBase {
     if (_isBusy) {
       return;
     }
+    // BUG delete later
+    NotificationService.scheduleNotification(
+        DateTime.now().add(const Duration(seconds: 1)), 0, "test", "test body");
 
     try {
       _isBusy = true;
