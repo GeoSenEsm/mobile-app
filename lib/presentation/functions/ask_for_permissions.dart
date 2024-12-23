@@ -9,10 +9,8 @@ Future<void> askForPermissions() async {
     Permission.notification,
     Permission.location,
   ].request();
-  if (statuses.values.any((status) => !status.isGranted)) {
+  if (statuses.values
+      .any((status) => !status.isGranted && !status.isPermanentlyDenied)) {
     await buildManyDenyDialog();
-  }
-  if (!await Permission.locationAlways.isGranted) {
-    await buildLocationDenyDialog();
   }
 }

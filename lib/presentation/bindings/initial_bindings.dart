@@ -7,6 +7,7 @@ import 'package:survey_frontend/core/usecases/calendar_event_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase_impl.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
+import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
@@ -100,10 +101,14 @@ class InitialBindings extends Bindings {
         tokenProvider: Get.find<TokenProvider>()));
     Get.put(Connectivity());
     Get.put<SubmitSurveyUsecase>(
-        SubmitSurveyUsecaseImpl(Get.find(), Get.find(), Get.find()));
+        SubmitSurveyUsecaseImpl(Get.find(), Get.find(), Get.find(), Get.find()));
     Get.lazyPut<CalendarEventUsecase>(
-        () => CalendarEventUsecaseImpl(Get.find()), fenix: true);
+        () => CalendarEventUsecaseImpl(Get.find()),
+        fenix: true);
     Get.lazyPut(() => CalendarController(Get.find()), fenix: true);
+    Get.lazyPut<SendLocationDataUsecase>(
+        () => SendLocationDataUsecaseImpl(Get.find(), Get.find(), Get.find()),
+        fenix: true);
   }
 
   Dio _getDio(GetStorage storage) {

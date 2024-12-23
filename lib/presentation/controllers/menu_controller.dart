@@ -34,4 +34,8 @@ class ManuController extends ControllerBase {
   void sensorHistory(){
     Get.toNamed(Routes.sensorDataHistory);
   }
+
+  void map() {
+    Get.toNamed(Routes.map);
+  }
 }

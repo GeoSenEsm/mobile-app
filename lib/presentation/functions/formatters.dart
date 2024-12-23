@@ -10,3 +10,8 @@ String dateOnlyShortFormat(DateTime dateTime) {
   String culture = StaticVariables.lang == 'pl' ? 'pl_PL' : 'en_EN';
   return DateFormat.yMd(culture).format(dateTime);
 }
+
+String timeOnlyShortFormat(DateTime dateTime) {
+  String culture = StaticVariables.lang == 'pl' ? 'pl_PL' : 'en_EN';
+  return DateFormat.Hm(culture).format(dateTime);
+}

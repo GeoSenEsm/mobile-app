@@ -17,4 +17,5 @@ class Routes{
   static String get sensorDataScreen => '/sensorDataScreen';
   static String get calendar => '/calendar';
   static String get sensorDataHistory => '/sensorDataHistory';
+  static String get map => '/map';
 }

@@ -49,9 +49,6 @@ class HomeController extends ControllerBase {
     if (_isBusy) {
       return;
     }
-    // BUG delete later
-    NotificationService.scheduleNotification(
-        DateTime.now().add(const Duration(seconds: 1)), 0, "test", "test body");
 
     try {
       _isBusy = true;

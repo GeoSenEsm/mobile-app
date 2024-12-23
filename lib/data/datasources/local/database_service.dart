@@ -8,9 +8,12 @@ import 'package:get_storage/get_storage.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:survey_frontend/data/models/location_model.dart';
+import 'package:survey_frontend/data/models/location_with_pending_survey_participation.dart';
 import 'package:survey_frontend/data/models/sensor_data_model.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/data/models/survey_calendar_event.dart';
+import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
 
@@ -33,7 +36,7 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'survey_database.db');
     return await openDatabase(path,
-        version: 2, onCreate: _onCreate, onUpgrade: _onUpgrade);
+        version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -119,6 +122,19 @@ class DatabaseHelper {
         humidity REAL,
         sentToServer BIT
       )
+      ''');
+    }
+
+    if (oldVersion < 3) {
+      await db.execute('''
+      CREATE TABLE locations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      surveyParticipationId TEXT,
+      relatedToSurvey BIT,
+      "dateTime" DATETIME,  
+      latitude REAL,
+      longitude REAL,
+      sentToServer BIT)
       ''');
     }
   }
@@ -455,7 +471,12 @@ class DatabaseHelper {
     WHERE "dateTime" >= ? AND "dateTime" <= ?
     ''', [from.toIso8601String(), to.toIso8601String()]);
 
-    return results
+    return _mapToSensorDataModel(results);
+  }
+
+  List<SensorDataModel> _mapToSensorDataModel(
+      List<Map<String, dynamic>> items) {
+    return items
         .map((e) => SensorDataModel(
             dateTime: DateTime.parse(e['dateTime'] as String),
             temperature: e['temperature'] as double,
@@ -472,21 +493,91 @@ class DatabaseHelper {
     WHERE sentToServer = 0
     ''');
 
-    return results
-        .map((e) => SensorDataModel(
-            dateTime: DateTime.parse(e['dateTime'] as String),
-            temperature: e['temperature'] as double,
-            humidity: e['humidity'] as double,
-            sentToServer: e['sentToServer'] == 1))
-        .toList();
+    return _mapToSensorDataModel(results);
   }
 
   Future<void> markAllSensorDataSentToServer() async {
     final db = await database;
 
-
     await db.execute('''
     UPDATE sensor_data SET sentToServer = 1
     ''');
+  }
+
+  Future<void> addLocation(LocationModel model) async {
+    final db = await database;
+    await db.insert('locations', {
+      'surveyParticipationId': model.surveyParticipationId,
+      'relatedToSurvey': model.relatedToSurvey ? 1 : 0,
+      'dateTime': model.dateTime.toIso8601String(),
+      'latitude': model.latitude,
+      'longitude': model.longitude,
+      'sentToServer': model.sentToServer ? 1 : 0
+    });
+  }
+
+  Future<List<LocalizationData>> getAllLocationsToSend() async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT surveyParticipationId, "dateTime",
+      latitude, longitude
+      FROM locations
+      WHERE sentToServer = 0 AND (relatedToSurvey = 0 OR surveyParticipationId IS NOT NULL)
+      ''');
+
+    return results
+        .map((e) => LocalizationData(
+            surveyParticipationId: e['surveyParticipationId'] as String?,
+            dateTime: e['dateTime'] as String,
+            latitude: e['latitude'] as double,
+            longitude: e['longitude'] as double))
+        .toList();
+  }
+
+  Future<void> markAllSendableLocationsSentToServer() async {
+    final db = await database;
+    await db.execute('''
+    UPDATE locations set sentToServer = 1 WHERE sentToServer = 0 AND (relatedToSurvey = 0 OR surveyParticipationId IS NOT NULL);
+    ''');
+  }
+
+  Future<List<LocationModel>> getAllLocationsBetween(
+      DateTime from, DateTime to) async {
+    final db = await database;
+
+    final results = await db.rawQuery('''
+      SELECT surveyParticipationId, "dateTime",
+      relatedToSurvey, sentToServer,
+      latitude, longitude
+      FROM locations
+      WHERE "dateTime" >= ? AND "dateTime" <= ?
+      ''', [from.toIso8601String(), to.toIso8601String()]);
+
+    return results
+        .map((e) => LocationModel(
+            dateTime: DateTime.parse(e['dateTime'] as String),
+            longitude: e['longitude'] as double,
+            latitude: e['latitude'] as double,
+            sentToServer: e['sentToServer'] == 1,
+            relatedToSurvey: e['relatedToSurvey'] == 1,
+            surveyParticipationId: e['surveyParticipationId'] as String?))
+        .toList();
+  }
+
+  Future<List<LocationWithPendingSurveyParticipation>>
+      getLocationsWithPendingSurveyParticipations() async {
+    final db = await database;
+    final results = await db.rawQuery('''
+      SELECT id, "dateTime"
+      FROM locations
+      WHERE relatedToSurvey = 1 AND surveyParticipationId IS NULL
+      ''');
+
+    return results
+        .map((e) => LocationWithPendingSurveyParticipation(
+            id: e['id'] as int,
+            dateTime: DateTime.parse(e['dateTime'] as String)))
+        .toList();
   }
 }

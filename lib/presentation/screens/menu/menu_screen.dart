@@ -52,9 +52,6 @@ class MenuScreen extends GetView<ManuController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 30,
-                    ),
                     NavItem(
                         icon: Icons.calendar_month_outlined,
                         label: getAppLocalizations().calendar,
@@ -67,6 +64,10 @@ class MenuScreen extends GetView<ManuController> {
                         icon: Icons.manage_search,
                         label: getAppLocalizations().sensorHistory,
                         onTap: controller.sensorHistory),
+                        NavItem(
+                        icon: Icons.location_on_outlined,
+                        label: getAppLocalizations().map,
+                        onTap: controller.map),
                     const SizedBox(
                       height: 10,
                     ),

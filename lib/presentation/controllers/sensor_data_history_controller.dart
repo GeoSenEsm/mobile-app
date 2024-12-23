@@ -33,7 +33,7 @@ class SensorDataHistoryController extends ControllerBase {
 
   DateTime _getActualFromUtc() {
     if (from.value != null) {
-      return from.value!;
+      return from.value!.toUtc();
     }
 
     final today = DateTime.now();
@@ -44,8 +44,8 @@ class SensorDataHistoryController extends ControllerBase {
   }
 
   DateTime _getActualToUtc() {
-    if (from.value != null) {
-      return from.value!;
+    if (to.value != null) {
+      return to.value!.toUtc();
     }
 
     final today = DateTime.now();

@@ -1,10 +1,10 @@
 import 'package:get/get.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
-import 'package:survey_frontend/domain/external_services/location_service.dart';
-import 'package:survey_frontend/domain/local_services/survey_participation_service.dart';
+import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
@@ -14,16 +14,14 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SurveyEndController extends ControllerBase {
   late CreateSurveyResponseDto dto;
   late Future<LocalizationData> localizationData;
-  final LocalizationService _locationService;
-  final SurveyParticipationService _surveyParticipationService;
+  final SendLocationDataUsecase _sendLocationDataUsecase;
   final DatabaseHelper _databaseHelper;
   final SubmitSurveyUsecase _submitSurveyUsecase;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
   bool _isBusy = false;
 
   SurveyEndController(
-      this._locationService,
-      this._surveyParticipationService,
+      this._sendLocationDataUsecase,
       this._databaseHelper,
       this._submitSurveyUsecase,
       this._sendSensorsDataUsecase);
@@ -36,17 +34,9 @@ class SurveyEndController extends ControllerBase {
     try {
       _isBusy = true;
       final participation = await _submitToServer();
-      //no need to await, let's to it in background
+      //no need to await, let's do it in background
+      _saveLocation(participation?.id);
       _submitSensorData();
-      if (participation != null) {
-        await _surveyParticipationService.addParticipation(participation);
-        final location = await localizationData;
-        location.surveyParticipationId = participation.id;
-        final response = await _locationService.submitLocation(location);
-        if (response.statusCode != 201) {
-          //TODO log it
-        }
-      }
 
       await _databaseHelper.removeSurveyTimeSlot(dto.surveyId);
       await Get.offAllNamed(
@@ -72,6 +62,26 @@ class SurveyEndController extends ControllerBase {
           AppLocalizations.of(Get.context!)!.mainPageTransitionError);
       Sentry.captureException(e);
       return null;
+    }
+  }
+
+  Future<void> _saveLocation(String? surveyParticipationId) async {
+    try {
+      final location = await localizationData;
+      if (location == null) {
+        return;
+      }
+
+      final model = LocationModel(
+          dateTime: DateTime.parse(location.dateTime),
+          longitude: location.longitude,
+          latitude: location.latitude,
+          sentToServer: false,
+          relatedToSurvey: true,
+          surveyParticipationId: surveyParticipationId);
+      await _sendLocationDataUsecase.sendLocationData(model);
+    } catch (e) {
+      Sentry.captureException(e);
     }
   }
 

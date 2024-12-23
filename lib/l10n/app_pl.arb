@@ -120,5 +120,13 @@
     "temperature": "Temperatura",
     "humidity": "Wilgotność",
     "sentToServer": "Przesłano na serwer",
-    "men": "Menu"
+    "men": "Menu",
+    "map": "Mapa",
+    "today": "Dzisiaj",
+    "latidude": "Szerokość geograficzna",
+    "longitude": "Długość geograficzna",
+    "time": "Czas",
+    "theLocationDataHasBeenSubmitedToServer": "Ta lokalizacja została wysłana na serwer",
+    "theLocationDataHasNotBeenSubmitedToServer": "Ta lokalizacja nie została jeszcze wysłana na serwer",
+    "surveyHasBeenComplitedInThisLocation": "W tym miejscu wupełniono ankietę"
 }
