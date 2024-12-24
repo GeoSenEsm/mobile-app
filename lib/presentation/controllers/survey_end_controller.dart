@@ -73,7 +73,7 @@ class SurveyEndController extends ControllerBase {
       }
 
       final model = LocationModel(
-          dateTime: DateTime.parse(location.dateTime),
+          dateTime: DateTime.parse(dto.startDate),
           longitude: location.longitude,
           latitude: location.latitude,
           sentToServer: false,

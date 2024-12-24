@@ -1,11 +1,14 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_with_pending_survey_participation.dart';
 import 'package:survey_frontend/data/models/upadte_location_participation.dart';
 import 'package:survey_frontend/domain/external_services/survey_response_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
+import 'package:survey_frontend/main.dart';
 
 abstract class SubmitSurveyUsecase {
   Future<SurveyParticipationDto?> submitSurvey(CreateSurveyResponseDto dto);
@@ -84,6 +87,7 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
         await _surveyResponseService.submitResponses(currentlySaved);
     if (apiResponse.statusCode == 201) {
       await _storage.remove('savedResponses');
+      await _updateLocations(apiResponse.body!);
       return true;
     }
 
@@ -92,15 +96,22 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
 
   Future<void> _updateLocations(
       List<SurveyParticipationDto> participations) async {
-    //TODO: finish this
-    //   final locations = await _databaseHelper.getLocationsWithPendingSurveyParticipations();
-    //   final updates = <UpadteLocationParticipation>[];
+    final locations =
+        await _databaseHelper.getLocationsWithPendingSurveyParticipations();
+    final updates = <UpadteLocationParticipation>[];
 
-    //   for (final participation in participations) {
-    //     final
-    //   }
-    // }
+    for (final participation in participations) {
+      final correspondingLocation = locations.firstWhereOrNull((e) =>
+          participation.surveyStartDate != null &&
+          e.dateTime == DateTime.parse(participation.surveyStartDate!));
 
-    // final LocationWithPendingSurveyParticipation locationWithClosts()
+      if (correspondingLocation != null) {
+        updates.add(UpadteLocationParticipation(
+            id: correspondingLocation.id,
+            surveyParticipationId: participation.id));
+      }
+    }
+
+    await _databaseHelper.updateParticipations(updates);
   }
 }

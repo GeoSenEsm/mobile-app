@@ -13,6 +13,7 @@ import 'package:survey_frontend/data/models/location_with_pending_survey_partici
 import 'package:survey_frontend/data/models/sensor_data_model.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/data/models/survey_calendar_event.dart';
+import 'package:survey_frontend/data/models/upadte_location_participation.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
@@ -580,4 +581,14 @@ class DatabaseHelper {
             dateTime: DateTime.parse(e['dateTime'] as String)))
         .toList();
   }
+
+  Future<void> updateParticipations(
+      List<UpadteLocationParticipation> updates) async {
+        final db = await database;
+        for (final update in updates) {
+          await db.update('locations', {
+            'surveyParticipationId': update.surveyParticipationId
+          }, where: 'id = ?', whereArgs: [update.id]);
+        }
+      }
 }
