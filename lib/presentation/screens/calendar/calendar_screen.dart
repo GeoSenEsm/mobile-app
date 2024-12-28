@@ -34,6 +34,7 @@ class CalendarScreen extends GetView<CalendarController> {
                 getAppLocalizations().calendar,
                 style:
                     const TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
+                textScaler: const TextScaler.linear(1),
               ),
               Obx(() => DropdownButton<CalendarView>(
                   value: controller.selectedView.value,
@@ -95,7 +96,7 @@ class CalendarScreen extends GetView<CalendarController> {
     );
   }
 
-  _eventTap(List<CalendarEventData<Object?>> events, DateTime date){
+  _eventTap(List<CalendarEventData<Object?>> events, DateTime date) {
     controller.onEventTap(events.first.event as SurveyCalendarEvent);
   }
 

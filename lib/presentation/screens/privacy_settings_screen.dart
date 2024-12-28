@@ -33,6 +33,7 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
               children: [
                 Text(
                   AppLocalizations.of(context)!.privacy,
+                  textScaler: const TextScaler.linear(1),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),

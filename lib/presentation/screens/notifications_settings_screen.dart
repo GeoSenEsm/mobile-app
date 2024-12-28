@@ -30,6 +30,7 @@ class NotificationsSettingsScreen extends GetView<NotificationsSettingsControlle
               children: [
                 Text(
                   AppLocalizations.of(context)!.notifications,
+                  textScaler: const TextScaler.linear(1),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),
