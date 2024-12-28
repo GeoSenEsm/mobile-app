@@ -21,7 +21,7 @@
     "endSurveyQuestion": "Do you want to end the survey?\nYou will not be able to edit your answers later.",
     "finish": "Finish",
     "error": "Error",
-    "nextSurveyTime": "Remaining time until next scheduled survey",
+    "nextSurveyTime": "Remaining time until most urgent survey finish",
     "surveyDetails": "Survey details",
     "loadingSurveyErrorTryAgainLater": "Failed to load survey. Please try again later.",
     "loadingSurveyError": "Failed to load selected survey",

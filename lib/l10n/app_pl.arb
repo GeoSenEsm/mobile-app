@@ -21,7 +21,7 @@
     "endSurveyQuestion": "Czy na pewno chcesz zakończyć ankietę?\nNie będziesz mógł potem edytować odpowiedzi.",
     "finish": "Zakończ",
     "error": "Błąd",
-    "nextSurveyTime": "Pozostały czas do kolejnej planowej ankiety",
+    "nextSurveyTime": "Pozostały czas do zakończenia najbliższej ankiety",
     "surveyDetails": "Szczegóły ankiety",
     "loadingSurveyErrorTryAgainLater": "Nie udało się załadować ankiet. Spróbuj ponownie później.",
     "loadingSurveyError": "Nie udało się załadować wybranej ankiety",

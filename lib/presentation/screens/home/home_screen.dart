@@ -55,12 +55,12 @@ class HomeScreen extends GetView<HomeController> implements RouteAware {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Obx(() => TimeCircle(
-                    time: controller.hoursLeft(),
+                    time: controller.hoursLeft.value,
                     unit: AppLocalizations.of(context)!.hours,
                     timeUnit: 24)),
                 const SizedBox(width: 40),
                 Obx(() => TimeCircle(
-                    time: controller.minutesLeft(),
+                    time: controller.minutesLeft.value,
                     unit: AppLocalizations.of(context)!.minutes,
                     timeUnit: 60)),
               ],

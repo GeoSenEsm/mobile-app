@@ -5,6 +5,7 @@ import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
+import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
@@ -28,12 +29,12 @@ class HomeController extends ControllerBase {
   final CreateQuestionAnswerDtoFactory _createQuestionAnswerDtoFactory;
   final ReadResopndentGroupdUseCase _readResopndentGroupdUseCase;
   RxList<SurveyShortInfo> pendingSurveys = <SurveyShortInfo>[].obs;
-  final RxInt hours = 23.obs;
-  final RxInt minutes = 60.obs;
   final DatabaseHelper _databaseHelper;
   final SurveyNotificationUseCase _surveyNotificationUseCase;
   final SurveyImagesUseCase _surveyImagesUseCase;
   final SubmitSurveyUsecase _submitSurveyUsecase;
+  final RxInt hoursLeft = 0.obs;
+  final RxInt minutesLeft = 0.obs;
   bool _isBusy = false;
 
   HomeController(
@@ -84,30 +85,6 @@ class HomeController extends ControllerBase {
     await _surveyImagesUseCase.saveImages(response.body!);
     await _databaseHelper.clearAllSurveysRelatedTables();
     await _databaseHelper.upsertSurveys(response.body!);
-  }
-
-  int hoursLeft() {
-    if (pendingSurveys.isEmpty) {
-      return 0;
-    }
-
-    final today = DateTime.now();
-    final timeFinish = Duration(hours: hours.value, minutes: minutes.value);
-    final timeNow = Duration(hours: today.hour, minutes: today.minute);
-    final timeLeft = timeFinish - timeNow;
-    return timeLeft.inHours;
-  }
-
-  int minutesLeft() {
-    if (pendingSurveys.isEmpty) {
-      return 0;
-    }
-
-    final today = DateTime.now();
-    final timeFinish = Duration(hours: hours.value, minutes: minutes.value);
-    final timeNow = Duration(hours: today.hour, minutes: today.minute);
-    final timeLeft = timeFinish - timeNow;
-    return timeLeft.inMinutes.remainder(60);
   }
 
   bool hasTimeSlotForToday(SurveyWithTimeSlots survey) {
@@ -223,7 +200,31 @@ class HomeController extends ControllerBase {
   Future<void> _loadFromDatabase() async {
     final completableNow = await _databaseHelper.getSurveysCompletableNow();
     pendingSurveys.addAll(completableNow);
+    await _setRemainingTime();
     await _surveyNotificationUseCase.scheduleSurveysNotifications();
+  }
+
+  Future<void> _setRemainingTime() async {
+    final mostUrgentSurvey = _getMostUrgentSurvey();
+
+    if (mostUrgentSurvey == null) {
+      hoursLeft.value = 0;
+      minutesLeft.value = 0;
+      return;
+    }
+
+    final now = DateTime.now().toUtc();
+    final mostUrgentSurveyDuration = mostUrgentSurvey.finishTime.difference(now);
+    hoursLeft.value = mostUrgentSurveyDuration.inHours;
+    minutesLeft.value = mostUrgentSurveyDuration.inMinutes - hoursLeft.value * 60;
+  }
+
+  SurveyShortInfo? _getMostUrgentSurvey(){
+    if (pendingSurveys.isEmpty) {
+      return null;
+    }
+
+    return pendingSurveys.reduce((a, b) => a.finishTime.isBefore(b.finishTime) ? a : b);
   }
 
   void openSettings() {
