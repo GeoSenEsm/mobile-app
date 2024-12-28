@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/sensors_response.dart';
+import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
@@ -13,10 +14,11 @@ class SensorDataController extends ControllerBase {
   final RxBool isSendingData = false.obs;
   final SensorConnectionFactory _sensorConnectionFactory;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
+  final SendLocationDataUsecase _sendLocationDataUsecase;
   SensorConnection? _currentConnection;
   bool disconnected = false;
 
-  SensorDataController(this._sensorConnectionFactory, this._sendSensorsDataUsecase);
+  SensorDataController(this._sensorConnectionFactory, this._sendSensorsDataUsecase, this._sendLocationDataUsecase);
 
   void startScanning() async {
     if (state.value == SensorDataState.scanning) {
@@ -77,6 +79,8 @@ class SensorDataController extends ControllerBase {
     try {
       isSendingData.value = true;
       await _sendSensorsDataUsecase.sendSensorData(sensorResponse.value!);
+      //can be done in the background, therefore there is no need to await
+      _sendLocationDataUsecase.readAndSendLocationData();
     } catch (e) {
       handleSomethingWentWrong(e);
     } finally {

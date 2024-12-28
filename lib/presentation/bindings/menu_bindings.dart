@@ -9,7 +9,7 @@ class MenuBindings extends Bindings {
   void dependencies() {
     Get.lazyPut(() => ManuController());
     Get.lazyPut(() => SensorDataHistoryController(Get.find()), fenix: true);
-    Get.lazyPut(() => SensorDataController(Get.find(), Get.find()), fenix: true);
+    Get.lazyPut(() => SensorDataController(Get.find(), Get.find(), Get.find()), fenix: true);
     Get.lazyPut(() => MapScreenController(Get.find()), fenix: true);
   }
 }
