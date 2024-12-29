@@ -7,6 +7,7 @@ import 'package:survey_frontend/presentation/screens/survey/widgets/discrete_sin
 import 'package:survey_frontend/presentation/controllers/question_navigable_controller.dart';
 import 'package:survey_frontend/presentation/screens/survey/widgets/image_type_question.dart';
 import 'package:survey_frontend/presentation/screens/survey/widgets/number_input_type_question.dart';
+import 'package:survey_frontend/presentation/screens/survey/widgets/text_input_type_question.dart';
 import 'package:survey_frontend/presentation/screens/survey/widgets/text_multiple_choice_type_question.dart';
 import 'package:survey_frontend/presentation/screens/survey/widgets/text_single_choice_type_question.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -50,6 +51,8 @@ class SurveyQuestionController extends QuestionNavigableController {
             question: question,
             selectedOption: responseModel.answers[index].selectedOptions![0],
             surveyImagesUseCase: _surveyImagesUseCase);
+      case QuestionType.textInput:
+          return TextInputTypeQuestion(dto: responseModel.answers[index]);
       default:
         //TODO decide what to do in this case (most likely skip this question)
         throw Exception('Unsupported question type: ${question.questionType}');
@@ -108,10 +111,11 @@ class SurveyQuestionController extends QuestionNavigableController {
         }
         return true;
       }
+      if (questions[idx].question.questionType == QuestionType.textInput){
+        return responseModel.answers[idx].textAnswer != null;
+      }
     }
 
     return true;
   }
 }
-
-class NumericInputTypeQuestion {}

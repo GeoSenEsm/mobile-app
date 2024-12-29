@@ -90,6 +90,7 @@ class SurveyEndController extends ControllerBase {
       //TODO: extend this, when we have a new text input question type
       return e.yesNoAnswer != null ||
           e.numericAnswer != null ||
+          e.textAnswer != null ||
           (e.selectedOptions != null &&
               e.selectedOptions!.every((e) => e.optionId != null));
     }).toList();

@@ -144,5 +144,6 @@
     "time": "Time",
     "theLocationDataHasBeenSubmitedToServer": "This location has already been submited to the server",
     "theLocationDataHasNotBeenSubmitedToServer": "This location has not been submited to the server yet",
-    "surveyHasBeenComplitedInThisLocation": "There was a survey filled in this location"
+    "surveyHasBeenComplitedInThisLocation": "There was a survey filled in this location",
+    "enterResponse": "Enter response"
 }

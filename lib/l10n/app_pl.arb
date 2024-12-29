@@ -128,5 +128,6 @@
     "time": "Czas",
     "theLocationDataHasBeenSubmitedToServer": "Ta lokalizacja została wysłana na serwer",
     "theLocationDataHasNotBeenSubmitedToServer": "Ta lokalizacja nie została jeszcze wysłana na serwer",
-    "surveyHasBeenComplitedInThisLocation": "W tym miejscu wupełniono ankietę"
+    "surveyHasBeenComplitedInThisLocation": "W tym miejscu wupełniono ankietę",
+    "enterResponse": "Podaj odpowiedź"
 }

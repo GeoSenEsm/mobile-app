@@ -5,4 +5,5 @@ class QuestionType {
   static const String multipleChoiceText = "multiple_choice";
   static const String numberInput = "number_input";
   static const String imageChoice = "image_choice";
+  static const String textInput = "text_input";
 }
