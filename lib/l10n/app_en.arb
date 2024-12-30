@@ -145,5 +145,6 @@
     "theLocationDataHasBeenSubmitedToServer": "This location has already been submited to the server",
     "theLocationDataHasNotBeenSubmitedToServer": "This location has not been submited to the server yet",
     "surveyHasBeenComplitedInThisLocation": "There was a survey filled in this location",
-    "enterResponse": "Enter response"
+    "enterResponse": "Enter response",
+    "kestrelDrop2": "Kestrel Drop 2 sensor"
 }

@@ -27,7 +27,7 @@ class SensorScanningResultCircle extends StatelessWidget {
             SizedBox(
               width: 150,
               child: Text(
-                '${sensorResponse.value!.temperature} °C',
+                '${sensorResponse.value!.temperature.toStringAsFixed(1)} °C',
                 style: const TextStyle(
                     fontSize: 35,
                     color: Colors.white,
@@ -43,7 +43,7 @@ class SensorScanningResultCircle extends StatelessWidget {
             SizedBox(
               width: 150,
               child: Text(
-                '${sensorResponse.value!.humidity}%',
+                '${sensorResponse.value!.humidity.toStringAsFixed(0)}%',
                 style: const TextStyle(
                     fontSize: 25,
                     color: Colors.white,

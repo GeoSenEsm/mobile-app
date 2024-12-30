@@ -61,6 +61,10 @@ class SensorConnectionFactory {
   String _getDeviceName(String sensorKind){
     if (sensorKind == SensorKind.xiaomi){
       return "LYWSD03MMC";
+    } 
+    
+    if (sensorKind == SensorKind.kestrelDrop2) {
+      return "Kestrel DROP 2635499";
     }
 
     throw SensorNotSpecifiedExeption();
@@ -69,6 +73,10 @@ class SensorConnectionFactory {
   SensorConnection _getConnectionCore(String sensorKind, BluetoothDevice connectedDevice) {
     if (sensorKind == SensorKind.xiaomi){
       return XiaomiSensorConnection(connectedDevice); 
+    }
+
+    if (sensorKind == SensorKind.kestrelDrop2) {
+      return KestrelDrop2Connection(connectedDevice);
     }
     
     throw SensorNotSpecifiedExeption();

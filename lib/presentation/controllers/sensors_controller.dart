@@ -16,12 +16,14 @@ class SensorsController extends ControllerBase
 
   final List<String> possibleOptions = [
     SensorKind.none,
-    SensorKind.xiaomi
+    SensorKind.xiaomi,
+    SensorKind.kestrelDrop2
   ];
 
   final Map<String, String> optionsDisplays = {
     SensorKind.none: AppLocalizations.of(Get.context!)!.noSensor,
-    SensorKind.xiaomi: AppLocalizations.of(Get.context!)!.xiaomiSensor
+    SensorKind.xiaomi: AppLocalizations.of(Get.context!)!.xiaomiSensor,
+    SensorKind.kestrelDrop2: AppLocalizations.of(Get.context!)!.kestrelDrop2
   };
 
   void _loadSelectedSensor(){

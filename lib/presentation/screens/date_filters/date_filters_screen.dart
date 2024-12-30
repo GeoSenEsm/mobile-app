@@ -93,40 +93,36 @@ class DateFiltersScreen extends StatelessWidget {
         ]),
         child: Padding(
           padding: const EdgeInsets.all(25),
-          child: Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton(
-                      onPressed: () {
-                        originalFilters.from = null;
-                        originalFilters.to = null;
-                        Get.back();
-                      },
-                      child: Text(getAppLocalizations().clearFilters),
-                    ),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        originalFilters.from = tempFilters.from;
-                        originalFilters.to = tempFilters.to;
-                        Get.back();
-                      },
-                      child: Text(getAppLocalizations().apply),
-                    ),
-                  ),
-                ],
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () {
+                    originalFilters.from = null;
+                    originalFilters.to = null;
+                    Get.back();
+                  },
+                  child: Text(getAppLocalizations().clearFilters),
+                ),
               ),
-            ),
+              const SizedBox(
+                height: 10,
+              ),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    originalFilters.from = tempFilters.from;
+                    originalFilters.to = tempFilters.to;
+                    Get.back();
+                  },
+                  child: Text(getAppLocalizations().apply),
+                ),
+              ),
+            ],
           ),
         ),
       ),
