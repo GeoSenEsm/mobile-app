@@ -79,7 +79,7 @@
     "logout": "Logout",
     "logountConfirmationQuestion": "Are you sure you want to log out? All data that has not been uploaded to the server will be lost.",
     "couldNotLogout": "Could not log out, try again later.",
-    "credentialsExpired": "Your token has expired, reeter passwor.",
+    "credentialsExpired": "Your token has expired, reenter passwor.",
     "profile": "Profile",
     "couldNotReachTheServer": "Failed to send the request, please try again later.",
     "somethingWentWrong": "Something went wrong, please try again later.",
@@ -146,5 +146,6 @@
     "theLocationDataHasNotBeenSubmitedToServer": "This location has not been submited to the server yet",
     "surveyHasBeenComplitedInThisLocation": "There was a survey filled in this location",
     "enterResponse": "Enter response",
-    "kestrelDrop2": "Kestrel Drop 2 sensor"
+    "kestrelDrop2": "Kestrel Drop 2 sensor",
+    "sensorId": "Sensor id"
 }

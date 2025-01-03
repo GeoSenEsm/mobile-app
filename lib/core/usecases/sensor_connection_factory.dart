@@ -10,13 +10,15 @@ class SensorConnectionFactory {
 
   SensorConnectionFactory(this._storage);
 
-  Future<SensorConnection> getSensorConnection(Duration scanningDuration) async {
+  Future<SensorConnection> getSensorConnection(
+      Duration scanningDuration) async {
     final selectedSensor = _storage.read<String>('selectedSensor');
-    if ((await FlutterBluePlus.adapterState.first) != BluetoothAdapterState.on){
+    if ((await FlutterBluePlus.adapterState.first) !=
+        BluetoothAdapterState.on) {
       throw BluetoothTurnedOffException();
     }
 
-    if (selectedSensor == null || selectedSensor == SensorKind.none){
+    if (selectedSensor == null || selectedSensor == SensorKind.none) {
       throw SensorNotSpecifiedExeption();
     }
 
@@ -50,7 +52,7 @@ class SensorConnectionFactory {
       }),
     ]);
 
-    if (device == null){
+    if (device == null) {
       throw SensorNotFoundExcetion();
     }
 
@@ -58,32 +60,40 @@ class SensorConnectionFactory {
     return _getConnectionCore(selectedSensor, device!);
   }
 
-  String _getDeviceName(String sensorKind){
-    if (sensorKind == SensorKind.xiaomi){
+  String _getDeviceName(String sensorKind) {
+    if (sensorKind == SensorKind.xiaomi) {
       return "LYWSD03MMC";
-    } 
-    
+    }
+
     if (sensorKind == SensorKind.kestrelDrop2) {
-      return "Kestrel DROP 2635499";
+      final id = _storage.read<int>('selectedSensorId');
+      if (id == null) {
+        throw SensorNotSpecifiedExeption();
+      }
+      return "Kestrel DROP $id";
     }
 
     throw SensorNotSpecifiedExeption();
   }
 
-  SensorConnection _getConnectionCore(String sensorKind, BluetoothDevice connectedDevice) {
-    if (sensorKind == SensorKind.xiaomi){
-      return XiaomiSensorConnection(connectedDevice); 
+  SensorConnection _getConnectionCore(
+      String sensorKind, BluetoothDevice connectedDevice) {
+    if (sensorKind == SensorKind.xiaomi) {
+      return XiaomiSensorConnection(connectedDevice);
     }
 
     if (sensorKind == SensorKind.kestrelDrop2) {
       return KestrelDrop2Connection(connectedDevice);
     }
-    
+
     throw SensorNotSpecifiedExeption();
   }
 }
 
 class GetSensorConnectionException implements Exception {}
-class SensorNotSpecifiedExeption implements GetSensorConnectionException{}
-class SensorNotFoundExcetion implements GetSensorConnectionException{}
+
+class SensorNotSpecifiedExeption implements GetSensorConnectionException {}
+
+class SensorNotFoundExcetion implements GetSensorConnectionException {}
+
 class BluetoothTurnedOffException implements GetSensorConnectionException {}

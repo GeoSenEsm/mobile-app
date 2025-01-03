@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/get_state_manager/src/simple/get_view.dart';
+import 'package:survey_frontend/data/models/sensor_kind.dart';
+import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/sensors_controller.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -39,6 +43,10 @@ class SensorsScreen extends GetView<SensorsController> {
                       ))
                   .toList(),
             ),
+            const SizedBox(
+              height: 10,
+            ),
+            _buildDeviceDetailsWidget()
           ],
         ),
       )),
@@ -63,5 +71,31 @@ class SensorsScreen extends GetView<SensorsController> {
         ),
       ),
     );
+  }
+
+  Widget _buildDeviceDetailsWidget() {
+    return Obx(() {
+      if (controller.selectedSensor.value == SensorKind.xiaomi ||
+          controller.selectedSensor.value == SensorKind.xiaomi) {
+        return const SizedBox(
+          height: 0,
+        );
+      }
+
+      return TextFormField(
+        keyboardType: const TextInputType.numberWithOptions(signed: true),
+        decoration:
+            InputDecoration(label: Text(getAppLocalizations().sensorId)),
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        initialValue: controller.deviceId.value?.toString(),
+        onChanged: (v) {
+          if (v == '') {
+            controller.deviceId.value = null;
+          } else {
+            controller.deviceId.value = int.parse(v);
+          }
+        },
+      );
+    });
   }
 }

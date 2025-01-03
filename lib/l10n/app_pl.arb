@@ -130,5 +130,6 @@
     "theLocationDataHasNotBeenSubmitedToServer": "Ta lokalizacja nie została jeszcze wysłana na serwer",
     "surveyHasBeenComplitedInThisLocation": "W tym miejscu wupełniono ankietę",
     "enterResponse": "Podaj odpowiedź",
-    "kestrelDrop2": "Czujnik Kestrel Drop 2"
+    "kestrelDrop2": "Czujnik Kestrel Drop 2",
+    "sensorId": "Id sensora"
 }

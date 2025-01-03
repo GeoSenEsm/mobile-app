@@ -8,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SensorsController extends ControllerBase
 {
   final Rx<String> selectedSensor = Rx<String>(SensorKind.none);
+  Rx<int?> deviceId = Rx<int?>(null);
   final GetStorage _storage;
 
   SensorsController(this._storage){
@@ -28,10 +29,12 @@ class SensorsController extends ControllerBase
 
   void _loadSelectedSensor(){
     selectedSensor.value = _storage.read("selectedSensor") ?? SensorKind.none;
+    deviceId.value = _storage.read("selectedSensorId");
   }
 
   void saveSelectedSensor(){
     _storage.write("selectedSensor", selectedSensor.value);
+    _storage.write('selectedSensorId', deviceId.value);
     Get.offAllNamed('/home');
   }
 }
