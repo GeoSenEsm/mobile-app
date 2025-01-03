@@ -39,7 +39,7 @@ class LocationDetailsScreen extends StatelessWidget {
                 readOnly: true,
                 decoration:
                     InputDecoration(label: Text(getAppLocalizations().date)),
-                initialValue: dateOnlyShortFormat(model.dateTime),
+                initialValue: dateOnlyShortFormat(model.dateTime.toLocal()),
               ),
               const SizedBox(
                 height: 10,
@@ -48,7 +48,7 @@ class LocationDetailsScreen extends StatelessWidget {
                 readOnly: true,
                 decoration:
                     InputDecoration(label: Text(getAppLocalizations().time)),
-                initialValue: timeOnlyShortFormat(model.dateTime),
+                initialValue: timeOnlyShortFormat(model.dateTime.toLocal()),
               ),
               const SizedBox(
                 height: 10,
