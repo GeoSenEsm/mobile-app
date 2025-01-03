@@ -1,25 +1,28 @@
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/domain/models/initial_survey_question.dart';
+import 'package:survey_frontend/domain/usecases/token_provider.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileController extends ControllerBase {
-  final Map<String, dynamic> respondentData;
+  late Map<String, dynamic> respondentData;
   late List<InitialSurveyQuestion> initialSurveyQuestions;
+  final TokenProvider _tokenProvider;
 
-  ProfileController(GetStorage storage)
-  //TODO: crashes, where there is no initial survey
-      : respondentData = storage.read("respondentData")! {
-    initialSurveyQuestions = (storage
-        .read<List<dynamic>>('initialSurvey') ?? [])
-        .map((e){
-          if (e.runtimeType != InitialSurveyQuestion){
-            return InitialSurveyQuestion.fromJson(e);
-          }
-          return e as InitialSurveyQuestion;
-        })
-        .toList();
+  ProfileController(GetStorage storage, this._tokenProvider) {
+    final respondentFromStorage =
+        storage.read<Map<String, dynamic>>("respondentData");
+
+    respondentData = respondentFromStorage ??
+        {'id': 'unknown', 'username': _tokenProvider.getUsername()};
+    initialSurveyQuestions =
+        (storage.read<List<dynamic>>('initialSurvey') ?? []).map((e) {
+      if (e.runtimeType != InitialSurveyQuestion) {
+        return InitialSurveyQuestion.fromJson(e);
+      }
+      return e as InitialSurveyQuestion;
+    }).toList();
   }
 
   String getLabelFormIndex(int index) {
