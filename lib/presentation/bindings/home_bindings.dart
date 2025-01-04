@@ -15,6 +15,6 @@ class HomeBindings extends Bindings {
     Get.lazyPut<CreateQuestionAnswerDtoFactory>(
         () => CreateQuestionAnswerDtoFactoryImpl());
     Get.lazyPut<HomeController>(() => HomeController(Get.find(), Get.find(),
-        Get.find(), Get.find(), Get.find(), Get.find(), Get.find()));
+        Get.find(), Get.find(), Get.find(), Get.find(), Get.find(), Get.find()));
   }
 }

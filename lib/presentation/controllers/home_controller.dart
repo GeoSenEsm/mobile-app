@@ -1,24 +1,25 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
-import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
+import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
-import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
 import 'package:survey_frontend/domain/models/visibility_type.dart';
+import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
@@ -36,6 +37,7 @@ class HomeController extends ControllerBase {
   final RxInt hoursLeft = 0.obs;
   final RxInt minutesLeft = 0.obs;
   bool _isBusy = false;
+  final GetStorage _storage;
 
   HomeController(
       this._homeService,
@@ -44,7 +46,8 @@ class HomeController extends ControllerBase {
       this._databaseHelper,
       this._surveyNotificationUseCase,
       this._surveyImagesUseCase,
-      this._submitSurveyUsecase);
+      this._submitSurveyUsecase,
+      this._storage);
 
   Future<void> refreshData() async {
     if (_isBusy) {
@@ -102,7 +105,7 @@ class HomeController extends ControllerBase {
 
     try {
       _isBusy = true;
-      if (!await isLocationWorking()) {
+      if (!await isLocationWorking() || !await isBluetoothWorking()) {
         return;
       }
       final futures = [
@@ -159,6 +162,20 @@ class HomeController extends ControllerBase {
         return false;
       }
     }
+    return true;
+  }
+
+  Future<bool> isBluetoothWorking() async {
+    final selectedSensor = _storage.read('selectedSensor');
+    if (selectedSensor == null || selectedSensor == SensorKind.none){
+      return true;
+    }
+    final state = await FlutterBluePlus.adapterState.first;
+    if (state != BluetoothAdapterState.on){
+      popup(getAppLocalizations().bluetooth, getAppLocalizations().bluetoothRequired);
+      return false;
+    }
+
     return true;
   }
 

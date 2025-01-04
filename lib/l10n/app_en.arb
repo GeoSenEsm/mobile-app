@@ -148,5 +148,7 @@
     "enterResponse": "Enter response",
     "kestrelDrop2": "Kestrel Drop 2 sensor",
     "sensorId": "Sensor id",
-    "serverNotResponding": "Server is not responding. Make sure, you have provided a correct API url. If so, try again later."
+    "serverNotResponding": "Server is not responding. Make sure, you have provided a correct API url. If so, try again later.",
+    "bluetoothRequired": "Turn on bluetooth, to complete the survey.",
+    "bluetooth": "Bluetooth"
 }

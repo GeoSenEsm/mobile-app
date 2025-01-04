@@ -132,5 +132,7 @@
     "enterResponse": "Podaj odpowiedź",
     "kestrelDrop2": "Czujnik Kestrel Drop 2",
     "sensorId": "Id sensora",
-    "serverNotResponding": "Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później."
+    "serverNotResponding": "Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później.",
+    "bluetoothRequired": "Włącz bluetooth, aby wypełnić ankietę.",
+    "bluetooth": "Bluetooth"
 }
