@@ -76,7 +76,7 @@ class SensorsScreen extends GetView<SensorsController> {
   Widget _buildDeviceDetailsWidget() {
     return Obx(() {
       if (controller.selectedSensor.value == SensorKind.xiaomi ||
-          controller.selectedSensor.value == SensorKind.xiaomi) {
+          controller.selectedSensor.value == SensorKind.none) {
         return const SizedBox(
           height: 0,
         );

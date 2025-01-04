@@ -111,6 +111,8 @@ class DatabaseHelper {
         rowVersion INTEGER
       )
     ''');
+
+    _onUpgrade(db, 0, version);
   }
 
   FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {

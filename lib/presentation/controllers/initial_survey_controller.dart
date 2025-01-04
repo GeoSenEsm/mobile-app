@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
@@ -14,18 +13,17 @@ class InitialSurveyController extends ControllerBase {
   late RxList<InitialSurveyQuestion> questions;
   late Map<String, InitialSurveyQuestionResponse> responsesIdMappings;
   bool get isLastStartSurveyScreen => questionIndexTo == questions.length - 1;
-  final formKey = GlobalKey<FormState>();
   final InitialSurveyService _service;
   final NeedInsertRespondentDataUseCase _needInsertRespondentDataUseCase;
   final GetStorage _storage;
+  final numberOfQuestionOnOneScreen = 1;
+  final Rx<bool> showRequiredErrorMessage = false.obs;
 
-  InitialSurveyController(this._service, this._needInsertRespondentDataUseCase, this._storage);
+  InitialSurveyController(
+      this._service, this._needInsertRespondentDataUseCase, this._storage);
 
   void next() async {
-    final isValid = formKey.currentState!.validate();
-    Get.focusScope!.unfocus();
-
-    if (!isValid) {
+    if (!validate()) {
       return;
     }
 
@@ -36,13 +34,24 @@ class InitialSurveyController extends ControllerBase {
     }
   }
 
+  bool validate() {
+    final valid = questions
+        .skip(questionIndexFrom)
+        .take(numberOfQuestionOnOneScreen)
+        .every((e) => responsesIdMappings[e.id]!.optionId != null);
+
+    showRequiredErrorMessage.value = !valid;
+    return valid;
+  }
+
   Future submit() async {
     try {
       final result = await _service.submit(responsesIdMappings.values.toList());
 
       if (result.error == null && result.statusCode == 201) {
         _needInsertRespondentDataUseCase.needInsertRespondentData();
-        _storage.write('initialSurvey', questions.map((e) => e.toJson()).toList());
+        _storage.write(
+            'initialSurvey', questions.map((e) => e.toJson()).toList());
         await Get.offAllNamed(Routes.sensors);
       } else {
         handleSomethingWentWrong(result.error);
@@ -59,9 +68,10 @@ class InitialSurveyController extends ControllerBase {
           "questions": questions,
           "responsesIdMappings": responsesIdMappings,
           "questionIndexFrom": questionIndexTo + 1,
-          "questionIndexTo": questions.length - questionIndexTo - 1 < 5
+          "questionIndexTo": questions.length - questionIndexTo - 1 <
+                  numberOfQuestionOnOneScreen
               ? questions.length - 1
-              : questionIndexTo + 5
+              : questionIndexTo + numberOfQuestionOnOneScreen
         },
         preventDuplicates: false);
   }
