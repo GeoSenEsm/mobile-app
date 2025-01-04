@@ -1,3 +1,4 @@
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
@@ -38,7 +39,7 @@ class SurveyEndController extends ControllerBase {
       _saveLocation(participation?.id);
       _submitSensorData();
 
-      await _databaseHelper.removeSurveyTimeSlot(dto.surveyId);
+      await _databaseHelper.markAsSubmited(dto.surveyId);
       await Get.offAllNamed(
         "/home",
       );
@@ -86,12 +87,25 @@ class SurveyEndController extends ControllerBase {
   }
 
   void _clearDto() {
+    for (final answer in dto.answers) {
+      if (answer.selectedOptions == null){
+        continue;
+      }
+
+      for (int i = 0; i < answer.selectedOptions!.length; i++){
+        if (answer.selectedOptions![i].optionId == null){
+          answer.selectedOptions!.removeAt(i);
+          i--;
+        }
+      }
+    }
+
     dto.answers = dto.answers.where((e) {
       //TODO: extend this, when we have a new text input question type
       return e.yesNoAnswer != null ||
           e.numericAnswer != null ||
           e.textAnswer != null ||
-          (e.selectedOptions != null &&
+          (e.selectedOptions != null && e.selectedOptions!.length > 0 &&
               e.selectedOptions!.every((e) => e.optionId != null));
     }).toList();
   }

@@ -81,13 +81,15 @@ class HomeController extends ControllerBase {
         await _homeService.getSurveysWithTimeSlots();
 
     if (response.error != null ||
-        response.statusCode != 200 ||
-        response.body!.isEmpty) {
+        response.statusCode != 200) {
       return;
     }
-    await _surveyImagesUseCase.saveImages(response.body!);
     await _databaseHelper.clearAllSurveysRelatedTables();
-    await _databaseHelper.upsertSurveys(response.body!);
+
+    if (response.body!.isNotEmpty){
+      await _surveyImagesUseCase.saveImages(response.body!);
+      await _databaseHelper.upsertSurveys(response.body!);
+    }
   }
 
   bool hasTimeSlotForToday(SurveyWithTimeSlots survey) {

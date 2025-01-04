@@ -37,7 +37,7 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'survey_database.db');
     return await openDatabase(path,
-        version: 3, onCreate: _onCreate, onUpgrade: _onUpgrade);
+        version: 4, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -138,6 +138,15 @@ class DatabaseHelper {
       sentToServer BIT)
       ''');
     }
+
+    if (oldVersion < 4) {
+      await db.execute('''
+      ALTER TABLE timeSlots ADD COLUMN submited BIT;
+      ''');
+      await db.execute('''
+      ALTER TABLE timeSlots ADD COLUMN surveyName TEXT;
+      ''');
+    }
   }
 
   Future<void> upsertSurveys(
@@ -166,7 +175,8 @@ class DatabaseHelper {
                 'surveyId': surveyWithTimeSlots.survey.id,
                 'start': timeSlot.start.toIso8601String(),
                 'finish': timeSlot.finish.toIso8601String(),
-                'rowVersion': timeSlot.rowVersion
+                'rowVersion': timeSlot.rowVersion,
+                'surveyName': surveyWithTimeSlots.survey.name
               },
               conflictAlgorithm: ConflictAlgorithm.replace);
 
@@ -294,7 +304,7 @@ class DatabaseHelper {
         timeSlots.finish
         FROM surveys
         JOIN timeSlots ON timeSlots.surveyId = surveys.id
-        WHERE timeSlots.finish > ?
+        WHERE timeSlots.finish > ? AND (timeSlots.submited = 0 OR timeSlots.submited IS NULL)
         ''', [currentDate]);
 
     return surveyMaps.map((e) {
@@ -306,17 +316,18 @@ class DatabaseHelper {
     }).toList();
   }
 
-  Future removeSurveyTimeSlot(String id) async {
+  Future markAsSubmited(String id) async {
     final db = await database;
     final String currentDate = DateTime.now().toUtc().toIso8601String();
-    await db.delete('timeSlots',
+    await db.update('timeSlots', {'submited': 1, 'surveyId': null},
         where: 'surveyId = ? and start <= ? and finish >= ?',
         whereArgs: [id, currentDate, currentDate]);
   }
 
   Future<void> clearAllSurveysRelatedTables() async {
     final db = await database;
-    await db.delete('timeSlots');
+    final now = DateTime.now().toUtc().toIso8601String();
+    await db.delete('timeSlots', where: 'finish >= ? AND (submited = 0 OR submited IS NULL)', whereArgs: [now]);
     await db.delete('surveys');
     await db.delete('sections');
     await db.delete('questions');
@@ -328,6 +339,8 @@ class DatabaseHelper {
     await clearAllSurveysRelatedTables();
     final db = await database;
     await db.delete('sensor_data');
+    await db.delete('timeSlots');
+    await db.delete('locations');
   }
 
   Future<void> clearTable(String tableName) async {
@@ -431,25 +444,24 @@ class DatabaseHelper {
 
   Future<List<SurveyCalendarEvent>> getCalendarEvents() async {
     final db = await database;
-    final currentDate = DateTime.now().toUtc().toIso8601String();
 
     const String command = '''
     SELECT timeSlots.id as timeSlotId, 
     timeSlots.start as "from", 
     timeSlots.finish as "to", 
-    surveys.name as name
+    timeSlots.surveyName as "name",
+    submited
     FROM timeSlots
-    JOIN surveys on timeSlots.surveyId = surveys.id
-    WHERE timeSlots.finish > ?
     ''';
-    final result = await db.rawQuery(command, [currentDate]);
+    final result = await db.rawQuery(command);
 
     return result
         .map((e) => SurveyCalendarEvent(
             surveyName: e['name'] as String,
             timeSlotId: e['timeSlotId'] as String,
             from: DateTime.parse(e['from'] as String),
-            to: DateTime.parse(e['to'] as String)))
+            to: DateTime.parse(e['to'] as String),
+            submited: e['submited'] == 1))
         .toList();
   }
 
@@ -584,11 +596,11 @@ class DatabaseHelper {
 
   Future<void> updateParticipations(
       List<UpadteLocationParticipation> updates) async {
-        final db = await database;
-        for (final update in updates) {
-          await db.update('locations', {
-            'surveyParticipationId': update.surveyParticipationId
-          }, where: 'id = ?', whereArgs: [update.id]);
-        }
-      }
+    final db = await database;
+    for (final update in updates) {
+      await db.update(
+          'locations', {'surveyParticipationId': update.surveyParticipationId},
+          where: 'id = ?', whereArgs: [update.id]);
+    }
+  }
 }

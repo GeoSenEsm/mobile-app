@@ -13,7 +13,7 @@ class EventTile extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
             borderRadius: const BorderRadius.all(Radius.circular(8)),
-            color: Theme.of(context).cardColor),
+            color: _getTileColor(context)),
         child: Center(
           child: Text(
             calendarEvent.surveyName,
@@ -24,5 +24,18 @@ class EventTile extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Color _getTileColor(BuildContext context){
+    if (calendarEvent.submited) {
+      return Colors.green;
+    }
+
+    final now = DateTime.now().toUtc();
+    if (calendarEvent.to.isBefore(now)){
+      return Colors.red;
+    }
+
+    return Theme.of(context).cardColor;
   }
 }
