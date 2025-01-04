@@ -27,7 +27,7 @@ class SensorConnectionFactory {
     BluetoothDevice? device;
     FlutterBluePlus.scanResults.listen((results) async {
       for (final result in results) {
-        if (result.device.platformName == deviceName) {
+        if (result.device.platformName == deviceName || result.device.advName == deviceName) {
           FlutterBluePlus.stopScan();
           if (!completer.isCompleted) {
             device = result.device;
@@ -70,7 +70,7 @@ class SensorConnectionFactory {
       if (id == null) {
         throw SensorNotSpecifiedExeption();
       }
-      return "Kestrel DROP $id";
+      return "D2 - $id";
     }
 
     throw SensorNotSpecifiedExeption();
