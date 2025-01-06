@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/presentation/functions/formatters.dart';
 

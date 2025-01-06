@@ -142,13 +142,14 @@
     "latidude": "Latitude",
     "longitude": "Longitude",
     "time": "Time",
-    "theLocationDataHasBeenSubmitedToServer": "This location has already been submited to the server",
-    "theLocationDataHasNotBeenSubmitedToServer": "This location has not been submited to the server yet",
+    "theLocationDataHasBeenSubmitedToServer": "This location has already been submitted to the server",
+    "theLocationDataHasNotBeenSubmitedToServer": "This location has not been submitted to the server yet",
     "surveyHasBeenComplitedInThisLocation": "There was a survey filled in this location",
     "enterResponse": "Enter response",
     "kestrelDrop2": "Kestrel Drop 2 sensor",
     "sensorId": "Sensor id",
     "serverNotResponding": "Server is not responding. Make sure, you have provided a correct API url. If so, try again later.",
     "bluetoothRequired": "Turn on bluetooth, to complete the survey.",
-    "bluetooth": "Bluetooth"
+    "bluetooth": "Bluetooth",
+    "surveyFinished": "The survey has finished. You can't complete it anymore."
 }

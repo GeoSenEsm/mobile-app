@@ -120,7 +120,7 @@
     "temperature": "Temperatura",
     "humidity": "Wilgotność",
     "sentToServer": "Przesłano na serwer",
-    "men": "Menu",
+    "menu": "Menu",
     "map": "Mapa",
     "today": "Dzisiaj",
     "latidude": "Szerokość geograficzna",
@@ -128,11 +128,12 @@
     "time": "Czas",
     "theLocationDataHasBeenSubmitedToServer": "Ta lokalizacja została wysłana na serwer",
     "theLocationDataHasNotBeenSubmitedToServer": "Ta lokalizacja nie została jeszcze wysłana na serwer",
-    "surveyHasBeenComplitedInThisLocation": "W tym miejscu wupełniono ankietę",
+    "surveyHasBeenComplitedInThisLocation": "W tym miejscu wypełniono ankietę",
     "enterResponse": "Podaj odpowiedź",
     "kestrelDrop2": "Czujnik Kestrel Drop 2",
     "sensorId": "Id sensora",
     "serverNotResponding": "Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później.",
     "bluetoothRequired": "Włącz bluetooth, aby wypełnić ankietę.",
-    "bluetooth": "Bluetooth"
+    "bluetooth": "Bluetooth",
+    "surveyFinished": "Ankieta zakończyła się. Nie można jej już wypełnić."
 }

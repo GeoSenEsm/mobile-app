@@ -69,9 +69,6 @@ class SurveyEndController extends ControllerBase {
   Future<void> _saveLocation(String? surveyParticipationId) async {
     try {
       final location = await localizationData;
-      if (location == null) {
-        return;
-      }
 
       final model = LocationModel(
           dateTime: DateTime.parse(dto.startDate),
@@ -105,7 +102,7 @@ class SurveyEndController extends ControllerBase {
       return e.yesNoAnswer != null ||
           e.numericAnswer != null ||
           e.textAnswer != null ||
-          (e.selectedOptions != null && e.selectedOptions!.length > 0 &&
+          (e.selectedOptions != null && e.selectedOptions!.isNotEmpty &&
               e.selectedOptions!.every((e) => e.optionId != null));
     }).toList();
   }

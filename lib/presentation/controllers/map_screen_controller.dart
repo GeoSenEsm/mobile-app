@@ -79,11 +79,9 @@ class MapScreenController extends ControllerBase {
 
   Future<void> _centerToCurrentPosition() async {
     final currentPosition = await Geolocator.getCurrentPosition();
-    if (currentPosition != null) {
-      mapController.move(
-          LatLng(currentPosition.latitude, currentPosition.longitude), 14);
+    mapController.move(
+        LatLng(currentPosition.latitude, currentPosition.longitude), 14);
     }
-  }
 
   void openFilters() {
     Get.to(DateFiltersScreen(originalFilters: filters));

@@ -14,6 +14,7 @@ import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
+import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
@@ -47,7 +48,15 @@ class HomeController extends ControllerBase {
       this._surveyNotificationUseCase,
       this._surveyImagesUseCase,
       this._submitSurveyUsecase,
-      this._storage);
+      this._storage) {
+    listenToNotifications();
+  }
+
+  listenToNotifications() {
+    NotificationService.onClickNotification.listen((event) {
+      startCompletingSurvey(event);
+    });
+  }
 
   Future<void> refreshData() async {
     if (_isBusy) {
@@ -80,13 +89,12 @@ class HomeController extends ControllerBase {
     APIResponse<List<SurveyWithTimeSlots>> response =
         await _homeService.getSurveysWithTimeSlots();
 
-    if (response.error != null ||
-        response.statusCode != 200) {
+    if (response.error != null || response.statusCode != 200) {
       return;
     }
     await _databaseHelper.clearAllSurveysRelatedTables();
 
-    if (response.body!.isNotEmpty){
+    if (response.body!.isNotEmpty) {
       await _surveyImagesUseCase.saveImages(response.body!);
       await _databaseHelper.upsertSurveys(response.body!);
     }
@@ -106,6 +114,24 @@ class HomeController extends ControllerBase {
     }
 
     try {
+      // TODO check if survey still active
+
+      final shortSurveyInfo =
+          pendingSurveys.firstWhereOrNull((element) => element.id == surveyId);
+
+      if (shortSurveyInfo == null) {
+        await popup(AppLocalizations.of(Get.context!)!.error,
+            AppLocalizations.of(Get.context!)!.loadingSurveyError);
+        return;
+      }
+
+      if (shortSurveyInfo.finishTime.toLocal().isBefore(DateTime.now())) {
+        await popup(AppLocalizations.of(Get.context!)!.error,
+            AppLocalizations.of(Get.context!)!.surveyFinished);
+        refreshData();
+        return;
+      }
+
       _isBusy = true;
       if (!await isLocationWorking() || !await isBluetoothWorking()) {
         return;
@@ -169,12 +195,13 @@ class HomeController extends ControllerBase {
 
   Future<bool> isBluetoothWorking() async {
     final selectedSensor = _storage.read('selectedSensor');
-    if (selectedSensor == null || selectedSensor == SensorKind.none){
+    if (selectedSensor == null || selectedSensor == SensorKind.none) {
       return true;
     }
     final state = await FlutterBluePlus.adapterState.first;
-    if (state != BluetoothAdapterState.on){
-      popup(getAppLocalizations().bluetooth, getAppLocalizations().bluetoothRequired);
+    if (state != BluetoothAdapterState.on) {
+      popup(getAppLocalizations().bluetooth,
+          getAppLocalizations().bluetoothRequired);
       return false;
     }
 
@@ -233,17 +260,20 @@ class HomeController extends ControllerBase {
     }
 
     final now = DateTime.now().toUtc();
-    final mostUrgentSurveyDuration = mostUrgentSurvey.finishTime.difference(now);
+    final mostUrgentSurveyDuration =
+        mostUrgentSurvey.finishTime.difference(now);
     hoursLeft.value = mostUrgentSurveyDuration.inHours;
-    minutesLeft.value = mostUrgentSurveyDuration.inMinutes - hoursLeft.value * 60;
+    minutesLeft.value =
+        mostUrgentSurveyDuration.inMinutes - hoursLeft.value * 60;
   }
 
-  SurveyShortInfo? _getMostUrgentSurvey(){
+  SurveyShortInfo? _getMostUrgentSurvey() {
     if (pendingSurveys.isEmpty) {
       return null;
     }
 
-    return pendingSurveys.reduce((a, b) => a.finishTime.isBefore(b.finishTime) ? a : b);
+    return pendingSurveys
+        .reduce((a, b) => a.finishTime.isBefore(b.finishTime) ? a : b);
   }
 
   void openSettings() {

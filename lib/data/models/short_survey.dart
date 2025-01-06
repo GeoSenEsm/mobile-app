@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:path/path.dart';
 import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -18,23 +17,12 @@ class SurveyShortInfo {
     // TODO: nice if it will take a user to the survey immediately
     const timeBeforeFinish = 15;
 
-    // this code is making a unique value for notification id
-    const timeResidue = (Duration.minutesPerDay * 2 * 30); // 2 months
-    final hashID = hash(id).toUnsigned(12).toInt();
-
-    final startIDTimeComponent =
-        startTime.millisecondsSinceEpoch.milliseconds.inMinutes % timeResidue;
-    final startID = int.parse("$startIDTimeComponent${hashID}0").toSigned(32);
-
-    final finishIDTimeComponent =
-        finishTime.millisecondsSinceEpoch.milliseconds.inMinutes % timeResidue;
-    final finishID = int.parse("$finishIDTimeComponent${hashID}1").toSigned(32);
-
     NotificationService.scheduleNotification(
         startTime.toLocal(),
-        startID,
+        getSurveyNotificationID(id, startTime),
         AppLocalizations.of(Get.context!)!.surveyStartTitle,
-        AppLocalizations.of(Get.context!)!.surveyStartBody);
+        AppLocalizations.of(Get.context!)!.surveyStartBody,
+        id);
 
     if (finishTime
         .subtract(const Duration(minutes: timeBeforeFinish))
@@ -45,8 +33,9 @@ class SurveyShortInfo {
         finishTime
             .toLocal()
             .subtract(const Duration(minutes: timeBeforeFinish)),
-        finishID,
+        getSurveyNotificationID(id, finishTime),
         AppLocalizations.of(Get.context!)!.surveyFinishTitle,
-        AppLocalizations.of(Get.context!)!.surveyFinishBody);
+        AppLocalizations.of(Get.context!)!.surveyFinishBody,
+        id);
   }
 }

@@ -1,14 +1,11 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
-import 'package:survey_frontend/data/models/location_with_pending_survey_participation.dart';
 import 'package:survey_frontend/data/models/upadte_location_participation.dart';
 import 'package:survey_frontend/domain/external_services/survey_response_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
-import 'package:survey_frontend/main.dart';
 
 abstract class SubmitSurveyUsecase {
   Future<SurveyParticipationDto?> submitSurvey(CreateSurveyResponseDto dto);

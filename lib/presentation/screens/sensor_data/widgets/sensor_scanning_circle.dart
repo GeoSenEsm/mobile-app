@@ -17,7 +17,7 @@ class _SensorScanningCircleState extends State<SensorScanningCircle>
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: Duration(seconds: 2),
+      duration: const Duration(seconds: 2),
       vsync: this,
     )..repeat();
 
