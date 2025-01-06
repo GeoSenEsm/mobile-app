@@ -21,7 +21,6 @@ class _TextInputTypeQuestionState extends State<TextInputTypeQuestion> {
       maxLength: 150,
       autovalidateMode: AutovalidateMode.onUserInteraction,
       decoration: InputDecoration(labelText: getAppLocalizations().enterResponse),
-      keyboardType: const TextInputType.numberWithOptions(signed: true),
       validator: (value) {
         if (value == null) {
           return getAppLocalizations().valueNotEmpty;
