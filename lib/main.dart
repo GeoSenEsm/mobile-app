@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:background_fetch/background_fetch.dart';
 import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/material.dart';
@@ -183,16 +185,16 @@ Future<BindingOptions> _getBindingOptions() async {
       locationAlwaysGranted: await Permission.locationAlways.status.isGranted);
 }
 
-Future<String> _getCurrentLocale() async {
-  final fullLocale = await Devicelocale.currentLocale;
-  var locale = fullLocale!.split('-')[0];
+Future<String> _getCurrentLocale() {
+  final fullLocale = Platform.localeName;
+  var locale = fullLocale.split('_')[0];
   List<String> supportedLocalesCodes = AppLocalizations.supportedLocales
       .map((locale) => locale.languageCode)
       .toList();
   if (!supportedLocalesCodes.contains(locale)) {
     locale = 'en';
   }
-  return locale;
+  return Future.value(locale);
 }
 
 Future<void> prepareWorkManager() async {
