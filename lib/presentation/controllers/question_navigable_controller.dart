@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
+import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/controllers/home_controller.dart';
@@ -16,6 +17,7 @@ class QuestionNavigableController extends ControllerBase {
   late List<String?> groupsIds;
   late Map<int, int> triggerableSectionActivationsCounts;
   late Future<LocalizationData> localizationData;
+  late Future<SensorData?> futureSensorData;
 
   void navigateToNextQuestion(QuestionNavigationMode mode) async {
     if (isBusy) {
@@ -34,7 +36,8 @@ class QuestionNavigableController extends ControllerBase {
       if (nextQuestionIndex == -1) {
         await Get.toNamed('/submitSurvey', arguments: {
           'responseModel': responseModel,
-          "localizationData": localizationData
+          "localizationData": localizationData,
+          "futureSensorData": futureSensorData
         });
         return;
       }
@@ -51,7 +54,8 @@ class QuestionNavigableController extends ControllerBase {
         "groups": groupsIds,
         "triggerableSectionActivationsCounts":
             triggerableSectionActivationsCounts,
-        "localizationData": localizationData
+        "localizationData": localizationData,
+        "futureSensorData": futureSensorData
       };
 
       if (mode == QuestionNavigationMode.top) {
@@ -116,6 +120,7 @@ class QuestionNavigableController extends ControllerBase {
     triggerableSectionActivationsCounts =
         Get.arguments['triggerableSectionActivationsCounts'];
     localizationData = Get.arguments['localizationData'];
+    futureSensorData = Get.arguments['futureSensorData'];
   }
 }
 

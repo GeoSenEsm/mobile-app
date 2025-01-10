@@ -7,6 +7,7 @@ import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
+import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 class SurveyEndController extends ControllerBase {
   late CreateSurveyResponseDto dto;
   late Future<LocalizationData> localizationData;
+  late Future<SensorData?> futureSensorData;
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final DatabaseHelper _databaseHelper;
   final SubmitSurveyUsecase _submitSurveyUsecase;
@@ -36,7 +38,6 @@ class SurveyEndController extends ControllerBase {
       final participation = await _submitToServer();
       //no need to await, let's do it in background
       _saveLocation(participation?.id);
-      _submitSensorData();
 
       await _databaseHelper.markAsSubmited(dto.surveyId);
       await Get.offAllNamed(
@@ -53,6 +54,8 @@ class SurveyEndController extends ControllerBase {
 
   Future<SurveyParticipationDto?> _submitToServer() async {
     try {
+      final sensorData = await futureSensorData;
+      dto.sensorData = sensorData;
       _clearDto();
       dto.finishDate = DateTime.now().toUtc().toIso8601String();
       final participation = _submitSurveyUsecase.submitSurvey(dto);
@@ -117,5 +120,6 @@ class SurveyEndController extends ControllerBase {
   void readGetArgs() {
     dto = Get.arguments['responseModel'];
     localizationData = Get.arguments['localizationData'];
+    futureSensorData = Get.arguments['futureSensorData'];
   }
 }

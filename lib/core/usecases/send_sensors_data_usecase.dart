@@ -10,6 +10,7 @@ import 'package:survey_frontend/domain/models/sensor_data.dart';
 abstract class SendSensorsDataUsecase {
   Future<bool> readAndSendSensorData();
   Future<bool> sendSensorData(SensorsResponse? sensorResponse);
+  Future<SensorData?> readSensorData();
 }
 
 class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
@@ -70,6 +71,24 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
     } catch (e) {
       Sentry.captureException(e);
       return false;
+    }
+  }
+
+  @override
+  Future<SensorData?> readSensorData() async {
+    try {
+      final sensorConnection = await _sensorConnectionFactory
+          .getSensorConnection(const Duration(seconds: 30));
+      final response = await sensorConnection.getSensorData();
+      return SensorData(
+          dateTime: DateTime.now().toUtc().toIso8601String(),
+          temperature: response.temperature,
+          humidity: response.humidity);
+    } on GetSensorConnectionException catch (_) {
+      return null;
+    } catch (e) {
+      Sentry.captureException(e);
+      return null;
     }
   }
 }

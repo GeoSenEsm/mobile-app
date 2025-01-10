@@ -6,6 +6,7 @@ import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
+import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
@@ -39,6 +40,7 @@ class HomeController extends ControllerBase {
   final RxInt minutesLeft = 0.obs;
   bool _isBusy = false;
   final GetStorage _storage;
+  final SendSensorsDataUsecase _sendSensorsDataUsecase;
 
   HomeController(
       this._homeService,
@@ -48,7 +50,8 @@ class HomeController extends ControllerBase {
       this._surveyNotificationUseCase,
       this._surveyImagesUseCase,
       this._submitSurveyUsecase,
-      this._storage) {
+      this._storage,
+      this._sendSensorsDataUsecase) {
     listenToNotifications();
   }
 
@@ -152,6 +155,7 @@ class HomeController extends ControllerBase {
       final questions = _getQuestionsFromSurvey(survey);
       final responseModel = _prepareResponseModel(questions, survey.id);
       final futureLocalizationData = _getCurrentLocation();
+      final futureSensorData = _sendSensorsDataUsecase.readSensorData();
       final triggerableSectionActivationsCounts =
           _getTriggerableSectionActivationsCounts(survey);
       await Get.toNamed("/surveystart", arguments: {
@@ -161,7 +165,8 @@ class HomeController extends ControllerBase {
         "groups": respondentGroups,
         "triggerableSectionActivationsCounts":
             triggerableSectionActivationsCounts,
-        "localizationData": futureLocalizationData
+        "localizationData": futureLocalizationData,
+        "futureSensorData": futureSensorData
       });
     } catch (e) {
       await popup(AppLocalizations.of(Get.context!)!.error,
@@ -230,7 +235,8 @@ class HomeController extends ControllerBase {
     return CreateSurveyResponseDto(
         surveyId: surveyId,
         startDate: DateTime.now().toUtc().toIso8601String(),
-        answers: questionAnswerDtos);
+        answers: questionAnswerDtos,
+        sensorData: null);
   }
 
   Map<int, int> _getTriggerableSectionActivationsCounts(SurveyDto survey) {

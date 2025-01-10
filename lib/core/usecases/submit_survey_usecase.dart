@@ -2,9 +2,11 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
+import 'package:survey_frontend/data/models/sensor_data_model.dart';
 import 'package:survey_frontend/data/models/upadte_location_participation.dart';
 import 'package:survey_frontend/domain/external_services/survey_response_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
+import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
 
 abstract class SubmitSurveyUsecase {
@@ -61,11 +63,26 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
       CreateSurveyResponseDto dto) async {
     final apiResponse = await _surveyResponseService.submitResponse(dto);
     if (apiResponse.statusCode == 201) {
+      await _saveSensorDataLocally([dto.sensorData]);
       return apiResponse.body;
     }
 
     await _saveLocally(dto);
     return null;
+  }
+
+  Future<void> _saveSensorDataLocally(List<SensorData?> sensorData) async {
+    final models = sensorData
+        .where((d) => d != null)
+        .map((d) => SensorDataModel(
+            dateTime: DateTime.parse(d!.dateTime),
+            temperature: d.temperature,
+            humidity: d.humidity,
+            sentToServer: true))
+        .toList();
+    for (final model in models) {
+      _databaseHelper.addSensorData(model);
+    }
   }
 
   @override
@@ -84,6 +101,7 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
         await _surveyResponseService.submitResponses(currentlySaved);
     if (apiResponse.statusCode == 201) {
       await _storage.remove('savedResponses');
+      await _saveSensorDataLocally(currentlySaved.map((e) => e.sensorData).toList());
       await _updateLocations(apiResponse.body!);
       return true;
     }
