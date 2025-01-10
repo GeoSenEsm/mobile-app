@@ -79,7 +79,7 @@
     "logout": "Logout",
     "logountConfirmationQuestion": "Are you sure you want to log out? All data that has not been uploaded to the server will be lost.",
     "couldNotLogout": "Could not log out, try again later.",
-    "credentialsExpired": "Your token has expired, reenter passwor.",
+    "credentialsExpired": "Your token has expired, reenter password.",
     "profile": "Profile",
     "couldNotReachTheServer": "Failed to send the request, please try again later.",
     "somethingWentWrong": "Something went wrong, please try again later.",
@@ -151,5 +151,8 @@
     "serverNotResponding": "Server is not responding. Make sure, you have provided a correct API url. If so, try again later.",
     "bluetoothRequired": "Turn on bluetooth, to complete the survey.",
     "bluetooth": "Bluetooth",
-    "surveyFinished": "The survey has finished. You can't complete it anymore."
+    "surveyFinished": "The survey has finished. You can't complete it anymore.",
+    "sensorMac": "Sensor's MAC adres",
+    "sensorIdServerNotFound": "Sensor id not found on the server",
+    "loadingMacFailed": "Could not load MAC address"
 }

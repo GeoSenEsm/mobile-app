@@ -1,4 +1,3 @@
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';

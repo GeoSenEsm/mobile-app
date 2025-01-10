@@ -19,15 +19,22 @@ class SensorConnectionFactory {
     }
 
     if (selectedSensor == null || selectedSensor == SensorKind.none) {
-      throw SensorNotSpecifiedExeption();
+      throw SensorNotSpecifiedException();
     }
 
     final String deviceName = _getDeviceName(selectedSensor);
+    final String? xiaomiMac = _storage.read('xiaomiMac');
     Completer<void> completer = Completer<void>();
     BluetoothDevice? device;
     FlutterBluePlus.scanResults.listen((results) async {
       for (final result in results) {
-        if (result.device.platformName == deviceName || result.device.advName == deviceName) {
+        bool xiaomiMacSpecified =
+            xiaomiMac != null && result.device.remoteId.str == xiaomiMac;
+        bool otherDevices = xiaomiMac == null &&
+            (result.device.platformName == deviceName ||
+                result.device.advName == deviceName);
+
+        if (xiaomiMacSpecified || otherDevices) {
           FlutterBluePlus.stopScan();
           if (!completer.isCompleted) {
             device = result.device;
@@ -53,7 +60,7 @@ class SensorConnectionFactory {
     ]);
 
     if (device == null) {
-      throw SensorNotFoundExcetion();
+      throw SensorNotFoundException();
     }
 
     await device!.connect();
@@ -66,14 +73,14 @@ class SensorConnectionFactory {
     }
 
     if (sensorKind == SensorKind.kestrelDrop2) {
-      final id = _storage.read<int>('selectedSensorId');
+      final id = _storage.read<String>('selectedSensorId');
       if (id == null) {
-        throw SensorNotSpecifiedExeption();
+        throw SensorNotSpecifiedException();
       }
       return "D2 - $id";
     }
 
-    throw SensorNotSpecifiedExeption();
+    throw SensorNotSpecifiedException();
   }
 
   SensorConnection _getConnectionCore(
@@ -86,14 +93,14 @@ class SensorConnectionFactory {
       return KestrelDrop2Connection(connectedDevice);
     }
 
-    throw SensorNotSpecifiedExeption();
+    throw SensorNotSpecifiedException();
   }
 }
 
 class GetSensorConnectionException implements Exception {}
 
-class SensorNotSpecifiedExeption implements GetSensorConnectionException {}
+class SensorNotSpecifiedException implements GetSensorConnectionException {}
 
-class SensorNotFoundExcetion implements GetSensorConnectionException {}
+class SensorNotFoundException implements GetSensorConnectionException {}
 
 class BluetoothTurnedOffException implements GetSensorConnectionException {}

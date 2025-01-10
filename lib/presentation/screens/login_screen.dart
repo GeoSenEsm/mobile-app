@@ -29,6 +29,7 @@ class LoginScreen extends GetView<LoginController> {
                         height: 10,
                       ),
                       TextFormField(
+                        keyboardType: TextInputType.visiblePassword,
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.apiUrl,
                         ),

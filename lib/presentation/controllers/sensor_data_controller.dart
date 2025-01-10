@@ -37,11 +37,11 @@ class SensorDataController extends ControllerBase {
         return;
       }
       startReadingValueInBackground();
-    } on SensorNotFoundExcetion catch (_) {
+    } on SensorNotFoundException catch (_) {
       state.value = SensorDataState.sensorNotFound;
     } on BluetoothTurnedOffException catch (_) {
       state.value = SensorDataState.bluetoothTurnedOff;
-    } on SensorNotSpecifiedExeption catch (_) {
+    } on SensorNotSpecifiedException catch (_) {
       state.value = SensorDataState.sensorNotSpecified;
     } catch (e) {
       state.value = SensorDataState.error;

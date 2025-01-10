@@ -101,7 +101,7 @@ void main() async {
           page: () => const HomeScreen(),
           binding: HomeBindings()),
       GetPage(
-        name: '/surveystart',
+        name: Routes.startSurvey,
         page: () => SurveyStartScreen(),
         binding: SurveyStartBindings(),
       ),

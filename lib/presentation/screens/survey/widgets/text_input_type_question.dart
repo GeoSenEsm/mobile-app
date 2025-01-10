@@ -6,12 +6,11 @@ class TextInputTypeQuestion extends StatefulWidget {
   final CreateQuestionAnswerDto dto;
 
   const TextInputTypeQuestion({super.key, required this.dto});
-  
+
   @override
   State<StatefulWidget> createState() {
     return _TextInputTypeQuestionState();
   }
-
 }
 
 class _TextInputTypeQuestionState extends State<TextInputTypeQuestion> {
@@ -20,9 +19,10 @@ class _TextInputTypeQuestionState extends State<TextInputTypeQuestion> {
     return TextFormField(
       maxLength: 150,
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      decoration: InputDecoration(labelText: getAppLocalizations().enterResponse),
+      decoration:
+          InputDecoration(labelText: getAppLocalizations().enterResponse),
       validator: (value) {
-        if (value == null) {
+        if (value == null || value.isEmpty) {
           return getAppLocalizations().valueNotEmpty;
         }
         return null;
@@ -34,5 +34,4 @@ class _TextInputTypeQuestionState extends State<TextInputTypeQuestion> {
       },
     );
   }
-
 }

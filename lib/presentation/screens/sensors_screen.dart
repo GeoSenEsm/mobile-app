@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
@@ -15,41 +17,43 @@ class SensorsScreen extends GetView<SensorsController> {
     return Scaffold(
       appBar: AppBar(),
       body: Center(
-          child: Padding(
-        padding: const EdgeInsets.all(10.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              AppLocalizations.of(context)!.chooseATemperatureSensorYouReceived,
-              style: const TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Form(
+            // Wrap with Form to manage state
+            key: controller.formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  AppLocalizations.of(context)!
+                      .chooseATemperatureSensorYouReceived,
+                  style: const TextStyle(fontSize: 24),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                DropdownButtonFormField<String>(
+                  onChanged: (value) {
+                    controller.selectedSensor.value = value!;
+                  },
+                  value: controller.selectedSensor.value,
+                  decoration: InputDecoration(
+                      labelText: AppLocalizations.of(context)!.usedSensor),
+                  isExpanded: true,
+                  items: controller.possibleOptions
+                      .map((val) => DropdownMenuItem(
+                            value: val,
+                            child: Text(controller.optionsDisplays[val]!),
+                          ))
+                      .toList(),
+                ),
+                const SizedBox(height: 10),
+                _buildDeviceDetailsWidget(),
+              ],
             ),
-            const SizedBox(
-              height: 20,
-            ),
-            DropdownButtonFormField<String>(
-              onChanged: (value) {
-                controller.selectedSensor.value = value!;
-              },
-              value: controller.selectedSensor.value,
-              decoration: InputDecoration(
-                  labelText: AppLocalizations.of(context)!.usedSensor),
-              isExpanded: true,
-              items: controller.possibleOptions
-                  .map((val) => DropdownMenuItem(
-                        value: val,
-                        child: Text(controller.optionsDisplays[val]!),
-                      ))
-                  .toList(),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            _buildDeviceDetailsWidget()
-          ],
+          ),
         ),
-      )),
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(color: Colors.white, boxShadow: [
           BoxShadow(
@@ -63,7 +67,9 @@ class SensorsScreen extends GetView<SensorsController> {
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
               onPressed: () {
-                controller.saveSelectedSensor();
+                if (controller.formKey.currentState?.validate() ?? false) {
+                  controller.saveSelectedSensor();
+                }
               },
               child: Text(AppLocalizations.of(context)!.save),
             ),
@@ -75,27 +81,51 @@ class SensorsScreen extends GetView<SensorsController> {
 
   Widget _buildDeviceDetailsWidget() {
     return Obx(() {
-      if (controller.selectedSensor.value == SensorKind.xiaomi ||
-          controller.selectedSensor.value == SensorKind.none) {
-        return const SizedBox(
-          height: 0,
+      if (controller.selectedSensor.value == SensorKind.xiaomi &&
+          Platform.isAndroid) {
+        return Column(
+          children: [
+            TextFormField(
+              keyboardType: const TextInputType.numberWithOptions(signed: true),
+              decoration:
+                  InputDecoration(label: Text(getAppLocalizations().sensorId)),
+              initialValue: controller.xiaomiId.value?.toString(),
+              onChanged: (v) {
+                controller.xiaomiId.value = v;
+              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              validator: controller.validateXiaomi,
+              onFieldSubmitted: (v) => controller.getXiaomiMac(),
+              focusNode: controller.xiaomiFocusNode,
+            ),
+            const SizedBox(height: 10),
+            TextFormField(
+              controller: controller.xiaomiMacController,
+              readOnly: true,
+              decoration:
+                  InputDecoration(label: Text(getAppLocalizations().sensorMac)),
+              style: const TextStyle(color: Colors.grey),
+            ),
+          ],
         );
       }
 
-      return TextFormField(
-        keyboardType: const TextInputType.numberWithOptions(signed: true),
-        decoration:
-            InputDecoration(label: Text(getAppLocalizations().sensorId)),
-        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        initialValue: controller.deviceId.value?.toString(),
-        onChanged: (v) {
-          if (v == '') {
-            controller.deviceId.value = null;
-          } else {
-            controller.deviceId.value = int.parse(v);
-          }
-        },
-      );
+      if (controller.selectedSensor.value == SensorKind.kestrelDrop2) {
+        return TextFormField(
+          keyboardType: const TextInputType.numberWithOptions(signed: true),
+          decoration:
+              InputDecoration(label: Text(getAppLocalizations().sensorId)),
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          initialValue: controller.kestrelId.value?.toString(),
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: controller.validateKestrel,
+          onChanged: (v) {
+            controller.kestrelId.value = v;
+          },
+        );
+      }
+
+      return const SizedBox(height: 0);
     });
   }
 }

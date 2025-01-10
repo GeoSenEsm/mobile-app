@@ -135,5 +135,9 @@
     "serverNotResponding": "Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później.",
     "bluetoothRequired": "Włącz bluetooth, aby wypełnić ankietę.",
     "bluetooth": "Bluetooth",
-    "surveyFinished": "Ankieta zakończyła się. Nie można jej już wypełnić."
+    "surveyFinished": "Ankieta zakończyła się. Nie można jej już wypełnić.",
+    "sensorMac": "Adres MAC czujnika",
+    "sensorIdServerNotFound": "Id czujnika nie zostało znalezione na serwerze",
+    "loadingMacFailed": "Błąd ładowania adresu MAC"
+
 }
