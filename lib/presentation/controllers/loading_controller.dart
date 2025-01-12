@@ -39,7 +39,7 @@ class LoadingController extends ControllerBase {
       return;
     }
 
-    if (await connectivity.checkConnectivity() == ConnectivityResult.none) {
+    if (!await hasInternetConnectionNoDialog()) {
       retryButtonVisible.value = true;
       return;
     }
