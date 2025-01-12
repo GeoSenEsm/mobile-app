@@ -51,7 +51,7 @@ class SurveyTile extends StatelessWidget {
           ),
           subtitle: Text(
             overflow: TextOverflow.ellipsis,
-            '${timeOnlyShortFormat(surveyShortInfo.startTime)} - ${timeOnlyShortFormat(surveyShortInfo.finishTime)}',
+            '${timeOnlyShortFormat(surveyShortInfo.startTime.toLocal())} - ${timeOnlyShortFormat(surveyShortInfo.finishTime.toLocal())}',
             style: const TextStyle(color: Colors.white70),
           ),
           onTap: onPressed,
