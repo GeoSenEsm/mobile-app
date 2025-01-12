@@ -4,6 +4,7 @@ import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:get/get.dart';
 import 'package:path/path.dart';
 import 'package:rxdart/subjects.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
@@ -45,7 +46,7 @@ class NotificationService {
     );
 
     if (scheduledDate.isBefore(DateTime.now())) {
-      //TODO LOG IT
+      Sentry.captureMessage('tried to set notiffication in past');
       return;
     }
 

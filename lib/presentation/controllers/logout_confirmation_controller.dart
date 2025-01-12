@@ -1,6 +1,7 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
@@ -31,7 +32,7 @@ class LogoutConfirmationController extends ControllerBase {
 
       Get.offAllNamed(Routes.login);
     } catch (e) {
-      //TODO: log the error
+      Sentry.captureException(e);
       await popup(AppLocalizations.of(Get.context!)!.error,
           AppLocalizations.of(Get.context!)!.couldNotLogout);
     } finally {
