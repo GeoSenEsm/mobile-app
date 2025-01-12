@@ -14,7 +14,8 @@ class LogoutConfirmationController extends ControllerBase {
   final SurveyImagesUseCase _surveyImagesUseCase;
   Rx<bool> isBusy = false.obs;
 
-  LogoutConfirmationController(this._storage, this._databaseHelper, this._surveyImagesUseCase);
+  LogoutConfirmationController(
+      this._storage, this._databaseHelper, this._surveyImagesUseCase);
 
   void logOut() async {
     if (isBusy.value) {

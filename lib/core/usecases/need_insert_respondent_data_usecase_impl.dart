@@ -17,6 +17,7 @@ class NeedInsertRespondentDataUseCaseImpl
   @override
   Future<NeedInsertRespondentDataResult> needInsertRespondentData() async {
     var respondentData = _storage.read("respondentData");
+    bool loggedBefore = _storage.read("loggedBefore") ?? false;
 
     if (respondentData != null) {
       await update(respondentData['id']);
@@ -32,6 +33,10 @@ class NeedInsertRespondentDataUseCaseImpl
       await _storage.write('initialSurvey', surveyResult.body!);
       await _storage.write("respondentData", respondentDataApiResponse.body);
       await _trySaveResopndentsGroups(respondentDataApiResponse.body!['id']);
+      return NeedInsertRespondentDataResult.noNeed;
+    }
+
+    if (loggedBefore) {
       return NeedInsertRespondentDataResult.noNeed;
     }
 
@@ -64,10 +69,14 @@ class NeedInsertRespondentDataUseCaseImpl
 
   @override
   Future<void> update(String respondentId) async {
-    final results = await Future.wait([_trySaveResopndentsGroups(respondentId), _respondentDataService.getMyResponse()]);
-    final respondentDataResult = results[1] as APIResponse<Map<String, dynamic>>;
+    final results = await Future.wait([
+      _trySaveResopndentsGroups(respondentId),
+      _respondentDataService.getMyResponse()
+    ]);
+    final respondentDataResult =
+        results[1] as APIResponse<Map<String, dynamic>>;
 
-    if (respondentDataResult.statusCode == 200){
+    if (respondentDataResult.statusCode == 200) {
       await _storage.write('respondentData', respondentDataResult.body);
     }
   }

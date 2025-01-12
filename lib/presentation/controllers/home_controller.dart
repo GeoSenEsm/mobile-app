@@ -55,6 +55,13 @@ class HomeController extends ControllerBase {
     listenToNotifications();
   }
 
+  @override
+  void onInit() async {
+    super.onInit();
+    refreshData();
+    _storage.write("loggedBefore", true);
+  }
+
   listenToNotifications() {
     NotificationService.onClickNotification.listen((event) {
       startCompletingSurvey(event);
