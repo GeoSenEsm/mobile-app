@@ -37,7 +37,7 @@ class SensorDataScreen extends GetView<SensorDataController> {
                     size: 22,
                   ),
                   onPressed: () {
-                    Get.offAllNamed(Routes.home);
+                    Get.back();
                   },
                 ),
               ],
