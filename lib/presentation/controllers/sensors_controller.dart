@@ -114,7 +114,7 @@ class SensorsController extends ControllerBase {
         xiaomiMac.value = _storage.read("xiaomiMac");
       }
       if (selectedSensor.value == SensorKind.kestrelDrop2) {
-        kestrelId.value = _storage.read("selectedSensorId");
+        kestrelId.value = _storage.read<Object>("selectedSensorId").toString();
       }
     } on Exception catch (e) {
       Sentry.captureException(e);
