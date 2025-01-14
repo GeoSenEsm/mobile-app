@@ -52,7 +52,7 @@ class SurveyQuestionController extends QuestionNavigableController {
             selectedOption: responseModel.answers[index].selectedOptions![0],
             surveyImagesUseCase: _surveyImagesUseCase);
       case QuestionType.textInput:
-          return TextInputTypeQuestion(dto: responseModel.answers[index]);
+        return TextInputTypeQuestion(dto: responseModel.answers[index]);
       default:
         //TODO decide what to do in this case (most likely skip this question)
         throw Exception('Unsupported question type: ${question.questionType}');
@@ -73,11 +73,25 @@ class SurveyQuestionController extends QuestionNavigableController {
   @override
   bool canGoFurther() {
     //TODO: REMEMBER ABOUT OTHER QUESTION TYPES IN THE FUTURE
-    //TODO: isRequired should be respected here
+    //TODO: move this logic to validator in each question
 
     for (int idx = questionIndex;
-        idx < questionIndex + questionsCount - 1;
+        idx < questionIndex + questionsCount && idx < questions.length;
         idx++) {
+      if (!questions[idx].question.required) {
+        continue;
+      }
+
+      if (questions[idx].question.questionType ==
+          QuestionType.multipleChoiceText) {
+        if (responseModel.answers[idx].selectedOptions!.isEmpty) {
+          popup("", AppLocalizations.of(Get.context!)!.selectAtLeastOneOption);
+          return false;
+        }
+
+        continue;
+      }
+
       if (questions[idx].question.questionType ==
           QuestionType.singleChoiceLinearScale) {
         if (responseModel.answers[idx].numericAnswer == null) {
@@ -85,7 +99,7 @@ class SurveyQuestionController extends QuestionNavigableController {
           return false;
         }
 
-        return true;
+        continue;
       }
 
       if (questions[idx].question.questionType == QuestionType.yesNo) {
@@ -94,7 +108,7 @@ class SurveyQuestionController extends QuestionNavigableController {
           return false;
         }
 
-        return true;
+        continue;
       }
       if (questions[idx].question.questionType ==
               QuestionType.singleChoiceText ||
@@ -106,13 +120,26 @@ class SurveyQuestionController extends QuestionNavigableController {
       }
       if (questions[idx].question.questionType == QuestionType.numberInput) {
         var number = responseModel.answers[idx].numericAnswer;
-        if (number == null || number < 0 || number > 1000) {
+        if (number == null) {
           return false;
         }
-        return true;
+        if (number < 0) {
+          return false;
+        }
+        if (number > 1000) {
+          return false;
+        }
+        continue;
       }
-      if (questions[idx].question.questionType == QuestionType.textInput){
-        return responseModel.answers[idx].textAnswer != null;
+      if (questions[idx].question.questionType == QuestionType.textInput) {
+        var text = responseModel.answers[idx].textAnswer;
+        if (text == null || text.isEmpty) {
+          return false;
+        }
+        if (text.length > 1000) {
+          return false;
+        }
+        continue;
       }
     }
 

@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:background_fetch/background_fetch.dart';
-import 'package:devicelocale/devicelocale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
