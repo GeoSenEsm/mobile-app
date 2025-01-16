@@ -157,5 +157,7 @@
     "surveyFinished": "The survey has finished. You can't complete it anymore.",
     "sensorMac": "Sensor's MAC adres",
     "sensorIdServerNotFound": "Sensor id not found on the server",
-    "loadingMacFailed": "Could not load MAC address"
+    "loadingMacFailed": "Could not load MAC address",
+    "sensorNotFoundDialogTitle": "Sensor not found",
+    "sensorNotFoundDialogContent": "Temperature sensor not found. The survey will be sent without temperature data. Please make sure you have the sensor with you and that it has a charged battery."
 }

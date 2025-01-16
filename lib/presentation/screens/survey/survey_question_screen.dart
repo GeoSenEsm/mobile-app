@@ -32,8 +32,8 @@ class SurveyQuestionScreen extends GetView<SurveyQuestionController> {
         nextAction: () {
           _controller.navigateToNextQuestion(QuestionNavigationMode.top);
         },
-        text: AppLocalizations.of(context)!.next,
         hasToScrollDown: _controller.hasToScrollDown,
+        child: Text(AppLocalizations.of(context)!.next),
       ),
     );
   }

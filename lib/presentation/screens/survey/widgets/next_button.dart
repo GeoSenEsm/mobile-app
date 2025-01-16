@@ -4,12 +4,12 @@ import 'package:survey_frontend/l10n/get_localizations.dart';
 
 class NextButton extends StatelessWidget {
   final VoidCallback nextAction;
-  final String text;
+  final Widget child;
   final RxBool hasToScrollDown;
   const NextButton(
       {super.key,
       required this.nextAction,
-      required this.text,
+      required this.child,
       required this.hasToScrollDown});
 
   @override
@@ -46,7 +46,7 @@ class NextButton extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: hasToScrollDown.value ? null : nextAction,
-                child: Text(text),
+                child: child,
               ),
             )),
           ],

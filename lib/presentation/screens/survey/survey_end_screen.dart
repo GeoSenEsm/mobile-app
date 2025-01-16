@@ -11,33 +11,42 @@ class SurveyEndScreen extends GetView<SurveyEndController> {
   Widget build(BuildContext context) {
     controller.readGetArgs();
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Get.back();
-          },
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Get.back();
+            },
+          ),
         ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Center(
-              child: Text(
-                AppLocalizations.of(context)!.endSurveyQuestion,
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 24),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Center(
+                child: Text(
+                  AppLocalizations.of(context)!.endSurveyQuestion,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 24),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: NextButton(
+        bottomNavigationBar: NextButton(
           nextAction: controller.endSurvey,
-          text: AppLocalizations.of(context)!.finish,
-          hasToScrollDown: false.obs,),
-    );
+          hasToScrollDown: false.obs,
+          child: Obx(() {
+            if (controller.isBusy.value) {
+              return const Padding(
+                padding: EdgeInsets.all(3),
+                child: CircularProgressIndicator(),
+              );
+            }
+
+            return Text(AppLocalizations.of(context)!.finish);
+          }),
+        ));
   }
 }

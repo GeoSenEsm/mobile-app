@@ -141,6 +141,7 @@
     "surveyFinished": "Ankieta zakończyła się. Nie można jej już wypełnić.",
     "sensorMac": "Adres MAC czujnika",
     "sensorIdServerNotFound": "Id czujnika nie zostało znalezione na serwerze",
-    "loadingMacFailed": "Błąd ładowania adresu MAC"
-
+    "loadingMacFailed": "Błąd ładowania adresu MAC",
+    "sensorNotFoundDialogTitle": "Nie znaleziono czujnika",
+    "sensorNotFoundDialogContent": "Nie znaleziono czujnika temparatury. Anketa zostanie wysłana bez danych o temperaturze. Upewnij się, że masz przy sobie czujnik, oraz że ma on nałądowaną baterię."
 }

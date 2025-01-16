@@ -53,9 +53,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._surveyImagesUseCase,
       this._submitSurveyUsecase,
       this._storage,
-      this._sendSensorsDataUsecase) {
-    listenToNotifications();
-  }
+      this._sendSensorsDataUsecase);
 
   @override
   void onInit() async {
