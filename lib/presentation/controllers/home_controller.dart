@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
@@ -27,7 +28,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
 
-class HomeController extends ControllerBase {
+class HomeController extends ControllerBase with WidgetsBindingObserver {
   final ShortSurveyService _homeService;
   final CreateQuestionAnswerDtoFactory _createQuestionAnswerDtoFactory;
   final ReadResopndentGroupdUseCase _readResopndentGroupdUseCase;
@@ -41,6 +42,7 @@ class HomeController extends ControllerBase {
   bool _isBusy = false;
   final GetStorage _storage;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
+  final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   HomeController(
       this._homeService,
@@ -58,8 +60,27 @@ class HomeController extends ControllerBase {
   @override
   void onInit() async {
     super.onInit();
-    refreshData();
+    listenToNotifications();
     _storage.write("loggedBefore", true);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void onClose(){
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed){
+      triggerPullToRefresh();
+    }
+  }  
+
+  void triggerPullToRefresh(){
+    refreshIndicatorKey.currentState?.show();
   }
 
   listenToNotifications() {

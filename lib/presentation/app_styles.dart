@@ -29,6 +29,7 @@ class AppStyles {
       textTheme: const TextTheme(bodyLarge: TextStyle(fontSize: 20)),
       radioTheme: const RadioThemeData(
           fillColor: WidgetStatePropertyAll(_appNameColor)),
+
       dialogTheme: DialogTheme(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(

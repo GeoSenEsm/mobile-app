@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/controllers/home_controller.dart';
 import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/survey_tile.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/time_circle.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
-class HomeScreen extends GetView<HomeController> implements RouteAware {
+class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     askForPermissions();
-    controller.listenToNotifications();
-    controller.refreshData();
+
+    WidgetsBinding.instance.addPostFrameCallback((_){
+      controller.triggerPullToRefresh();
+    });
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -67,15 +71,18 @@ class HomeScreen extends GetView<HomeController> implements RouteAware {
               ],
             ),
             const SizedBox(height: 40),
-            Expanded(child: _buildSurveyList()),
+            Expanded(child: _buildSurveyList(context)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildSurveyList() {
+  Widget _buildSurveyList(BuildContext context){
     return Obx(() => RefreshIndicator(
+          color: Theme.of(context).primaryColor,
+          backgroundColor: AppStyles.backgroundSecondary,
+          key: controller.refreshIndicatorKey,
           onRefresh: controller.refreshData,
           child: ListView.builder(
             itemCount: controller.pendingSurveys.length,
@@ -92,25 +99,5 @@ class HomeScreen extends GetView<HomeController> implements RouteAware {
             },
           ),
         ));
-  }
-
-  @override
-  void didPop() {
-    return;
-  }
-
-  @override
-  void didPopNext() {
-    return;
-  }
-
-  @override
-  void didPush() {
-    controller.refreshData();
-  }
-
-  @override
-  void didPushNext() {
-    controller.refreshData();
   }
 }

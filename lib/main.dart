@@ -35,6 +35,7 @@ import 'package:survey_frontend/presentation/screens/calendar/calendar_screen.da
 import 'package:survey_frontend/presentation/screens/calendar/navigation/calendar_navigator_observer.dart';
 import 'package:survey_frontend/presentation/screens/change_password_screen.dart';
 import 'package:survey_frontend/presentation/screens/home/home_screen.dart';
+import 'package:survey_frontend/presentation/screens/home/navigation/home_navigator_observer.dart';
 import 'package:survey_frontend/presentation/screens/initial_survey/initial_survey_screen.dart';
 import 'package:survey_frontend/presentation/screens/loading_screen.dart';
 import 'package:survey_frontend/presentation/screens/login_screen.dart';
@@ -81,7 +82,8 @@ void main() async {
       SensorNavigatorObserver(),
       CalendarNavigatorObserver(),
       SensorDataHistoryNavigatorObserver(),
-      MapNavigatorObserver()
+      MapNavigatorObserver(),
+      HomeNavigatorObserver()
     ],
     debugShowCheckedModeBanner: false,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
