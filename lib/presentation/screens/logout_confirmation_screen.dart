@@ -14,7 +14,7 @@ class LogoutConfirmationScreen extends GetView<LogoutConfirmationController> {
     return Scaffold(
       backgroundColor: AppStyles.backgroundSecondary,
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(15.0, 0, 15.0, 0),
+        padding: const EdgeInsets.fromLTRB(15.0, 60, 15.0, 0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -79,9 +79,7 @@ class LogoutConfirmationScreen extends GetView<LogoutConfirmationController> {
                 ),
               ),
             ),
-            const SizedBox(
-              height: 300,
-            ),
+            const Spacer()
           ],
         ),
       ),

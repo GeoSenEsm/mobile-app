@@ -28,8 +28,8 @@ class AppStyles {
       shadowColor: Colors.black,
       textTheme: const TextTheme(bodyLarge: TextStyle(fontSize: 20)),
       radioTheme: const RadioThemeData(
-        fillColor: WidgetStatePropertyAll(_appNameColor)
-      ),
+          fillColor: WidgetStatePropertyAll(_appNameColor)),
+
       dialogTheme: DialogTheme(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -43,6 +43,32 @@ class AppStyles {
 
         return Colors.transparent;
       })),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: _appNameColor
+      ),
+      datePickerTheme: DatePickerThemeData(
+          backgroundColor: onBackgroundSecondary,
+          todayForegroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return Colors.white;
+            }
+
+            return _appNameColor;
+          }),
+          todayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return _primaryColor;
+            }
+
+            return Colors.transparent;
+          }),
+          dayBackgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return _primaryColor;
+            }
+
+            return Colors.transparent;
+          })),
       textButtonTheme: TextButtonThemeData(
           style: ButtonStyle(
               foregroundColor: WidgetStateProperty.resolveWith((states) {
@@ -109,8 +135,33 @@ class AppStyles {
           return 0;
         }),
       )),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+          style: ButtonStyle(
+              foregroundColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return _appNameColorDisabled;
+                }
+                return _appNameColor;
+              }),
+              side: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return const BorderSide(
+                      color: _appNameColorDisabled, width: 2);
+                }
+
+                return const BorderSide(color: _appNameColor, width: 2);
+              }),
+              overlayColor: WidgetStateProperty.resolveWith((states) {
+                if (states.contains(WidgetState.disabled)) {
+                  return backgroundSecondary;
+                }
+
+                return _primaryColor;
+              }),
+              textStyle: const WidgetStatePropertyAll(
+                  TextStyle(fontWeight: FontWeight.bold, fontSize: 18)))),
       inputDecorationTheme: InputDecorationTheme(
-        labelStyle: const TextStyle(color: _appNameColor),
+          labelStyle: const TextStyle(color: _appNameColor),
           enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: Colors.black, width: 1.0),
               borderRadius: BorderRadius.circular(10)),

@@ -1,53 +1,94 @@
-import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
-import 'package:survey_frontend/core/usecases/read_sensors_data_usecase.dart';
-import 'package:survey_frontend/data/models/sensor_kind.dart';
+import 'package:survey_frontend/data/models/sensor_data_model.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:survey_frontend/core/models/sensors_response.dart';
+import 'package:survey_frontend/core/usecases/sensor_connection.dart';
+import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
+import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/domain/external_services/sensors_data_service.dart';
 import 'package:survey_frontend/domain/models/sensor_data.dart';
 
 abstract class SendSensorsDataUsecase {
-  Future<bool> sendSensorsDataToTheServer();
+  Future<bool> readAndSendSensorData();
+  Future<bool> sendSensorData(SensorsResponse? sensorResponse);
+  Future<SensorData?> readSensorData();
 }
 
 class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
-  final GetStorage _storage;
+  final DatabaseHelper _databaseHelper;
   final SensorsDataService _service;
+  final SensorConnectionFactory _sensorConnectionFactory;
 
-  SendSensorsDataUsecaseImpl(this._storage, this._service);
+  SendSensorsDataUsecaseImpl(
+      this._databaseHelper, this._service, this._sensorConnectionFactory);
 
   @override
-  Future<bool> sendSensorsDataToTheServer() async {
+  Future<bool> readAndSendSensorData() async {
     try {
-      final selectedSonsor = _storage.read<String>('selectedSensor');
+      final sensorConnection = await _sensorConnectionFactory
+          .getSensorConnection(const Duration(seconds: 60));
+      return _sendSensorDataFromConnection(sensorConnection);
+    } on GetSensorConnectionException catch (_) {
+      return false;
+    }
+  }
 
-      if (selectedSonsor == null || selectedSonsor == SensorKind.none) {
-        return true;
+  Future<bool> _sendSensorDataFromConnection(
+      SensorConnection connection) async {
+    try {
+      final data = await connection.getSensorData();
+      return await sendSensorData(data);
+    } finally {
+      await connection.dispose();
+    }
+  }
+
+  @override
+  Future<bool> sendSensorData(SensorsResponse? sensorResponse) async {
+    try {
+      if (sensorResponse != null) {
+        final now = DateTime.now().toUtc();
+        final model = SensorDataModel(
+            dateTime: now,
+            temperature: sensorResponse.temperature,
+            humidity: sensorResponse.humidity,
+            sentToServer: false);
+        await _databaseHelper.addSensorData(model);
       }
 
-      var readSensorDataService =
-          Get.find<ReadSensorsDataUsecase>(tag: selectedSonsor);
-      var allSensorsData =
-          _storage.read <List<dynamic>>('rememberedSensorsData');
-      allSensorsData ??= [];
-      var sensorsData = await readSensorDataService.getSensorsData();
-
-      if (sensorsData != null) {
-        final json = sensorsData.toJson();
-        json['dateTime'] = DateTime.now().toUtc().toIso8601String();
-        allSensorsData.add(json);
-        _storage.write('rememberedSensorsData', allSensorsData);
-      }
-
-      final submitResult = await _service
-          .create(allSensorsData.map((e) => SensorData.fromJson(e)).toList());
+      final allToSend = await _databaseHelper.getAlSensorDataNotSentToServer();
+      final submitResult = await _service.create(allToSend
+          .map((e) => SensorData(
+              dateTime: e.dateTime.toIso8601String(),
+              temperature: e.temperature,
+              humidity: e.humidity))
+          .toList());
 
       if (submitResult.statusCode == 201) {
-        await _storage.remove('rememberedSensorsData');
+        await _databaseHelper.markAllSensorDataSentToServer();
       }
 
       return true;
     } catch (e) {
+      Sentry.captureException(e);
       return false;
+    }
+  }
+
+  @override
+  Future<SensorData?> readSensorData() async {
+    try {
+      final sensorConnection = await _sensorConnectionFactory
+          .getSensorConnection(const Duration(seconds: 30));
+      final response = await sensorConnection.getSensorData();
+      return SensorData(
+          dateTime: DateTime.now().toUtc().toIso8601String(),
+          temperature: response.temperature,
+          humidity: response.humidity);
+    } on GetSensorConnectionException catch (_) {
+      return null;
+    } catch (e) {
+      Sentry.captureException(e);
+      return null;
     }
   }
 }

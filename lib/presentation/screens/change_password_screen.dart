@@ -32,6 +32,7 @@ class ChangePasswordScreen extends GetView<ChangePasswordController>{
               children: [
                 Text(
                   getAppLocalizations().changePassword,
+                  textScaler: const TextScaler.linear(1),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),

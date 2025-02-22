@@ -1,35 +1,41 @@
-
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:get/get.dart';
+import 'package:path/path.dart';
+import 'package:rxdart/subjects.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin
       _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  static final onClickNotification = BehaviorSubject<String>();
   static Future initialize() async {
     tz.initializeTimeZones();
     final String localTimeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(localTimeZone));
 
-    const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const androidInit = AndroidInitializationSettings('@drawable/logo4');
     const iOSInize = DarwinInitializationSettings();
     const initializationSettings =
         InitializationSettings(android: androidInit, iOS: iOSInize);
-    await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-    await Permission.notification.request();
-    await Permission.scheduleExactAlarm.request();
+    await _flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: _onTapNotification,
+      onDidReceiveBackgroundNotificationResponse: _onTapNotification,
+    );
   }
 
-  static Future scheduleNotification(
-      DateTime scheduledDate, int id, String title, String body) async {
+  static Future scheduleNotification(DateTime scheduledDate, EncodedID id,
+      String title, String body, String payload) async {
     const androidDetails = AndroidNotificationDetails(
       'Reminder',
       'Reminder',
       importance: Importance.max,
       priority: Priority.high,
+      largeIcon: DrawableResourceAndroidBitmap('@drawable/large_icon'),
     );
 
     const iOSDetails = DarwinNotificationDetails();
@@ -40,12 +46,12 @@ class NotificationService {
     );
 
     if (scheduledDate.isBefore(DateTime.now())) {
-      //TODO LOG IT
+      Sentry.captureMessage('tried to set notiffication in past');
       return;
     }
 
     await _flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
+      id.value,
       title,
       body,
       tz.TZDateTime.from(scheduledDate, tz.local),
@@ -53,10 +59,14 @@ class NotificationService {
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.absoluteTime,
+      matchDateTimeComponents: DateTimeComponents.dateAndTime,
+      payload: payload,
     );
   }
 
   static Future<void> checkPendingNotificationRequests() async {
+    if (!kDebugMode) return;
+
     await Future.delayed(const Duration(milliseconds: 200));
     final List<PendingNotificationRequest> pendingNotificationRequests =
         await _flutterLocalNotificationsPlugin.pendingNotificationRequests();
@@ -67,11 +77,34 @@ class NotificationService {
       print(
           "${pendingNotificationRequest.id} ${pendingNotificationRequest.payload ?? ""}");
     }
-    print('NOW ${tz.TZDateTime.now(tz.local)}');
   }
 
   static Future cancelAllNotifications() async {
     await _flutterLocalNotificationsPlugin.cancelAll();
-    // TODO manage it when offline
   }
+
+  static Future cancelNotification(EncodedID id) async {
+    // TODO manage it when offline
+    await _flutterLocalNotificationsPlugin.cancel(id.value);
+  }
+
+  static void _onTapNotification(NotificationResponse notificationResponse) {
+    onClickNotification.add(notificationResponse.payload!);
+  }
+}
+
+EncodedID getSurveyNotificationID(String id, DateTime time) {
+  const timeResidue = (Duration.minutesPerDay * 2 * 30); // 2 months
+  final hashID = hash(id).toUnsigned(12).toInt();
+  final timeComponentID =
+      time.millisecondsSinceEpoch.milliseconds.inMinutes % timeResidue;
+  final encodedID = int.parse("$timeComponentID${hashID}0").toSigned(32);
+
+  return EncodedID(encodedID);
+}
+
+class EncodedID {
+  final int value;
+
+  EncodedID(this.value);
 }

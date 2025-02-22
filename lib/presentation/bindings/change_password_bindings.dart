@@ -9,8 +9,7 @@ class ChangePasswordBindings extends Bindings {
   void dependencies() {
     Get.lazyPut<ChangePasswordService>(() => ChangePasswordServiceImpl(
         Get.find(),
-        tokenProvider: Get.find<TokenProvider?>(),
-        storage: Get.find()));
+        tokenProvider: Get.find<TokenProvider?>()));
     Get.lazyPut(() => ChangePasswordController(Get.find()));
   }
 }

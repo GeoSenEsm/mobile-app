@@ -14,6 +14,8 @@ SurveyParticipationDto _$SurveyParticipationDtoFromJson(
       surveyId: json['surveyId'] as String,
       date: json['date'] as String,
       rowVersion: (json['rowVersion'] as num).toInt(),
+      surveyStartDate: json['surveyStartDate'] as String?,
+      surveyFinishDate: json['surveyFinishDate'] as String?,
     );
 
 Map<String, dynamic> _$SurveyParticipationDtoToJson(
@@ -24,4 +26,6 @@ Map<String, dynamic> _$SurveyParticipationDtoToJson(
       'surveyId': instance.surveyId,
       'date': instance.date,
       'rowVersion': instance.rowVersion,
+      'surveyStartDate': instance.surveyStartDate,
+      'surveyFinishDate': instance.surveyFinishDate,
     };

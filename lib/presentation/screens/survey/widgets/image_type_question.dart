@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/domain/models/create_selected_option_dto.dart';
@@ -66,7 +67,11 @@ class _ImageWidgetState extends State<_ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _actualImage == null ? buildErrorWidget() : _actualImage!;
+    return _actualImage == null ? _buildLoadingIndicator(context) : _actualImage!;
+  }
+
+  Widget _buildLoadingIndicator(BuildContext context) {
+    return SpinKitCircle(size: 150, color: Theme.of(context).primaryColor);
   }
 
   Widget buildErrorWidget() {
@@ -94,9 +99,11 @@ class _ImageWidgetState extends State<_ImageWidget> {
     }
 
     final storage = GetStorage();
-    _actualImage = Image.network(
+    setState(() {
+      _actualImage = Image.network(
       storage.read<String>('apiUrl')! + widget.option.imagePath!,
       errorBuilder: (ctx, obj, st) => buildErrorWidget(),
     );
+    });
   }
 }

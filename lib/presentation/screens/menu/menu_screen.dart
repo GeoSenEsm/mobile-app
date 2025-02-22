@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get/get.dart';
-import 'package:survey_frontend/presentation/controllers/settings_controller.dart';
-import 'package:survey_frontend/presentation/screens/settings/widgets/nav_item.dart';
+import 'package:survey_frontend/l10n/get_localizations.dart';
+import 'package:survey_frontend/presentation/controllers/menu_controller.dart';
+import 'package:survey_frontend/presentation/screens/menu/widgets/nav_item.dart';
 
-class SettingsScreen extends GetView<SettingsController> {
-  const SettingsScreen({super.key});
+class MenuScreen extends GetView<ManuController> {
+  const MenuScreen({super.key});
   final Color settingsBackgroundColor =
       const Color.fromARGB(173, 214, 236, 154);
 
@@ -29,7 +30,7 @@ class SettingsScreen extends GetView<SettingsController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  AppLocalizations.of(context)!.settings,
+                  AppLocalizations.of(context)!.menu,
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),
@@ -51,11 +52,37 @@ class SettingsScreen extends GetView<SettingsController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    NavItem(
+                        icon: Icons.calendar_month_outlined,
+                        label: getAppLocalizations().calendar,
+                        onTap: controller.calendar),
+                    NavItem(
+                        icon: Icons.wb_sunny_outlined,
+                        label: getAppLocalizations().sensorData,
+                        onTap: controller.sensorData),
+                    NavItem(
+                        icon: Icons.manage_search,
+                        label: getAppLocalizations().sensorHistory,
+                        onTap: controller.sensorHistory),
+                        NavItem(
+                        icon: Icons.location_on_outlined,
+                        label: getAppLocalizations().map,
+                        onTap: controller.map),
                     const SizedBox(
-                      height: 30,
+                      height: 10,
+                    ),
+                    const Divider(
+                      color: Colors.black,
+                      thickness: 1,
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                    const SizedBox(
+                      height: 10,
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 16),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
@@ -90,7 +117,7 @@ class SettingsScreen extends GetView<SettingsController> {
                       onTap: controller.changePassword,
                       iconColor: Colors.black,
                     ),
-                     NavItem(
+                    NavItem(
                       icon: Icons.lock_open,
                       label: AppLocalizations.of(context)!.logout,
                       onTap: controller.logout,

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:survey_frontend/presentation/controllers/login_controller.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/widgets/app_logo.dart';
 import 'package:survey_frontend/presentation/widgets/password_form_field.dart';
 
@@ -30,6 +29,7 @@ class LoginScreen extends GetView<LoginController> {
                         height: 10,
                       ),
                       TextFormField(
+                        keyboardType: TextInputType.visiblePassword,
                         decoration: InputDecoration(
                           labelText: AppLocalizations.of(context)!.apiUrl,
                         ),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:sentry_flutter/sentry_flutter.dart';
 
 
 class PrivacyPolicyContent extends StatefulWidget{
@@ -58,7 +59,7 @@ class _PrivacyPolicyContentState extends State<PrivacyPolicyContent>{
         });
       }
     } catch (e) {
-      //TODO :log this error
+      Sentry.captureException(e);
     }
   }
 }

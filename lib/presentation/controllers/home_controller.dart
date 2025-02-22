@@ -1,39 +1,49 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
+import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
+import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
+import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
 import 'package:survey_frontend/domain/models/visibility_type.dart';
+import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
 
-class HomeController extends ControllerBase {
+class HomeController extends ControllerBase with WidgetsBindingObserver {
   final ShortSurveyService _homeService;
   final CreateQuestionAnswerDtoFactory _createQuestionAnswerDtoFactory;
   final ReadResopndentGroupdUseCase _readResopndentGroupdUseCase;
   RxList<SurveyShortInfo> pendingSurveys = <SurveyShortInfo>[].obs;
-  final RxInt hours = 23.obs;
-  final RxInt minutes = 60.obs;
   final DatabaseHelper _databaseHelper;
   final SurveyNotificationUseCase _surveyNotificationUseCase;
   final SurveyImagesUseCase _surveyImagesUseCase;
   final SubmitSurveyUsecase _submitSurveyUsecase;
+  final RxInt hoursLeft = 0.obs;
+  final RxInt minutesLeft = 0.obs;
   bool _isBusy = false;
+  final GetStorage _storage;
+  final SendSensorsDataUsecase _sendSensorsDataUsecase;
+  final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
 
   HomeController(
       this._homeService,
@@ -42,7 +52,42 @@ class HomeController extends ControllerBase {
       this._databaseHelper,
       this._surveyNotificationUseCase,
       this._surveyImagesUseCase,
-      this._submitSurveyUsecase);
+      this._submitSurveyUsecase,
+      this._storage,
+      this._sendSensorsDataUsecase);
+
+  @override
+  void onInit() async {
+    super.onInit();
+    askForPermissions();
+    listenToNotifications();
+    _storage.write("loggedBefore", true);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void onClose(){
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed){
+      triggerPullToRefresh();
+    }
+  }  
+
+  void triggerPullToRefresh(){
+    refreshIndicatorKey.currentState?.show();
+  }
+
+  listenToNotifications() {
+    NotificationService.onClickNotification.listen((event) {
+      startCompletingSurvey(event);
+    });
+  }
 
   Future<void> refreshData() async {
     if (_isBusy) {
@@ -75,38 +120,15 @@ class HomeController extends ControllerBase {
     APIResponse<List<SurveyWithTimeSlots>> response =
         await _homeService.getSurveysWithTimeSlots();
 
-    if (response.error != null ||
-        response.statusCode != 200 ||
-        response.body!.isEmpty) {
+    if (response.error != null || response.statusCode != 200) {
       return;
     }
-    await _surveyImagesUseCase.saveImages(response.body!);
-    await _databaseHelper.clearAllTables();
-    await _databaseHelper.upsertSurveys(response.body!);
-  }
+    await _databaseHelper.clearAllSurveysRelatedTables();
 
-  int hoursLeft() {
-    if (pendingSurveys.isEmpty) {
-      return 0;
+    if (response.body!.isNotEmpty) {
+      await _surveyImagesUseCase.saveImages(response.body!);
+      await _databaseHelper.upsertSurveys(response.body!);
     }
-
-    final today = DateTime.now();
-    final timeFinish = Duration(hours: hours.value, minutes: minutes.value);
-    final timeNow = Duration(hours: today.hour, minutes: today.minute);
-    final timeLeft = timeFinish - timeNow;
-    return timeLeft.inHours;
-  }
-
-  int minutesLeft() {
-    if (pendingSurveys.isEmpty) {
-      return 0;
-    }
-
-    final today = DateTime.now();
-    final timeFinish = Duration(hours: hours.value, minutes: minutes.value);
-    final timeNow = Duration(hours: today.hour, minutes: today.minute);
-    final timeLeft = timeFinish - timeNow;
-    return timeLeft.inMinutes.remainder(60);
   }
 
   bool hasTimeSlotForToday(SurveyWithTimeSlots survey) {
@@ -123,8 +145,26 @@ class HomeController extends ControllerBase {
     }
 
     try {
+      // TODO check if survey still active
+
+      final shortSurveyInfo =
+          pendingSurveys.firstWhereOrNull((element) => element.id == surveyId);
+
+      if (shortSurveyInfo == null) {
+        await popup(AppLocalizations.of(Get.context!)!.error,
+            AppLocalizations.of(Get.context!)!.loadingSurveyError);
+        return;
+      }
+
+      if (shortSurveyInfo.finishTime.toLocal().isBefore(DateTime.now())) {
+        await popup(AppLocalizations.of(Get.context!)!.error,
+            AppLocalizations.of(Get.context!)!.surveyFinished);
+        refreshData();
+        return;
+      }
+
       _isBusy = true;
-      if (!await isLocationWorking()) {
+      if (!await isLocationWorking() || !await isBluetoothWorking()) {
         return;
       }
       final futures = [
@@ -143,6 +183,7 @@ class HomeController extends ControllerBase {
       final questions = _getQuestionsFromSurvey(survey);
       final responseModel = _prepareResponseModel(questions, survey.id);
       final futureLocalizationData = _getCurrentLocation();
+      final futureSensorData = _sendSensorsDataUsecase.readSensorData();
       final triggerableSectionActivationsCounts =
           _getTriggerableSectionActivationsCounts(survey);
       await Get.toNamed("/surveystart", arguments: {
@@ -152,7 +193,8 @@ class HomeController extends ControllerBase {
         "groups": respondentGroups,
         "triggerableSectionActivationsCounts":
             triggerableSectionActivationsCounts,
-        "localizationData": futureLocalizationData
+        "localizationData": futureLocalizationData,
+        "futureSensorData": futureSensorData
       });
     } catch (e) {
       await popup(AppLocalizations.of(Get.context!)!.error,
@@ -184,6 +226,21 @@ class HomeController extends ControllerBase {
     return true;
   }
 
+  Future<bool> isBluetoothWorking() async {
+    final selectedSensor = _storage.read('selectedSensor');
+    if (selectedSensor == null || selectedSensor == SensorKind.none) {
+      return true;
+    }
+    final state = await FlutterBluePlus.adapterState.first;
+    if (state != BluetoothAdapterState.on) {
+      popup(getAppLocalizations().bluetooth,
+          getAppLocalizations().bluetoothRequired);
+      return false;
+    }
+
+    return true;
+  }
+
   Future<List<String>?> _getGroupsIds() async {
     return (await _readResopndentGroupdUseCase.getAll())
         .map((e) => e.id)
@@ -206,7 +263,8 @@ class HomeController extends ControllerBase {
     return CreateSurveyResponseDto(
         surveyId: surveyId,
         startDate: DateTime.now().toUtc().toIso8601String(),
-        answers: questionAnswerDtos);
+        answers: questionAnswerDtos,
+        sensorData: null);
   }
 
   Map<int, int> _getTriggerableSectionActivationsCounts(SurveyDto survey) {
@@ -222,7 +280,34 @@ class HomeController extends ControllerBase {
   Future<void> _loadFromDatabase() async {
     final completableNow = await _databaseHelper.getSurveysCompletableNow();
     pendingSurveys.addAll(completableNow);
+    await _setRemainingTime();
     await _surveyNotificationUseCase.scheduleSurveysNotifications();
+  }
+
+  Future<void> _setRemainingTime() async {
+    final mostUrgentSurvey = _getMostUrgentSurvey();
+
+    if (mostUrgentSurvey == null) {
+      hoursLeft.value = 0;
+      minutesLeft.value = 0;
+      return;
+    }
+
+    final now = DateTime.now().toUtc();
+    final mostUrgentSurveyDuration =
+        mostUrgentSurvey.finishTime.difference(now);
+    hoursLeft.value = mostUrgentSurveyDuration.inHours;
+    minutesLeft.value =
+        mostUrgentSurveyDuration.inMinutes - hoursLeft.value * 60;
+  }
+
+  SurveyShortInfo? _getMostUrgentSurvey() {
+    if (pendingSurveys.isEmpty) {
+      return null;
+    }
+
+    return pendingSurveys
+        .reduce((a, b) => a.finishTime.isBefore(b.finishTime) ? a : b);
   }
 
   void openSettings() {

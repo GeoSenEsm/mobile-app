@@ -15,6 +15,9 @@ CreateSurveyResponseDto _$CreateSurveyResponseDtoFromJson(
           .map((e) =>
               CreateQuestionAnswerDto.fromJson(e as Map<String, dynamic>))
           .toList(),
+      sensorData: json['sensorData'] == null
+          ? null
+          : SensorData.fromJson(json['sensorData'] as Map<String, dynamic>),
     )..finishDate = json['finishDate'] as String;
 
 Map<String, dynamic> _$CreateSurveyResponseDtoToJson(
@@ -23,5 +26,6 @@ Map<String, dynamic> _$CreateSurveyResponseDtoToJson(
       'surveyId': instance.surveyId,
       'startDate': instance.startDate,
       'finishDate': instance.finishDate,
+      'sensorData': instance.sensorData,
       'answers': instance.answers,
     };

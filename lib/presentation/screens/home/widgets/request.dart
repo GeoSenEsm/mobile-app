@@ -1,7 +1,8 @@
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:location/location.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 
 Future<void> buildLocationDenyDialog() async {
@@ -21,7 +22,35 @@ Future<void> buildLocationDenyDialog() async {
           TextButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              Permission.locationAlways.request();
+              var location = Location();
+              location.enableBackgroundMode();
+            },
+            child: Text(getAppLocalizations().openSettings),
+          )
+        ],
+      );
+    },
+  );
+}
+
+Future<void> buildLocationAlwaysDenyDialog() async {
+  return showDialog(
+    context: Get.context!,
+    builder: (context) {
+      return AlertDialog(
+        title: Text(getAppLocalizations().locationBackgroundPermissionDenied),
+        content: Text(getAppLocalizations().locationBackgroundPermissionDeniedMessage),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Text(getAppLocalizations().close),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              AppSettings.openAppSettings(type: AppSettingsType.location);
             },
             child: Text(getAppLocalizations().openSettings),
           )

@@ -9,12 +9,14 @@ class CreateQuestionAnswerDto{
   final List<CreateSelectedOptionDto>? selectedOptions;
   int? numericAnswer;
   bool? yesNoAnswer;
+  String? textAnswer;
 
   CreateQuestionAnswerDto(
       {required this.questionId,
       this.selectedOptions,
       this.numericAnswer,
-      this.yesNoAnswer});
+      this.yesNoAnswer,
+      this.textAnswer});
 
   factory CreateQuestionAnswerDto.fromJson(Map<String, dynamic> json) => _$CreateQuestionAnswerDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CreateQuestionAnswerDtoToJson(this);

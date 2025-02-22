@@ -32,8 +32,6 @@
 	<string>We need to connect  to a temperature sensors</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>We need to track you location for the scientific research</string>
-	<key>NSLocationAlwaysUsageDescription</key>
-	<string>We need to track you location for the scientific research</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need to track you location for the scientific research</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
@@ -41,7 +39,6 @@
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchStoryboardName</key>

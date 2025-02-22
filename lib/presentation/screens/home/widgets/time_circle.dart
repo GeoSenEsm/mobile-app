@@ -15,8 +15,8 @@ class TimeCircle extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         SizedBox(
-          width: 100,
-          height: 100,
+          width: 110,
+          height: 110,
           child: CircularProgressIndicator(
             value: time / timeUnit,
             strokeWidth: 8,
@@ -32,10 +32,12 @@ class TimeCircle extends StatelessWidget {
             Text(
               time.toString(),
               style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              textScaler: const TextScaler.linear(1),
             ),
             Text(
               unit,
               style: const TextStyle(fontSize: 16),
+              textScaler: const TextScaler.linear(1),
             ),
           ],
         ),

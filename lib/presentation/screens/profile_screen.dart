@@ -29,6 +29,7 @@ class ProfileScreen extends GetView<ProfileController> {
               children: [
                 Text(
                   AppLocalizations.of(context)!.profile,
+                  textScaler: const TextScaler.linear(1),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),
@@ -59,13 +60,10 @@ class ProfileScreen extends GetView<ProfileController> {
                       labelText: controller.getLabelFormIndex(index + 1),
                       labelStyle: const TextStyle(color: Colors.black),
                       enabledBorder: const OutlineInputBorder(
-                        borderSide:
-                            BorderSide(color: Colors.black),
+                        borderSide: BorderSide(color: Colors.black),
                       ),
                       focusedBorder: const OutlineInputBorder(
-                        borderSide: BorderSide(
-                            color: Colors
-                                .black),
+                        borderSide: BorderSide(color: Colors.black),
                       ),
                     ),
                     initialValue: controller.getValueForIndex(

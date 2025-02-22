@@ -33,6 +33,7 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
               children: [
                 Text(
                   AppLocalizations.of(context)!.privacy,
+                  textScaler: const TextScaler.linear(1),
                   style: const TextStyle(
                       fontWeight: FontWeight.w900, fontSize: 24),
                 ),
@@ -82,7 +83,9 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: TimePicker(
                         onChange: (v) {
-                          controller.setTimeFrom(v);
+                          if (v != null) {
+                            controller.setTimeFrom(v);
+                          }
                         },
                         value: controller.timeFrom.value,
                         label: AppLocalizations.of(context)!.timeFrom,
@@ -95,7 +98,9 @@ class PrivacySettingsScreen extends GetView<PrivacySettingsController> {
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
                       child: TimePicker(
                         onChange: (v) {
-                          controller.setTimeTo(v);
+                          if (v != null) {
+                            controller.setTimeTo(v);
+                          }
                         },
                         value: controller.timeTo.value,
                         label: AppLocalizations.of(context)!.timeTo,

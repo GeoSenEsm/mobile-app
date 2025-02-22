@@ -37,6 +37,7 @@ class ControllerBase extends GetxController {
 
   Future<void> popup(String title, String message) async {
     await Get.defaultDialog(
+      backgroundColor: Colors.white,
         title: title,
         middleText: message,
         confirm: ElevatedButton(
@@ -51,7 +52,7 @@ class ControllerBase extends GetxController {
     if (!await hasInternetConnectionNoDialog()) {
       await Get.defaultDialog(
           title: AppLocalizations.of(Get.context!)!.error,
-          middleText: AppLocalizations.of(Get.context!)!.noInternetConnection,
+          middleText: AppLocalizations.of(Get.context!)!.noInternetTryAgain,
           confirm: const Text("Ok"));
       return false;
     }
