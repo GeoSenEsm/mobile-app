@@ -1,31 +1,33 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
+import 'package:survey_frontend/data/datasources/local/privacy_settings_repository.dart';
+import 'package:survey_frontend/data/models/privacy_settings.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 
 class PrivacySettingsController extends ControllerBase {
-  final GetStorage _storage;
+  final PrivacySettingsRepository _privacySettingsRepository;
 
   final RxBool enableTrackingLocation = false.obs;
   final Rx<TimeOfDay> timeFrom = const TimeOfDay(hour: 16, minute: 0).obs;
   final Rx<TimeOfDay> timeTo = const TimeOfDay(hour: 16, minute: 0).obs;
 
-  PrivacySettingsController(this._storage);
+  PrivacySettingsController(this._privacySettingsRepository);
 
-  loadPrivacySettings() {
-    timeFrom.value = _storage.read<TimeOfDay>('allowLocationTrackingFrom') ??
-        const TimeOfDay(hour: 8, minute: 0);
-    timeTo.value = _storage.read<TimeOfDay>('allowLocationTrackingTo') ??
-        const TimeOfDay(hour: 22, minute: 0);
-    enableTrackingLocation.value =
-        _storage.read<bool>('enableTrackingLocation') ?? true;
+  void loadPrivacySettings() async {
+    final privacySettings = await _privacySettingsRepository.read();
+    timeFrom.value = privacySettings.allowLocationTrackingFrom;
+    timeTo.value = privacySettings.allowLocationTrackingTo;
+    enableTrackingLocation.value = privacySettings.allowLocationTracking;
   }
 
-  save() {
+  void save() async {
     try {
-      _storage.write('allowLocationTrackingFrom', timeFrom.value);
-      _storage.write('allowLocationTrackingTo', timeTo.value);
-      _storage.write('enableTrackingLocation', enableTrackingLocation.value);
+      final privacySettings = PrivacySettings(
+        allowLocationTracking: enableTrackingLocation.value,
+        allowLocationTrackingFrom: timeFrom.value,
+        allowLocationTrackingTo: timeTo.value,
+      );
+      await _privacySettingsRepository.save(privacySettings);
       Get.back();
     } catch (e) {
       handleSomethingWentWrong(e);

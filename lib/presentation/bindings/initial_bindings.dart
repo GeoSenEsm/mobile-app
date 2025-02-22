@@ -17,6 +17,7 @@ import 'package:survey_frontend/core/usecases/token_provider_impl.dart';
 import 'package:survey_frontend/core/usecases/token_validity_checker_impl.dart';
 import 'package:survey_frontend/data/datasources/initial_survey_service_impl.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
+import 'package:survey_frontend/data/datasources/local/privacy_settings_repository.dart';
 import 'package:survey_frontend/data/datasources/local/survey_participation_service_impl.dart';
 import 'package:survey_frontend/data/datasources/location_service_impl.dart';
 import 'package:survey_frontend/data/datasources/login_service_impl.dart';
@@ -98,14 +99,17 @@ class InitialBindings extends Bindings {
     Get.put<SurveyResponseService>(SurveyResponseServiceImpl(Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put(Connectivity());
-    Get.put<SubmitSurveyUsecase>(
-        SubmitSurveyUsecaseImpl(Get.find(), Get.find(), Get.find(), Get.find()));
+    Get.put<SubmitSurveyUsecase>(SubmitSurveyUsecaseImpl(
+        Get.find(), Get.find(), Get.find(), Get.find()));
     Get.lazyPut<CalendarEventUsecase>(
         () => CalendarEventUsecaseImpl(Get.find()),
         fenix: true);
     Get.lazyPut(() => CalendarController(Get.find()), fenix: true);
     Get.lazyPut<SendLocationDataUsecase>(
         () => SendLocationDataUsecaseImpl(Get.find(), Get.find(), Get.find()),
+        fenix: true);
+    Get.lazyPut<PrivacySettingsRepository>(
+        () => PrivacySettingsRepositoryImpl(Get.find()),
         fenix: true);
   }
 

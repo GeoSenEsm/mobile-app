@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
+import 'package:survey_frontend/data/datasources/local/privacy_settings_repository.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/domain/external_services/location_service.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
@@ -16,10 +16,10 @@ abstract class SendLocationDataUsecase {
 class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
   final DatabaseHelper _databaseHelper;
   final LocalizationService _locationService;
-  final GetStorage _storage;
+  final PrivacySettingsRepository _privacySettingsRepository;
 
-  SendLocationDataUsecaseImpl(
-      this._databaseHelper, this._locationService, this._storage);
+  SendLocationDataUsecaseImpl(this._databaseHelper, this._locationService,
+      this._privacySettingsRepository);
 
   @override
   Future<bool> readAndSendLocationData() async {
@@ -58,18 +58,16 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
   @override
   Future<LocalizationData?> getCurrentLocation() async {
     try {
-      if (!(_storage.read('enableTrackingLocation') ?? true)) {
+      final privacySettings = await _privacySettingsRepository.read();
+      if (!privacySettings.allowLocationTracking) {
         return null;
       }
 
-      final timeFrom = _storage.read<TimeOfDay>('allowLocationTrackingFrom') ??
-          const TimeOfDay(hour: 8, minute: 0);
-      final timeTo = _storage.read<TimeOfDay>('allowLocationTrackingTo') ??
-          const TimeOfDay(hour: 22, minute: 0);
       final now = DateTime.now();
       final nowTime = TimeOfDay(hour: now.hour, minute: now.minute);
 
-      if (!_isBetween(nowTime, timeFrom, timeTo)) {
+      if (!_isBetween(nowTime, privacySettings.allowLocationTrackingFrom,
+          privacySettings.allowLocationTrackingTo)) {
         return null;
       }
       if (!await Geolocator.isLocationServiceEnabled()) {
