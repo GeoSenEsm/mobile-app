@@ -72,6 +72,9 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
       if (!_isBetween(nowTime, timeFrom, timeTo)) {
         return null;
       }
+      if (!await Geolocator.isLocationServiceEnabled()) {
+        return null;
+      }
       Position currentLocation = await Geolocator.getCurrentPosition();
       final locationData = LocalizationData(
           dateTime: now.toUtc().toIso8601String(),

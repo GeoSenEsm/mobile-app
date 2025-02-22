@@ -12,8 +12,6 @@ import 'package:survey_frontend/presentation/bindings/initial_bindings.dart';
 Future<bool> sendSensorsData() async {
   try {
     var service = Get.find<SendSensorsDataUsecase>();
-    final location = Get.find<Location>();
-    location.enableBackgroundMode(enable: true);
     return await service.readAndSendSensorData();
   } catch (e) {
     Sentry.captureException(e);
@@ -22,10 +20,12 @@ Future<bool> sendSensorsData() async {
 }
 
 Future<bool> readLocation() async {
- try {
+  try {
     var service = Get.find<SendLocationDataUsecase>();
     final location = Get.find<Location>();
-    location.enableBackgroundMode(enable: true);
+    if (!await location.isBackgroundModeEnabled()) {
+      return service.sendLocationData(null);
+    }
     return await service.readAndSendLocationData();
   } catch (e) {
     Sentry.captureException(e);
@@ -64,7 +64,7 @@ Future<void> initSentry() async {
     await dotenv.load(isOptional: true);
     final dsn = dotenv.env['SENTRY_DSN'];
 
-    if (dsn == null){
+    if (dsn == null) {
       return;
     }
 

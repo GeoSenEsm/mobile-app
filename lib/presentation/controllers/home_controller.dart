@@ -25,6 +25,7 @@ import 'package:survey_frontend/domain/models/visibility_type.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
 
@@ -58,6 +59,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   @override
   void onInit() async {
     super.onInit();
+    askForPermissions();
     listenToNotifications();
     _storage.write("loggedBefore", true);
     WidgetsBinding.instance.addObserver(this);
