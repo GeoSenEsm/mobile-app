@@ -35,6 +35,10 @@ class NeedInsertRespondentDataUseCaseImpl
       await _trySaveResopndentsGroups(respondentDataApiResponse.body!['id']);
       return NeedInsertRespondentDataResult.noNeed;
     }
+    if (respondentDataApiResponse.statusCode == 404 &&
+        surveyResult.statusCode == 200) {
+      return NeedInsertRespondentDataResult.need;
+    }
 
     if (loggedBefore) {
       return NeedInsertRespondentDataResult.noNeed;

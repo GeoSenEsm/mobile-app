@@ -6,7 +6,6 @@ import 'package:survey_frontend/presentation/controllers/sensor_data_controller.
 import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_scanning_circle.dart';
 import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_scanning_error_circle.dart';
 import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_scanning_result_circle.dart';
-import 'package:survey_frontend/presentation/static/routes.dart';
 
 class SensorDataScreen extends GetView<SensorDataController> {
   const SensorDataScreen({super.key});

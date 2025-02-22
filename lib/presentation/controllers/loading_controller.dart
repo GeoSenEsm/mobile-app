@@ -1,9 +1,10 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/models/need_insert_respondent_data_result.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/domain/usecases/token_validity_checker.dart';
+import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/functions/handle_need_insert_respondent_data.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
@@ -26,12 +27,12 @@ class LoadingController extends ControllerBase {
       return;
     }
 
-    if (!_tokenValidityChecker.isValid(savedToken)){
+    if (!_tokenValidityChecker.isValid(savedToken)) {
       Get.offAllNamed(Routes.reinsertCredentials);
       return;
     }
 
-    var respondentData = _storage.read<dynamic>("respondentData");    
+    var respondentData = _storage.read<dynamic>("respondentData");
 
     if (respondentData != null) {
       _needInsertRespondentDataUseCase.update(respondentData['id']);
@@ -40,8 +41,16 @@ class LoadingController extends ControllerBase {
     }
 
     if (!await hasInternetConnectionNoDialog()) {
-      retryButtonVisible.value = true;
-      return;
+      await Get.defaultDialog(
+        barrierDismissible: false,
+        title: getAppLocalizations().noInternetConnection,
+        middleText: getAppLocalizations().betterExperienceTurnOnInternet,
+        textConfirm: getAppLocalizations().ok,
+        confirmTextColor: Colors.white,
+        onConfirm: () {
+          Get.back();
+        },
+      );
     }
 
     final needResult =

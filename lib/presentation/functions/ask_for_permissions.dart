@@ -7,10 +7,18 @@ Future<void> askForPermissions() async {
     Permission.bluetoothScan,
     Permission.bluetoothConnect,
     Permission.notification,
-    Permission.location,
+    Permission.location
   ].request();
   if (statuses.values
       .any((status) => !status.isGranted && !status.isPermanentlyDenied)) {
     await buildManyDenyDialog();
   }
+  askForLocalizationInBackground();
+}
+
+Future<void> askForLocalizationInBackground() async {
+  if (await Permission.locationAlways.isGranted) {
+    return;
+  }
+  buildLocationAlwaysDenyDialog();
 }
