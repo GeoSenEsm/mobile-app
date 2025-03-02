@@ -111,7 +111,7 @@ void main() async {
           page: () => const WelcomeScreen(),
           binding: WelcomeScreenBindings()),
       GetPage(
-          name: '/submitSurvey',
+          name: Routes.submitSurvey,
           page: () => const SurveyEndScreen(),
           binding: SurveyEndBindings()),
       GetPage(

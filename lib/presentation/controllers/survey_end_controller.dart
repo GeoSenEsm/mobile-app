@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
@@ -26,6 +27,7 @@ class SurveyEndController extends ControllerBase {
   final SubmitSurveyUsecase _submitSurveyUsecase;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
   final GetStorage _storage;
+  final AppState _appState;
   Rx isBusy = false.obs;
 
   SurveyEndController(
@@ -33,7 +35,8 @@ class SurveyEndController extends ControllerBase {
       this._databaseHelper,
       this._submitSurveyUsecase,
       this._sendSensorsDataUsecase,
-      this._storage);
+      this._storage,
+      this._appState);
 
   void endSurvey() async {
     if (isBusy.value) {
@@ -47,6 +50,7 @@ class SurveyEndController extends ControllerBase {
       _saveLocation(participation?.id);
 
       await _databaseHelper.markAsSubmited(dto.surveyId);
+      _appState.justSubmitedSurvey = true;
       Get.until((route) => Get.currentRoute == Routes.home);
     } catch (e) {
       popup(AppLocalizations.of(Get.context!)!.error,
