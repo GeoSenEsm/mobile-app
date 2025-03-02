@@ -605,4 +605,14 @@ class DatabaseHelper {
           where: 'id = ?', whereArgs: [update.id]);
     }
   }
+
+  Future<Duration?> getTimeToNextSurvey() async {
+    final db = await database;
+    final now = DateTime.now().toUtc();
+    final results = await db
+        .rawQuery('SELECT "start" FROM timeSlots WHERE (submited = 0 OR submited IS NULL) and "finish" > ? ORDER BY "start" ASC LIMIT 1;',
+        [now.toIso8601String()]);
+    if (results.isEmpty) return null;
+    return DateTime.parse(results.first['start'] as String).difference(now);
+  }
 }

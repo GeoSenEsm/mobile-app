@@ -163,5 +163,16 @@
     "betterExperienceTurnOnInternet": "For better experience, turn on the internet connection",
     "loadingMacFailed": "Could not load MAC address",
     "sensorNotFoundDialogTitle": "Sensor not found",
-    "sensorNotFoundDialogContent": "Temperature sensor not found. The survey will be sent without temperature data. Please make sure you have the sensor with you and that it has a charged battery."
+    "sensorNotFoundDialogContent": "Temperature sensor not found. The survey will be sent without temperature data. Please make sure you have the sensor with you and that it has a charged battery.",
+    "thanksForCompletingTheSurvey": "Thank you for completing the survey.",
+    "nextSurveyWillAppearIn": "Next survey will appear in {time}.",
+    "@nextSurveyWillAppearIn": {
+         "placeholders": {
+            "time": {
+                "type": "String",
+                "example": "2h 15min"
+            }
+        }
+    },
+    "nextSurveyIsReadyToComplete": "Next survey is already ready to complete."
 }

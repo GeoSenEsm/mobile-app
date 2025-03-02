@@ -147,5 +147,16 @@
     "betterExperienceTurnOnInternet": "Dla lepszego doświadczenia z użytkowania, proszę włączyć połączenie z internetem",
     "loadingMacFailed": "Błąd ładowania adresu MAC",
     "sensorNotFoundDialogTitle": "Nie znaleziono czujnika",
-    "sensorNotFoundDialogContent": "Nie znaleziono czujnika temparatury. Anketa zostanie wysłana bez danych o temperaturze. Upewnij się, że masz przy sobie czujnik, oraz że ma on nałądowaną baterię."
+    "sensorNotFoundDialogContent": "Nie znaleziono czujnika temparatury. Anketa zostanie wysłana bez danych o temperaturze. Upewnij się, że masz przy sobie czujnik, oraz że ma on nałądowaną baterię.",
+    "thanksForCompletingTheSurvey": "Dziękujemy za wypełnienie ankiety.",
+    "nextSurveyWillAppearIn": "Następna ankieta pojawi się za {time}",
+    "@nextSurveyWillAppearIn": {
+         "placeholders": {
+            "time": {
+                "type": "String",
+                "example": "2h 15min"
+            }
+        }
+    },
+    "nextSurveyIsReadyToComplete": "Kolejna ankieta jest już gotowa do wypełnienia."
 }

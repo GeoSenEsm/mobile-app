@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
+import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/calendar_event_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase_impl.dart';
@@ -111,6 +112,7 @@ class InitialBindings extends Bindings {
     Get.lazyPut<PrivacySettingsRepository>(
         () => PrivacySettingsRepositoryImpl(Get.find()),
         fenix: true);
+    Get.put<AppState>(AppState());
   }
 
   Dio _getDio(GetStorage storage) {

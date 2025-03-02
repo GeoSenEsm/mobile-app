@@ -19,4 +19,5 @@ class Routes {
   static String get sensorDataHistory => '/sensorDataHistory';
   static String get map => '/map';
   static String get startSurvey => '/surveystart';
+  static String get submitSurvey => '/submitSurvey';
 }
