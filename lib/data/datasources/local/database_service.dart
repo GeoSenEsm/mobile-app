@@ -112,7 +112,7 @@ class DatabaseHelper {
       )
     ''');
 
-    _onUpgrade(db, 0, version);
+    await _onUpgrade(db, 0, version);
   }
 
   FutureOr<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
