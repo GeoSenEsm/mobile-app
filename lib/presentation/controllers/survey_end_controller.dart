@@ -6,9 +6,12 @@ import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
+import 'package:survey_frontend/core/usecases/survey_notification_id_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/data/models/sensor_kind.dart';
+import 'package:survey_frontend/data/models/short_survey.dart';
+import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/sensor_data.dart';
@@ -25,7 +28,8 @@ class SurveyEndController extends ControllerBase {
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final DatabaseHelper _databaseHelper;
   final SubmitSurveyUsecase _submitSurveyUsecase;
-  final SendSensorsDataUsecase _sendSensorsDataUsecase;
+  final SurveyNotificationIdUsecase _surveyNotificationIdUsecase;
+  late SurveyShortInfo surveyShortInfo;
   final GetStorage _storage;
   final AppState _appState;
   Rx isBusy = false.obs;
@@ -34,7 +38,7 @@ class SurveyEndController extends ControllerBase {
       this._sendLocationDataUsecase,
       this._databaseHelper,
       this._submitSurveyUsecase,
-      this._sendSensorsDataUsecase,
+      this._surveyNotificationIdUsecase,
       this._storage,
       this._appState);
 
@@ -48,7 +52,8 @@ class SurveyEndController extends ControllerBase {
       final participation = await _submitToServer();
       //no need to await, let's do it in background
       _saveLocation(participation?.id);
-
+      final notificationId = _surveyNotificationIdUsecase.getFinishNotificationId(surveyShortInfo);
+      NotificationService.cancelNotification(notificationId);
       await _databaseHelper.markAsSubmited(dto.surveyId);
       _appState.justSubmitedSurvey = true;
       Get.until((route) => Get.currentRoute == Routes.home);
@@ -146,5 +151,6 @@ class SurveyEndController extends ControllerBase {
     dto = Get.arguments['responseModel'];
     localizationData = Get.arguments['localizationData'];
     futureSensorData = Get.arguments['futureSensorData'];
+    surveyShortInfo = Get.arguments['shortSurveyInfo'];
   }
 }

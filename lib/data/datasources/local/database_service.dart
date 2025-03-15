@@ -280,7 +280,8 @@ class DatabaseHelper {
         surveys.id,
         surveys.name,
         timeSlots.start,
-        timeSlots.finish
+        timeSlots.finish,
+        timeSlots.id as timeSlotId
         FROM surveys
         JOIN timeSlots ON timeSlots.surveyId = surveys.id
         WHERE timeSlots.start < ? AND timeSlots.finish > ?
@@ -291,7 +292,8 @@ class DatabaseHelper {
           name: e['name'],
           id: e['id'],
           finishTime: DateTime.parse(e['finish']),
-          startTime: DateTime.parse(e['start']));
+          startTime: DateTime.parse(e['start']),
+          timeSlotId: e['timeSlotId']);
     }).toList();
   }
 
@@ -303,7 +305,8 @@ class DatabaseHelper {
         surveys.id,
         surveys.name,
         timeSlots.start,
-        timeSlots.finish
+        timeSlots.finish,
+        timeSlots.id as timeSlotId
         FROM surveys
         JOIN timeSlots ON timeSlots.surveyId = surveys.id
         WHERE timeSlots.finish > ? AND (timeSlots.submited = 0 OR timeSlots.submited IS NULL)
@@ -314,7 +317,8 @@ class DatabaseHelper {
           name: e['name'],
           id: e['id'],
           finishTime: DateTime.parse(e['finish']),
-          startTime: DateTime.parse(e['start']));
+          startTime: DateTime.parse(e['start']),
+          timeSlotId: e['timeSlotId']);
     }).toList();
   }
 
@@ -459,7 +463,7 @@ class DatabaseHelper {
 
     return result
         .map((e) => SurveyCalendarEvent(
-            surveyName: e['name'] as String,
+            surveyName: e['name'] == null ? '' : e['name'] as String, //TODO: on one of the phones, there was a bug here because the name was null. This should fix the problem, but I have no idea in what way did the survey name be null
             timeSlotId: e['timeSlotId'] as String,
             from: DateTime.parse(e['from'] as String),
             to: DateTime.parse(e['to'] as String),

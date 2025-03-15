@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/sensor_data.dart';
@@ -18,6 +19,7 @@ class QuestionNavigableController extends ControllerBase {
   late Map<int, int> triggerableSectionActivationsCounts;
   late Future<LocalizationData> localizationData;
   late Future<SensorData?> futureSensorData;
+  late SurveyShortInfo surveyShortInfo;
 
   void navigateToNextQuestion(QuestionNavigationMode mode) async {
     if (isBusy) {
@@ -35,6 +37,7 @@ class QuestionNavigableController extends ControllerBase {
 
       if (nextQuestionIndex == -1) {
         await Get.toNamed('/submitSurvey', arguments: {
+          "shortSurveyInfo": surveyShortInfo,
           'responseModel': responseModel,
           "localizationData": localizationData,
           "futureSensorData": futureSensorData
@@ -46,6 +49,7 @@ class QuestionNavigableController extends ControllerBase {
 
       screenFactory() => SurveyQuestionScreen();
       Map<String, dynamic> arguments = {
+        'shortSurveyInfo': surveyShortInfo,
         'responseModel': responseModel,
         'survey': survey,
         'questionIndex': nextQuestionIndex,
@@ -113,6 +117,7 @@ class QuestionNavigableController extends ControllerBase {
   }
 
   void readGetArguments() {
+    surveyShortInfo = Get.arguments['shortSurveyInfo'];
     survey = Get.arguments['survey'];
     questions = Get.arguments['questions'];
     responseModel = Get.arguments['responseModel'];
