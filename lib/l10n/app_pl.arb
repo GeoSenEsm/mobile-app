@@ -158,5 +158,14 @@
             }
         }
     },
-    "nextSurveyIsReadyToComplete": "Kolejna ankieta jest już gotowa do wypełnienia."
+    "nextSurveyIsReadyToComplete": "Kolejna ankieta jest już gotowa do wypełnienia.",
+    "loginFailedServerRespondedWithStatusCode": "Nie udało się zalogować. Server odpowiedział kodem {code}. Spróbój ponownie później.",
+    "@loginFailedServerRespondedWithStatusCode": {
+        "placeholders": {
+            "code": {
+                "type": "int",
+                "example": "500"
+            }
+        }
+    }
 }

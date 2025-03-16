@@ -128,6 +128,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     if (response.body!.isNotEmpty) {
       await _surveyImagesUseCase.saveImages(response.body!);
       await _databaseHelper.upsertSurveys(response.body!);
+      await _surveyNotificationUseCase.scheduleSurveysNotifications();
     }
   }
 
@@ -187,6 +188,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       final triggerableSectionActivationsCounts =
           _getTriggerableSectionActivationsCounts(survey);
       await Get.toNamed("/surveystart", arguments: {
+        "shortSurveyInfo": shortSurveyInfo,
         "survey": survey,
         "questions": questions,
         "responseModel": responseModel,
@@ -281,7 +283,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     final completableNow = await _databaseHelper.getSurveysCompletableNow();
     pendingSurveys.addAll(completableNow);
     await _setRemainingTime();
-    await _surveyNotificationUseCase.scheduleSurveysNotifications();
   }
 
   Future<void> _setRemainingTime() async {

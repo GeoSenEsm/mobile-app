@@ -129,7 +129,7 @@ class LoginController extends ControllerBase {
     }
 
     if (apiResponse.statusCode != 200) {
-      await handleSomethingWentWrong(apiResponse.error!);
+      await handleSomethingWentWrong(getAppLocalizations().loginFailedServerRespondedWithStatusCode(apiResponse.statusCode!));
       return;
     }
     saveToken(apiResponse.body!);

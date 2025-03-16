@@ -174,5 +174,14 @@
             }
         }
     },
-    "nextSurveyIsReadyToComplete": "Next survey is already ready to complete."
+    "nextSurveyIsReadyToComplete": "Next survey is already ready to complete.",
+    "loginFailedServerRespondedWithStatusCode": "Login failed. The server responded with code {code}. Please try again later.",
+    "@loginFailedServerRespondedWithStatusCode": {
+        "placeholders": {
+            "code": {
+                "type": "int",
+                "example": "500"
+            }
+        }
+    }
 }
