@@ -37,7 +37,7 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'survey_database.db');
     return await openDatabase(path,
-        version: 4, onCreate: _onCreate, onUpgrade: _onUpgrade);
+        version: 5, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -147,6 +147,12 @@ class DatabaseHelper {
       ''');
       await db.execute('''
       ALTER TABLE timeSlots ADD COLUMN surveyName TEXT;
+      ''');
+    }
+
+    if (oldVersion < 5) {
+      await db.execute('''
+      ALTER TABLE locations ADD COLUMN accuracyMeters REAL;
       ''');
     }
   }
@@ -531,7 +537,8 @@ class DatabaseHelper {
       'dateTime': model.dateTime.toIso8601String(),
       'latitude': model.latitude,
       'longitude': model.longitude,
-      'sentToServer': model.sentToServer ? 1 : 0
+      'sentToServer': model.sentToServer ? 1 : 0,
+      'accuracyMeters': model.accuracyMeters
     });
   }
 
@@ -540,7 +547,7 @@ class DatabaseHelper {
 
     final results = await db.rawQuery('''
       SELECT surveyParticipationId, "dateTime",
-      latitude, longitude
+      latitude, longitude, accuracyMeters
       FROM locations
       WHERE sentToServer = 0 AND (relatedToSurvey = 0 OR surveyParticipationId IS NOT NULL)
       ''');
@@ -550,7 +557,8 @@ class DatabaseHelper {
             surveyParticipationId: e['surveyParticipationId'] as String?,
             dateTime: e['dateTime'] as String,
             latitude: e['latitude'] as double,
-            longitude: e['longitude'] as double))
+            longitude: e['longitude'] as double,
+            accuracyMeters: e['accuracyMeters'] as double?))
         .toList();
   }
 
@@ -580,7 +588,8 @@ class DatabaseHelper {
             latitude: e['latitude'] as double,
             sentToServer: e['sentToServer'] == 1,
             relatedToSurvey: e['relatedToSurvey'] == 1,
-            surveyParticipationId: e['surveyParticipationId'] as String?))
+            surveyParticipationId: e['surveyParticipationId'] as String?,
+            accuracyMeters: e['accuracyMeters'] as double?))
         .toList();
   }
 

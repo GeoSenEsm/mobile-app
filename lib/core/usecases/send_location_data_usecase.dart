@@ -30,7 +30,8 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
             dateTime: DateTime.parse(localizationData.dateTime),
             longitude: localizationData.longitude,
             latitude: localizationData.latitude,
-            sentToServer: false);
+            sentToServer: false,
+            accuracyMeters: localizationData.accuracyMeters);
     return await sendLocationData(model);
   }
 
@@ -74,11 +75,14 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
         return null;
       }
       Position currentLocation = await Geolocator.getCurrentPosition();
+      final double? accuracy = currentLocation.accuracy >= 0 && currentLocation.accuracy <  99999 ?
+          double.parse(currentLocation.accuracy.toStringAsFixed(2)) : null;
       final locationData = LocalizationData(
           dateTime: now.toUtc().toIso8601String(),
           latitude: double.parse(currentLocation.latitude.toStringAsFixed(6)),
           longitude:
-              double.parse(currentLocation.longitude.toStringAsFixed(6)));
+              double.parse(currentLocation.longitude.toStringAsFixed(6)),
+          accuracyMeters: accuracy);
 
       return locationData;
     } catch (e) {

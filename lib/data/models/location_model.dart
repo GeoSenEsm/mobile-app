@@ -5,6 +5,7 @@ class LocationModel {
   final double latitude;
   final double longitude;
   final bool sentToServer;
+  final double? accuracyMeters;
 
   LocationModel(
       {this.surveyParticipationId,
@@ -12,5 +13,6 @@ class LocationModel {
       required this.dateTime,
       required this.longitude,
       required this.latitude,
-      required this.sentToServer});
+      required this.sentToServer,
+      this.accuracyMeters});
 }
