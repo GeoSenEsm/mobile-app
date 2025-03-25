@@ -321,10 +321,13 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
   Future<LocalizationData> _getCurrentLocation() async {
     Position currentLocation = await Geolocator.getCurrentPosition();
+    final double? accuracy = currentLocation.accuracy >= 0 && currentLocation.accuracy <  99999 ?
+          double.parse(currentLocation.accuracy.toStringAsFixed(2)) : null;
     return LocalizationData(
         dateTime: DateTime.now().toUtc().toIso8601String(),
         latitude: double.parse(currentLocation.latitude.toStringAsFixed(6)),
-        longitude: double.parse(currentLocation.longitude.toStringAsFixed(6)));
+        longitude: double.parse(currentLocation.longitude.toStringAsFixed(6)),
+        accuracyMeters: accuracy);
   }
 }
 

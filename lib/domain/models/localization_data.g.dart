@@ -12,6 +12,7 @@ LocalizationData _$LocalizationDataFromJson(Map<String, dynamic> json) =>
       dateTime: json['dateTime'] as String,
       latitude: (json['latitude'] as num).toDouble(),
       longitude: (json['longitude'] as num).toDouble(),
+      accuracyMeters: (json['accuracyMeters'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$LocalizationDataToJson(LocalizationData instance) =>
@@ -20,4 +21,5 @@ Map<String, dynamic> _$LocalizationDataToJson(LocalizationData instance) =>
       'dateTime': instance.dateTime,
       'latitude': instance.latitude,
       'longitude': instance.longitude,
+      'accuracyMeters': instance.accuracyMeters,
     };

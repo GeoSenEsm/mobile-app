@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
@@ -26,6 +27,7 @@ Future<bool> readLocation() async {
     if (!await location.isBackgroundModeEnabled()) {
       return service.sendLocationData(null);
     }
+
     return await service.readAndSendLocationData();
   } catch (e) {
     Sentry.captureException(e);
@@ -40,8 +42,13 @@ void backgroundTask(String taskId) async {
       return;
     }
 
-    if (!Sentry.isEnabled) {
+    if (Sentry.isEnabled) {
       await initSentry();
+    }
+
+    if (await Permission.locationAlways.status.isGranted) {
+      final location = Get.find<Location>();
+      location.enableBackgroundMode(enable: true);
     }
 
     await sendSensorsData();

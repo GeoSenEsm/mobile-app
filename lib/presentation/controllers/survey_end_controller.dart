@@ -116,7 +116,8 @@ class SurveyEndController extends ControllerBase {
           latitude: location.latitude,
           sentToServer: false,
           relatedToSurvey: true,
-          surveyParticipationId: surveyParticipationId);
+          surveyParticipationId: surveyParticipationId,
+          accuracyMeters: location.accuracyMeters);
       await _sendLocationDataUsecase.sendLocationData(model);
     } catch (e) {
       Sentry.captureException(e);
