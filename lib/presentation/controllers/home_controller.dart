@@ -211,8 +211,12 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     LocationPermission locationPermission = await Geolocator.checkPermission();
     if (locationPermission == LocationPermission.denied) {
       locationPermission = await Geolocator.requestPermission();
-      if (locationPermission != LocationPermission.always &&
-          locationPermission != LocationPermission.whileInUse) {
+      //TODO: we dont require always permission temporary, but we have to go for the commented part again in the future
+      if (locationPermission == LocationPermission.denied
+      || locationPermission == LocationPermission.deniedForever
+      || locationPermission == LocationPermission.unableToDetermine
+      /*locationPermission != LocationPermission.always &&
+          locationPermission != LocationPermission.whileInUse*/) {
         await buildLocationDenyDialog();
         return false;
       }
