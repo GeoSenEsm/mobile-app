@@ -37,6 +37,8 @@ Future<bool> readLocation() async {
 
 void backgroundTask(String taskId) async {
   try {
+    //TODO: we disable this, but want to enable again in the future
+    return;
     InitialBindings().dependencies();
     if (!userLoggedIn()) {
       return;
