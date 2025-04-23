@@ -1,0 +1,5 @@
+NSBluetoothAlwaysUsageDescription = "Potrzebujemy połączyć się z czujnikami temperatury.";
+NSBluetoothPeripheralUsageDescription = "Potrzebujemy połączyć się z czujnikami temperatury.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "Potrzebujemy śledzić Twoją lokalizację do celów badania.";
+NSLocationWhenInUseUsageDescription = "Potrzebujemy śledzić Twoją lokalizację do celów badania.";
+NSUserTrackingUsageDescription = "Ten identyfikator będzie używany do przekazywania danych organizatorowi badania.";

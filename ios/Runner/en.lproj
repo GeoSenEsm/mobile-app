@@ -1,0 +1,5 @@
+NSBluetoothAlwaysUsageDescription = "We need to connect to temperature sensors.";
+NSBluetoothPeripheralUsageDescription = "We need to connect to temperature sensors.";
+NSLocationAlwaysAndWhenInUseUsageDescription = "We need to track your location for scientific research.";
+NSLocationWhenInUseUsageDescription = "We need to track your location for scientific research.";
+NSUserTrackingUsageDescription = "This identifier will be used to deliver data to the research conductor.";

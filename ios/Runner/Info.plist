@@ -27,13 +27,15 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>We need to connect  to a temperature sensors</string>
+	<string>$(NSBluetoothAlwaysUsageDescription)</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>We need to connect  to a temperature sensors</string>
+	<string>$(NSBluetoothPeripheralUsageDescription)</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>We need to track you location for the scientific research</string>
+	<string>$(NSLocationAlwaysAndWhenInUseUsageDescription)</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We need to track you location for the scientific research</string>
+	<string>$(NSLocationWhenInUseUsageDescription)</string>
+	<key>NSUserTrackingUsageDescription</key>
+	<string>$(NSUserTrackingUsageDescription)</string>	
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
