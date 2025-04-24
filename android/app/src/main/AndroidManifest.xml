@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <application
         tools:replace="android:label"
-        android:label="UrbEaT"
+        android:label="GeoSenEsm"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
         android:usesCleartextTraffic="true">
@@ -81,3 +81,4 @@
         </intent>
     </queries>
 </manifest>
+
