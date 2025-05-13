@@ -542,7 +542,7 @@ class DatabaseHelper {
     });
   }
 
-  Future<List<LocalizationData>> getAllLocationsToSend() async {
+  Future<List<LocalizationData>> getAllLocationsToSend(DateTime toDate) async {
     final db = await database;
 
     final results = await db.rawQuery('''
@@ -550,7 +550,8 @@ class DatabaseHelper {
       latitude, longitude, accuracyMeters
       FROM locations
       WHERE sentToServer = 0 AND (relatedToSurvey = 0 OR surveyParticipationId IS NOT NULL)
-      ''');
+      AND "dateTime" <= ?;
+      ''', [toDate.toIso8601String()]);
 
     return results
         .map((e) => LocalizationData(
@@ -562,11 +563,12 @@ class DatabaseHelper {
         .toList();
   }
 
-  Future<void> markAllSendableLocationsSentToServer() async {
+  Future<void> markAllSendableLocationsSentToServer(DateTime toDate) async {
     final db = await database;
     await db.execute('''
-    UPDATE locations set sentToServer = 1 WHERE sentToServer = 0 AND (relatedToSurvey = 0 OR surveyParticipationId IS NOT NULL);
-    ''');
+    UPDATE locations set sentToServer = 1 WHERE sentToServer = 0 AND (relatedToSurvey = 0 OR surveyParticipationId IS NOT NULL)
+    AND "dateTime" <= ?;
+    ''', [toDate.toIso8601String()]);
   }
 
   Future<List<LocationModel>> getAllLocationsBetween(

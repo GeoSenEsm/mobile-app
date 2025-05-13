@@ -76,7 +76,11 @@ class QuestionNavigableController extends ControllerBase {
 
   int _getNextValidQuestionIndex() {
     if (questionIndex == -1){
-      return 0;
+      final question = questions.firstWhereOrNull((element) => element.canQuestionBeShown(groupsIds, triggerableSectionActivationsCounts));
+      if (question == null) {
+        return -1;
+      }
+      return questions.indexOf(question);
     }
 
     if (questionIndex + questionsCount == questions.length) {
