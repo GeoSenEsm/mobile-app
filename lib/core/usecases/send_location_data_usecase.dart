@@ -41,12 +41,12 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
       if (location != null) {
         await _databaseHelper.addLocation(location);
       }
-
-      final allToSend = await _databaseHelper.getAllLocationsToSend();
+      final yesterday = DateTime.now().toUtc().subtract(const Duration(days: 1));
+      final allToSend = await _databaseHelper.getAllLocationsToSend(yesterday);
       final submitResult = await _locationService.submitLocations(allToSend);
 
       if (submitResult.statusCode == 201) {
-        await _databaseHelper.markAllSendableLocationsSentToServer();
+        await _databaseHelper.markAllSendableLocationsSentToServer(yesterday);
       }
 
       return true;

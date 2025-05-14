@@ -106,7 +106,12 @@ class MapScreen extends GetView<MapScreenController> {
     return Expanded(
       child: Container(
         color: AppStyles.backgroundSecondary,
-        child: FlutterMap(mapController: controller.mapController, children: [
+        child: FlutterMap(mapController: controller.mapController, 
+        options: const MapOptions(
+          initialCenter: LatLng(52.2297, 21.0122),
+          initialZoom: 13.0,
+        ),
+        children: [
           TileLayer(
             urlTemplate: controller.mapUrlTemplate,
             subdomains: const ['a', 'b', 'c'],
