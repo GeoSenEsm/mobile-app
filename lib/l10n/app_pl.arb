@@ -167,5 +167,7 @@
                 "example": "500"
             }
         }
-    }
+    },
+    "weWereUnableToDetermineTheServerAvailibility": "Z powodu pewnych ograniczeń prawnych musimy ustalić, czy możesz korzystać z podanego adresu API. Niestety, w tej chwili nie udało nam się tego zweryfikować. Spróbuj ponownie później.",
+    "theServerYouProvidedIsNotAllowedInYourLocation": "Serwer, który podałeś, jest niedozwolony w Twojej lokalizacji."
 }

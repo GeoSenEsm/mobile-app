@@ -183,5 +183,7 @@
                 "example": "500"
             }
         }
-    }
+    },
+    "weWereUnableToDetermineTheServerAvailibility": "Due to certain legal restrictions, we need to determine whether you are allowed to use the provided API address. However, we were unable to verify this at the moment. Please try again later.",
+    "theServerYouProvidedIsNotAllowedInYourLocation": "The server you provided is not allowed in your location."
 }
