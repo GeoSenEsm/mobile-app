@@ -18,6 +18,7 @@ import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
 import 'package:survey_frontend/core/usecases/token_provider_impl.dart';
 import 'package:survey_frontend/core/usecases/token_validity_checker_impl.dart';
 import 'package:survey_frontend/data/datasources/initial_survey_service_impl.dart';
+import 'package:survey_frontend/data/datasources/ip_localization_country_code_service_impl.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/datasources/local/privacy_settings_repository.dart';
 import 'package:survey_frontend/data/datasources/local/survey_participation_service_impl.dart';
@@ -29,6 +30,7 @@ import 'package:survey_frontend/data/datasources/sensors_data_service_impl.dart'
 import 'package:survey_frontend/data/datasources/survey_response_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_service_impl.dart';
 import 'package:survey_frontend/domain/external_services/initial_survey_service.dart';
+import 'package:survey_frontend/domain/external_services/ip_localization_country_code_service.dart';
 import 'package:survey_frontend/domain/external_services/location_service.dart';
 import 'package:survey_frontend/domain/external_services/login_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_date_service.dart';
@@ -113,6 +115,9 @@ class InitialBindings extends Bindings {
         fenix: true);
     Get.lazyPut<PrivacySettingsRepository>(
         () => PrivacySettingsRepositoryImpl(Get.find()),
+        fenix: true);
+    Get.lazyPut<IpLocalizationCountryCodeService>(
+        () => IpLocalizationCountryCodeServiceImpl(Get.find()),
         fenix: true);
     Get.put<AppState>(AppState());
   }

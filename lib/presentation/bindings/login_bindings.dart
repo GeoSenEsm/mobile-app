@@ -14,6 +14,7 @@ class LoginBindings extends Bindings {
       Get.find(),
       Get.find(),
       Get.find(),
+      Get.find(),
       Get.find()
     ));
   }
