@@ -34,6 +34,7 @@ import 'package:survey_frontend/presentation/bindings/welcome_screen_bindings.da
 import 'package:survey_frontend/presentation/screens/calendar/calendar_screen.dart';
 import 'package:survey_frontend/presentation/screens/calendar/navigation/calendar_navigator_observer.dart';
 import 'package:survey_frontend/presentation/screens/change_password_screen.dart';
+import 'package:survey_frontend/presentation/screens/contact/contact_screen.dart';
 import 'package:survey_frontend/presentation/screens/home/home_screen.dart';
 import 'package:survey_frontend/presentation/screens/home/navigation/home_navigator_observer.dart';
 import 'package:survey_frontend/presentation/screens/initial_survey/initial_survey_screen.dart';
@@ -176,6 +177,10 @@ void main() async {
           name: Routes.sensorDataHistory,
           page: () => const SensorDataHistoryScreen(),
           binding: SensorDataHistoryBindings()),
+      GetPage(
+        name: Routes.contact,
+        page: () => const ContactScreen(),
+      ),
       GetPage(name: Routes.map, page: () => const MapScreen())
     ],
   ));

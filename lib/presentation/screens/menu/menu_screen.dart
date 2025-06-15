@@ -64,7 +64,7 @@ class MenuScreen extends GetView<ManuController> {
                         icon: Icons.manage_search,
                         label: getAppLocalizations().sensorHistory,
                         onTap: controller.sensorHistory),
-                        NavItem(
+                    NavItem(
                         icon: Icons.location_on_outlined,
                         label: getAppLocalizations().map,
                         onTap: controller.map),
@@ -123,6 +123,33 @@ class MenuScreen extends GetView<ManuController> {
                       onTap: controller.logout,
                       iconColor: Colors.black,
                     ),
+                    const SizedBox(height: 10),
+                    const Divider(
+                      color: Colors.black,
+                      thickness: 1,
+                      indent: 20,
+                      endIndent: 20,
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.help,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                    ),
+                    NavItem(
+                      icon: Icons.phone,
+                      label: AppLocalizations.of(context)!.contact,
+                      onTap: controller.contact,
+                      iconColor: Colors.black,
+                    )
                   ],
                 ),
               ),

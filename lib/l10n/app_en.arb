@@ -185,5 +185,12 @@
         }
     },
     "weWereUnableToDetermineTheServerAvailibility": "Due to certain legal restrictions, we need to determine whether you are allowed to use the provided API address. However, we were unable to verify this at the moment. Please try again later.",
-    "theServerYouProvidedIsNotAllowedInYourLocation": "The server you provided is not allowed in your location."
+    "theServerYouProvidedIsNotAllowedInYourLocation": "The server you provided is not allowed in your location.",
+    "help": "Help",
+    "contact": "Contact",
+    "errorLoadingContacts": "An error occurred while loading contacts. Please make sure you are connected to the Internet and try again later.",
+    "refreshContacts": "Refresh",
+    "noContacts": "The study administrator has not defined any contact phone numbers.",
+    "call": "Call",
+    "couldNotMakeCall": "The call could not be completed."
 }

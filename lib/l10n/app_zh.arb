@@ -184,5 +184,12 @@
         }
     },
     "weWereUnableToDetermineTheServerAvailibility": "由于某些法律限制，我们需要确认你是否可以使用提供的 API 地址。但目前我们无法完成验证。请稍后再试",
-    "theServerYouProvidedIsNotAllowedInYourLocation": "你提供的服务器在你所在的位置不被允许使用"
+    "theServerYouProvidedIsNotAllowedInYourLocation": "你提供的服务器在你所在的位置不被允许使用",
+    "help": "帮助",
+    "contact": "联系",
+    "errorLoadingContacts": "加载联系人时发生错误。请确保您已连接到互联网，然后稍后重试。",
+    "refreshContacts": "刷新",
+    "noContacts": "研究管理员尚未定义任何联系电话号码。",
+    "call": "拨打",
+    "couldNotMakeCall": "拨打电话失败。"
 }

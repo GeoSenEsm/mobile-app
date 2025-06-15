@@ -20,4 +20,5 @@ class Routes {
   static String get map => '/map';
   static String get startSurvey => '/surveystart';
   static String get submitSurvey => '/submitSurvey';
+  static String get contact => '/contact';
 }

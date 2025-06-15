@@ -24,6 +24,7 @@ import 'package:survey_frontend/data/datasources/local/privacy_settings_reposito
 import 'package:survey_frontend/data/datasources/local/survey_participation_service_impl.dart';
 import 'package:survey_frontend/data/datasources/location_service_impl.dart';
 import 'package:survey_frontend/data/datasources/login_service_impl.dart';
+import 'package:survey_frontend/data/datasources/phone_contact_service_impl.dart';
 import 'package:survey_frontend/data/datasources/respondent_data_service_impl.dart';
 import 'package:survey_frontend/data/datasources/respondent_group_service_impl.dart';
 import 'package:survey_frontend/data/datasources/sensors_data_service_impl.dart';
@@ -33,6 +34,7 @@ import 'package:survey_frontend/domain/external_services/initial_survey_service.
 import 'package:survey_frontend/domain/external_services/ip_localization_country_code_service.dart';
 import 'package:survey_frontend/domain/external_services/location_service.dart';
 import 'package:survey_frontend/domain/external_services/login_service.dart';
+import 'package:survey_frontend/domain/external_services/phone_contact_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_date_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_group_service.dart';
 import 'package:survey_frontend/domain/external_services/sensors_data_service.dart';
@@ -43,6 +45,7 @@ import 'package:survey_frontend/domain/usecases/token_provider.dart';
 import 'package:survey_frontend/domain/usecases/token_validity_checker.dart';
 import 'package:survey_frontend/presentation/controllers/archived_surveys_controller.dart';
 import 'package:survey_frontend/presentation/controllers/calendar_controller.dart';
+import 'package:survey_frontend/presentation/controllers/contact_controller.dart';
 import 'package:survey_frontend/presentation/controllers/respondent_data_controller.dart';
 import 'package:survey_frontend/presentation/controllers/survey_question_controller.dart';
 import 'package:survey_frontend/presentation/static/static_variables.dart';
@@ -119,6 +122,10 @@ class InitialBindings extends Bindings {
     Get.lazyPut<IpLocalizationCountryCodeService>(
         () => IpLocalizationCountryCodeServiceImpl(Get.find()),
         fenix: true);
+    Get.lazyPut<PhoneContactService>(
+        () => PhoneContactServiceImpl(Get.find(), tokenProvider: Get.find()),
+        fenix: true);
+    Get.lazyPut(() => ContactController(Get.find()), fenix: true);
     Get.put<AppState>(AppState());
   }
 
