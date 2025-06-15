@@ -169,5 +169,12 @@
         }
     },
     "weWereUnableToDetermineTheServerAvailibility": "Z powodu pewnych ograniczeń prawnych musimy ustalić, czy możesz korzystać z podanego adresu API. Niestety, w tej chwili nie udało nam się tego zweryfikować. Spróbuj ponownie później.",
-    "theServerYouProvidedIsNotAllowedInYourLocation": "Serwer, który podałeś, jest niedozwolony w Twojej lokalizacji."
+    "theServerYouProvidedIsNotAllowedInYourLocation": "Serwer, który podałeś, jest niedozwolony w Twojej lokalizacji.",
+    "help": "Pomoc",
+    "contact": "Kontakt",
+    "errorLoadingContacts": "Wystąpił błąd podczas ładowania kontaktów. Upewnij się, że masz połączenie z Internetem i spróbój ponownie później.",
+    "refreshContacts": "Odśwież",
+    "noContacts": "Administrator badania nie zdefiniował żadnych numerów telefonu do kontaktu.",
+    "call": "Zadzwoń",
+    "couldNotMakeCall": "Nie udało się wykonać połączenia."
 }

@@ -38,4 +38,8 @@ class ManuController extends ControllerBase {
   void map() {
     Get.toNamed(Routes.map);
   }
+
+  void contact(){
+    Get.toNamed(Routes.contact);
+  }
 }
