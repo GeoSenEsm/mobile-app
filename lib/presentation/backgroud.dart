@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:background_fetch/background_fetch.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
@@ -13,7 +15,7 @@ import 'package:survey_frontend/presentation/bindings/initial_bindings.dart';
 Future<bool> sendSensorsData() async {
   try {
     var service = Get.find<SendSensorsDataUsecase>();
-    return await service.readAndSendSensorData();
+    return await service.readAndSendSensorData(const Duration(seconds: 10));
   } catch (e) {
     Sentry.captureException(e);
     return false;
@@ -23,8 +25,13 @@ Future<bool> sendSensorsData() async {
 Future<bool> readLocation() async {
   try {
     var service = Get.find<SendLocationDataUsecase>();
-    final location = Get.find<Location>();
-    if (!await location.isBackgroundModeEnabled()) {
+    if (!await Permission.locationAlways.status.isGranted) {
+      final connecivity = Connectivity();
+      final results = await connecivity.checkConnectivity();
+      if (!results.contains(ConnectivityResult.mobile) && !results.contains(ConnectivityResult.ethernet)
+       && !results.contains(ConnectivityResult.wifi)){
+        return false;
+       }
       return service.sendLocationData(null);
     }
 
@@ -37,9 +44,23 @@ Future<bool> readLocation() async {
 
 void backgroundTask(String taskId) async {
   try {
-    //TODO: we disable this, but want to enable again in the future
+    await _bgCore().timeout(const Duration(seconds: 25), onTimeout: (){
+      throw TimeoutException("Bg task timeout");
+    });
+  } on TimeoutException catch (_){
+    Sentry.captureMessage("Background task timeout");
     return;
-    InitialBindings().dependencies();
+  } catch (e) {
+    Sentry.captureException(e);
+  } finally {
+    if (taskId.isNotEmpty) {
+      BackgroundFetch.finish(taskId);
+    }
+  }
+}
+
+Future _bgCore() async {
+  InitialBindings().dependencies();
     if (!userLoggedIn()) {
       return;
     }
@@ -47,21 +68,8 @@ void backgroundTask(String taskId) async {
     if (Sentry.isEnabled) {
       await initSentry();
     }
-
-    if (await Permission.locationAlways.status.isGranted) {
-      final location = Get.find<Location>();
-      location.enableBackgroundMode(enable: true);
-    }
-
-    await sendSensorsData();
     await readLocation();
-  } catch (e) {
-    //for now let's ignore
-  } finally {
-    if (taskId.isNotEmpty) {
-      BackgroundFetch.finish(taskId);
-    }
-  }
+    await sendSensorsData();
 }
 
 bool userLoggedIn() {
