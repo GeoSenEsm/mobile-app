@@ -1,3 +1,5 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:survey_frontend/data/models/sensor_data_model.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/sensors_response.dart';
@@ -8,7 +10,7 @@ import 'package:survey_frontend/domain/external_services/sensors_data_service.da
 import 'package:survey_frontend/domain/models/sensor_data.dart';
 
 abstract class SendSensorsDataUsecase {
-  Future<bool> readAndSendSensorData();
+  Future<bool> readAndSendSensorData(Duration connectionTimeout);
   Future<bool> sendSensorData(SensorsResponse? sensorResponse);
   Future<SensorData?> readSensorData();
 }
@@ -17,16 +19,21 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
   final DatabaseHelper _databaseHelper;
   final SensorsDataService _service;
   final SensorConnectionFactory _sensorConnectionFactory;
+  final Connectivity _connectivity = Connectivity();
 
   SendSensorsDataUsecaseImpl(
       this._databaseHelper, this._service, this._sensorConnectionFactory);
 
   @override
-  Future<bool> readAndSendSensorData() async {
+  Future<bool> readAndSendSensorData(Duration connectionTimeout) async {
     try {
-      final sensorConnection = await _sensorConnectionFactory
-          .getSensorConnection(const Duration(seconds: 60));
-      return _sendSensorDataFromConnection(sensorConnection);
+      final bleState = await FlutterBluePlus.adapterState.first;
+      if (bleState == BluetoothAdapterState.on) {
+        final sensorConnection = await _sensorConnectionFactory
+            .getSensorConnection(connectionTimeout);
+        return await _sendSensorDataFromConnection(sensorConnection);
+      }
+      return await sendSensorData(null);
     } on GetSensorConnectionException catch (_) {
       return false;
     }
@@ -54,7 +61,11 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
             sentToServer: false);
         await _databaseHelper.addSensorData(model);
       }
-
+      final results = await _connectivity.checkConnectivity();
+      if (!results.contains(ConnectivityResult.mobile) && !results.contains(ConnectivityResult.ethernet)
+       && !results.contains(ConnectivityResult.wifi)){
+        return true;
+       }
       final allToSend = await _databaseHelper.getAlSensorDataNotSentToServer();
       final submitResult = await _service.create(allToSend
           .map((e) => SensorData(

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:background_fetch/background_fetch.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
@@ -12,7 +15,7 @@ import 'package:survey_frontend/presentation/bindings/initial_bindings.dart';
 Future<bool> sendSensorsData() async {
   try {
     var service = Get.find<SendSensorsDataUsecase>();
-    return await service.readAndSendSensorData();
+    return await service.readAndSendSensorData(const Duration(seconds: 10));
   } catch (e) {
     Sentry.captureException(e);
     return false;
@@ -23,6 +26,12 @@ Future<bool> readLocation() async {
   try {
     var service = Get.find<SendLocationDataUsecase>();
     if (!await Permission.locationAlways.status.isGranted) {
+      final connecivity = Connectivity();
+      final results = await connecivity.checkConnectivity();
+      if (!results.contains(ConnectivityResult.mobile) && !results.contains(ConnectivityResult.ethernet)
+       && !results.contains(ConnectivityResult.wifi)){
+        return false;
+       }
       return service.sendLocationData(null);
     }
 
@@ -35,16 +44,12 @@ Future<bool> readLocation() async {
 
 void backgroundTask(String taskId) async {
   try {
-    InitialBindings().dependencies();
-    if (!userLoggedIn()) {
-      return;
-    }
-
-    if (Sentry.isEnabled) {
-      await initSentry();
-    }
-    await sendSensorsData();
-    await readLocation();
+    await _bgCore().timeout(const Duration(seconds: 25), onTimeout: (){
+      throw TimeoutException("Bg task timeout");
+    });
+  } on TimeoutException catch (_){
+    Sentry.captureMessage("Background task timeout");
+    return;
   } catch (e) {
     Sentry.captureException(e);
   } finally {
@@ -52,6 +57,19 @@ void backgroundTask(String taskId) async {
       BackgroundFetch.finish(taskId);
     }
   }
+}
+
+Future _bgCore() async {
+  InitialBindings().dependencies();
+    if (!userLoggedIn()) {
+      return;
+    }
+
+    if (Sentry.isEnabled) {
+      await initSentry();
+    }
+    await readLocation();
+    await sendSensorsData();
 }
 
 bool userLoggedIn() {

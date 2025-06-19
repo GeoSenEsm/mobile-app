@@ -1,3 +1,4 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -41,6 +42,13 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
       if (location != null) {
         await _databaseHelper.addLocation(location);
       }
+
+      final connecivity = Connectivity();
+      final results = await connecivity.checkConnectivity();
+      if (!results.contains(ConnectivityResult.mobile) && !results.contains(ConnectivityResult.ethernet)
+       && !results.contains(ConnectivityResult.wifi)){
+        return true;
+       }
       final yesterday = DateTime.now().toUtc().subtract(const Duration(days: 1));
       final allToSend = await _databaseHelper.getAllLocationsToSend(yesterday);
       final submitResult = await _locationService.submitLocations(allToSend);
