@@ -209,11 +209,19 @@ Future<void> prepareWorkManager() async {
           minimumFetchInterval: 20,
           stopOnTerminate: false,
           startOnBoot: true,
-          enableHeadless: true),
+          enableHeadless: true,
+          requiresBatteryNotLow: false,
+          requiresCharging: false,
+          requiresStorageNotLow: false,
+          requiresDeviceIdle: false,),
       backgroundTask);
   await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
 }
 
+@pragma('vm:entry-point')
 void backgroundHeadlessTask(HeadlessTask task) async {
+  if (task.timeout){
+    BackgroundFetch.finish(task.taskId);
+  }
   backgroundTask(task.taskId);
 }

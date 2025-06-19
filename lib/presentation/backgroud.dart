@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:location/location.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
@@ -23,8 +22,7 @@ Future<bool> sendSensorsData() async {
 Future<bool> readLocation() async {
   try {
     var service = Get.find<SendLocationDataUsecase>();
-    final location = Get.find<Location>();
-    if (!await location.isBackgroundModeEnabled()) {
+    if (!await Permission.locationAlways.status.isGranted) {
       return service.sendLocationData(null);
     }
 
@@ -37,8 +35,6 @@ Future<bool> readLocation() async {
 
 void backgroundTask(String taskId) async {
   try {
-    //TODO: we disable this, but want to enable again in the future
-    return;
     InitialBindings().dependencies();
     if (!userLoggedIn()) {
       return;
@@ -47,16 +43,10 @@ void backgroundTask(String taskId) async {
     if (Sentry.isEnabled) {
       await initSentry();
     }
-
-    if (await Permission.locationAlways.status.isGranted) {
-      final location = Get.find<Location>();
-      location.enableBackgroundMode(enable: true);
-    }
-
     await sendSensorsData();
     await readLocation();
   } catch (e) {
-    //for now let's ignore
+    Sentry.captureException(e);
   } finally {
     if (taskId.isNotEmpty) {
       BackgroundFetch.finish(taskId);
