@@ -10,11 +10,12 @@ class ProfileController extends ControllerBase {
   late Map<String, dynamic> respondentData;
   late List<InitialSurveyQuestion> initialSurveyQuestions;
   final TokenProvider _tokenProvider;
+  final RxString apiUrl = ''.obs;
 
   ProfileController(GetStorage storage, this._tokenProvider) {
     final respondentFromStorage =
         storage.read<Map<String, dynamic>>("respondentData");
-
+    apiUrl.value = storage.read<String>('apiUrl') ?? '';
     respondentData = respondentFromStorage ??
         {'id': 'unknown', 'username': _tokenProvider.getUsername()};
     initialSurveyQuestions =
@@ -27,7 +28,10 @@ class ProfileController extends ControllerBase {
   }
 
   String getLabelFormIndex(int index) {
-    //0 is for id, we do not want to display it
+    if (index == 0){
+      return getAppLocalizations().apiUrl;
+    }
+  
     if (index == 1) {
       return AppLocalizations.of(Get.context!)!.username;
     }
@@ -36,6 +40,10 @@ class ProfileController extends ControllerBase {
   }
 
   String getValueForIndex(String question) {
+    if (question == getAppLocalizations().apiUrl) {
+      return apiUrl.value;
+    }
+
     if (question.toLowerCase() ==
         getAppLocalizations().username.toLowerCase()) {
       return respondentData['username'];
