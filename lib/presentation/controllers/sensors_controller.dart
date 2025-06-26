@@ -7,6 +7,7 @@ import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:survey_frontend/presentation/static/routes.dart';
 
 class SensorsController extends ControllerBase {
   final Rx<String> selectedSensor = Rx<String>(SensorKind.none);
@@ -135,7 +136,7 @@ class SensorsController extends ControllerBase {
       _storage.write('selectedSensorId', xiaomiId.value);
       _storage.write('xiaomiMac', xiaomiMac.value);
     }
-    Get.offAllNamed('/home');
+    Get.until((route) => Get.currentRoute == Routes.home);
   }
 
   String? validateKestrel(String? value) {
