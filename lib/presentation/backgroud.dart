@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:background_fetch/background_fetch.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -44,7 +45,8 @@ Future<bool> readLocation() async {
 
 void backgroundTask(String taskId) async {
   try {
-    await _bgCore().timeout(const Duration(seconds: 25), onTimeout: (){
+      final timeout = Platform.isAndroid ? const Duration(seconds: 120) : const Duration(seconds: 28);
+      await _bgCore().timeout(timeout, onTimeout: (){
       throw TimeoutException("Bg task timeout");
     });
   } on TimeoutException catch (_){
