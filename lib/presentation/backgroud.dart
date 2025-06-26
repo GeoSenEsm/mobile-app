@@ -16,7 +16,8 @@ import 'package:survey_frontend/presentation/bindings/initial_bindings.dart';
 Future<bool> sendSensorsData() async {
   try {
     var service = Get.find<SendSensorsDataUsecase>();
-    return await service.readAndSendSensorData(const Duration(seconds: 10));
+    final timeout = Platform.isAndroid ? const Duration(seconds: 90) : const Duration(seconds: 20);
+    return await service.readAndSendSensorData(timeout);
   } catch (e) {
     Sentry.captureException(e);
     return false;
