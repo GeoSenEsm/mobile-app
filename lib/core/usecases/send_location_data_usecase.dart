@@ -43,12 +43,6 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
         await _databaseHelper.addLocation(location);
       }
 
-      final connecivity = Connectivity();
-      final results = await connecivity.checkConnectivity();
-      if (!results.contains(ConnectivityResult.mobile) && !results.contains(ConnectivityResult.ethernet)
-       && !results.contains(ConnectivityResult.wifi)){
-        return true;
-       }
       final yesterday = DateTime.now().toUtc().subtract(const Duration(days: 1));
       final allToSend = await _databaseHelper.getAllLocationsToSend(yesterday);
       final submitResult = await _locationService.submitLocations(allToSend);

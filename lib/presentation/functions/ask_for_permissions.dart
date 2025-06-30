@@ -13,12 +13,12 @@ Future<void> askForPermissions() async {
       .any((status) => !status.isGranted && !status.isPermanentlyDenied)) {
     await buildManyDenyDialog();
   }
-  askForLocalizationInBackground();
+  //askForLocalizationInBackground();
 }
 
-Future<void> askForLocalizationInBackground() async {
-  if (await Permission.locationAlways.isGranted) {
-    return;
-  }
-  buildLocationAlwaysDenyDialog();
-}
+// Future<void> askForLocalizationInBackground() async {
+//   if (await Permission.locationAlways.isGranted) {
+//     return;
+//   }
+//   buildLocationAlwaysDenyDialog();
+// }

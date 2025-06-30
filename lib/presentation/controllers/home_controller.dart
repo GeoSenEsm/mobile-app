@@ -7,6 +7,7 @@ import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
+import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
@@ -44,6 +45,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final GetStorage _storage;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
   final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
+  final SendLocationDataUsecase _sendLocationDataUsecase;
 
   HomeController(
       this._homeService,
@@ -54,7 +56,8 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._surveyImagesUseCase,
       this._submitSurveyUsecase,
       this._storage,
-      this._sendSensorsDataUsecase);
+      this._sendSensorsDataUsecase,
+      this._sendLocationDataUsecase);
 
   @override
   void onInit() async {
@@ -110,6 +113,8 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     if (!await hasInternetConnectionNoDialog()) {
       return;
     }
+
+    await _sendLocationDataUsecase.sendLocationData(null);
 
     if (!await _submitSurveyUsecase.submitAllLocallySaved()) {
       //we can go further only if the submition of old resopnses is succeded, otherwise, there may be

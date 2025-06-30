@@ -71,7 +71,7 @@ Future _bgCore() async {
     if (Sentry.isEnabled) {
       await initSentry();
     }
-    await readLocation();
+    //await readLocation();
     await sendSensorsData();
 }
 
