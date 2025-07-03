@@ -62,10 +62,11 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
         await _databaseHelper.addSensorData(model);
       }
       final results = await _connectivity.checkConnectivity();
-      if (!results.contains(ConnectivityResult.mobile) && !results.contains(ConnectivityResult.ethernet)
-       && !results.contains(ConnectivityResult.wifi)){
+      if (!results.contains(ConnectivityResult.mobile) &&
+          !results.contains(ConnectivityResult.ethernet) &&
+          !results.contains(ConnectivityResult.wifi)) {
         return true;
-       }
+      }
       final allToSend = await _databaseHelper.getAlSensorDataNotSentToServer();
       final submitResult = await _service.create(allToSend
           .map((e) => SensorData(
@@ -90,11 +91,15 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
     try {
       final sensorConnection = await _sensorConnectionFactory
           .getSensorConnection(const Duration(seconds: 30));
-      final response = await sensorConnection.getSensorData();
-      return SensorData(
-          dateTime: DateTime.now().toUtc().toIso8601String(),
-          temperature: response.temperature,
-          humidity: response.humidity);
+      try {
+        final response = await sensorConnection.getSensorData();
+        return SensorData(
+            dateTime: DateTime.now().toUtc().toIso8601String(),
+            temperature: response.temperature,
+            humidity: response.humidity);
+      } finally {
+        sensorConnection.dispose();
+      }
     } on GetSensorConnectionException catch (_) {
       return null;
     } catch (e) {
