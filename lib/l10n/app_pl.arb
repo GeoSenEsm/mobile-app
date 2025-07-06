@@ -176,5 +176,8 @@
     "refreshContacts": "Odśwież",
     "noContacts": "Administrator badania nie zdefiniował żadnych numerów telefonu do kontaktu.",
     "call": "Zadzwoń",
-    "couldNotMakeCall": "Nie udało się wykonać połączenia."
+    "couldNotMakeCall": "Nie udało się wykonać połączenia.",
+    "warning": "Ostrzeżenie",
+    "noSensorSelected": "Nie wybrano czujnika temperatury. Dane sensoryczne nie zostaną zapisane po wypełnieniu ankiety. Sugerujemy przejście do ustawień, aby wybrać czujnik.",
+    "continueWithoutSensor": "Kontunuuj bez czujnika"
 }

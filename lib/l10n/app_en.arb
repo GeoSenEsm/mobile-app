@@ -192,5 +192,8 @@
     "refreshContacts": "Refresh",
     "noContacts": "The study administrator has not defined any contact phone numbers.",
     "call": "Call",
-    "couldNotMakeCall": "The call could not be completed."
+    "couldNotMakeCall": "The call could not be completed.",
+    "warning": "Warning",
+    "noSensorSelected": "No temperature sensor selected. Sensor data will not be saved after completing the survey. We suggest going to settings to select a sensor.",
+    "continueWithoutSensor": "Continue without sensor"
 }

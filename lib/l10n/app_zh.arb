@@ -191,5 +191,8 @@
     "refreshContacts": "刷新",
     "noContacts": "研究管理员尚未定义任何联系电话号码。",
     "call": "拨打",
-    "couldNotMakeCall": "拨打电话失败。"
+    "couldNotMakeCall": "拨打电话失败。",
+    "warning": "警告",
+    "noSensorSelected": "未选择温度传感器。完成问卷后，传感器数据将不会被保存。建议前往设置选择传感器。",
+    "continueWithoutSensor": "继续而不使用传感器"
 }
