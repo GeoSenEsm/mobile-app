@@ -69,20 +69,20 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   }
 
   @override
-  void onClose(){
+  void onClose() {
     WidgetsBinding.instance.removeObserver(this);
     super.onClose();
   }
 
   @override
-  void didChangeAppLifecycleState(AppLifecycleState state){
+  void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.resumed){
+    if (state == AppLifecycleState.resumed) {
       triggerPullToRefresh();
     }
-  }  
+  }
 
-  void triggerPullToRefresh(){
+  void triggerPullToRefresh() {
     refreshIndicatorKey.currentState?.show();
   }
 
@@ -153,6 +153,10 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     try {
       // TODO check if survey still active
 
+      if (!await _ensureSensorSelected()) {
+        return;
+      }
+
       final shortSurveyInfo =
           pendingSurveys.firstWhereOrNull((element) => element.id == surveyId);
 
@@ -216,9 +220,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     LocationPermission locationPermission = await Geolocator.checkPermission();
     if (locationPermission == LocationPermission.denied) {
       locationPermission = await Geolocator.requestPermission();
-      if (locationPermission == LocationPermission.denied
-      || locationPermission == LocationPermission.deniedForever
-      || locationPermission == LocationPermission.unableToDetermine) {
+      if (locationPermission == LocationPermission.denied ||
+          locationPermission == LocationPermission.deniedForever ||
+          locationPermission == LocationPermission.unableToDetermine) {
         await buildLocationDenyDialog();
         return false;
       }
@@ -327,13 +331,49 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
   Future<LocalizationData> _getCurrentLocation() async {
     Position currentLocation = await Geolocator.getCurrentPosition();
-    final double? accuracy = currentLocation.accuracy >= 0 && currentLocation.accuracy <  99999 ?
-          double.parse(currentLocation.accuracy.toStringAsFixed(2)) : null;
+    final double? accuracy =
+        currentLocation.accuracy >= 0 && currentLocation.accuracy < 99999
+            ? double.parse(currentLocation.accuracy.toStringAsFixed(2))
+            : null;
     return LocalizationData(
         dateTime: DateTime.now().toUtc().toIso8601String(),
         latitude: double.parse(currentLocation.latitude.toStringAsFixed(6)),
         longitude: double.parse(currentLocation.longitude.toStringAsFixed(6)),
         accuracyMeters: accuracy);
+  }
+
+  Future<bool> _ensureSensorSelected() async {
+    final selectedSensor = _storage.read<String>('selectedSensor');
+
+    if (selectedSensor == null || selectedSensor == SensorKind.none) {
+      final result = await showDialog<bool>(
+        context: Get.context!,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(getAppLocalizations().warning),
+            content: Text(getAppLocalizations().noSensorSelected),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(true);
+                },
+                child: Text(getAppLocalizations().continueWithoutSensor),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(false);
+                },
+                child: Text(getAppLocalizations().ok),
+              ),
+            ],
+          );
+        },
+      );
+
+      return result ?? false;
+    }
+
+    return true;
   }
 }
 
