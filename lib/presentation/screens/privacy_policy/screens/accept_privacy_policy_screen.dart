@@ -44,7 +44,13 @@ class AcceptPrivacyPolicyScreen extends GetView<AcceptPrivacyPolicyController> {
                   if (controller.scrolled.value || kDebugMode) {
                     return Row(
                       children: [
-                        Text(getAppLocalizations().iAcceptPrivacyPolicy),
+                        Flexible(
+                          child: Text(
+                            getAppLocalizations().iAcceptPrivacyPolicy,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 2,
+                          ),
+                        ),
                         const Spacer(),
                         Checkbox(
                             value: controller.accepted.value,
@@ -62,10 +68,11 @@ class AcceptPrivacyPolicyScreen extends GetView<AcceptPrivacyPolicyController> {
                   height: 10,
                 ),
                 Obx(() => ElevatedButton(
-                    onPressed:
-                        (controller.scrolled.value && controller.accepted.value) || kDebugMode
-                            ? controller.next
-                            : null,
+                    onPressed: (controller.scrolled.value &&
+                                controller.accepted.value) ||
+                            kDebugMode
+                        ? controller.next
+                        : null,
                     child: Text(getAppLocalizations().next)))
               ],
             )),

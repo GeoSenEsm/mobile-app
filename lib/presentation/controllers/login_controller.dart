@@ -74,6 +74,9 @@ class LoginController extends ControllerBase {
   }
 
   Future<bool> _isUrlAllowed() async {
+    if (kDebugMode) {
+      return true;
+    }
     final myLocalizationResponse = await _ipLocalizationCountryCodeService.getIpLoclization(null);
     if (myLocalizationResponse.error != null || myLocalizationResponse.statusCode != 200
        || myLocalizationResponse.body!.status != 'success'){
