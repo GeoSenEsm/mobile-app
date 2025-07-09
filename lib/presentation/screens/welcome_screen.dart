@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/welcome_screen_controller.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/widgets/app_logo.dart';
 
 class WelcomeScreen extends GetView<WelcomeScreenController> {

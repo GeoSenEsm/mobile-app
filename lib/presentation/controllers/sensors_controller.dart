@@ -4,9 +4,9 @@ import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
 
 class SensorsController extends ControllerBase {

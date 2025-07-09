@@ -2,9 +2,9 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/domain/models/initial_survey_question.dart';
 import 'package:survey_frontend/domain/usecases/token_provider.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ProfileController extends ControllerBase {
   late Map<String, dynamic> respondentData;

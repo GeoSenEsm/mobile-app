@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/models/need_insert_respondent_data_result.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
 
 void handle(NeedInsertRespondentDataResult result) {
