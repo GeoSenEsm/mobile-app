@@ -1,5 +1,5 @@
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get/get.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 
 AppLocalizations getAppLocalizations() {
   return AppLocalizations.of(Get.context!)!;

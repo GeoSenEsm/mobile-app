@@ -12,7 +12,7 @@ class ManuController extends ControllerBase {
   }
 
   void editSensor(){
-    Get.toNamed(Routes.sensors);
+    Get.toNamed(Routes.sensors); 
   }
 
   void changePassword(){

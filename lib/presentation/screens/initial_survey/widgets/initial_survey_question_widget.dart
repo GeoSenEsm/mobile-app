@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:survey_frontend/domain/models/initial_survey_question.dart';
 import 'package:survey_frontend/domain/models/initial_survey_response.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 
 class InitialSurveyQuestionWidget extends StatefulWidget {
   final String question;

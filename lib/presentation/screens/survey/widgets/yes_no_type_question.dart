@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:survey_frontend/domain/models/create_question_answer_dto.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 
 class YesNoTypeQuestion extends StatefulWidget {
   final CreateQuestionAnswerDto createQuestionAnswerDto;

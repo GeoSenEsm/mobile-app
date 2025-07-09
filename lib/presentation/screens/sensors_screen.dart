@@ -5,9 +5,9 @@ import 'package:flutter/services.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:get/get_state_manager/src/simple/get_view.dart';
 import 'package:survey_frontend/data/models/sensor_kind.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/sensors_controller.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class SensorsScreen extends GetView<SensorsController> {
   const SensorsScreen({super.key});
