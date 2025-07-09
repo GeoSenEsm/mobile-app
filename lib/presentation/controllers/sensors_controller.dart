@@ -137,6 +137,9 @@ class SensorsController extends ControllerBase {
       _storage.write('xiaomiMac', xiaomiMac.value);
     }
     Get.until((route) => Get.currentRoute == Routes.home);
+    if (Get.currentRoute != Routes.home){
+      Get.toNamed(Routes.home);
+    }
   }
 
   String? validateKestrel(String? value) {
