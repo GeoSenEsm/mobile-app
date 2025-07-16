@@ -115,6 +115,7 @@ class MapScreen extends GetView<MapScreenController> {
           TileLayer(
             urlTemplate: controller.mapUrlTemplate,
             subdomains: const ['a', 'b', 'c'],
+            userAgentPackageName: 'urbeat.site.app',
           ),
           Obx(() => MarkerLayer(
               markers:
