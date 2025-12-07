@@ -204,7 +204,8 @@ Future<String> _getCurrentLocale() {
 }
 
 Future<void> prepareWorkManager() async {
-  await BackgroundFetch.configure(
+  try{
+    await BackgroundFetch.configure(
       BackgroundFetchConfig(
           minimumFetchInterval: 20,
           stopOnTerminate: false,
@@ -215,7 +216,8 @@ Future<void> prepareWorkManager() async {
           requiresStorageNotLow: false,
           requiresDeviceIdle: false,),
       backgroundTask);
-  await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
+      await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
+  } catch (e){}
 }
 
 @pragma('vm:entry-point')

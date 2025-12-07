@@ -536,7 +536,7 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get noSensorSelected =>
-      'Nie wybr   ano czujnika temperatury. Dane sensoryczne nie zostaną zapisane po wypełnieniu ankiety. Sugerujemy przejście do ustawień, aby wybrać czujnik.';
+      'Nie wybrano czujnika temperatury. Dane sensoryczne nie zostaną zapisane po wypełnieniu ankiety. Sugerujemy przejście do ustawień, aby wybrać czujnik.';
 
   @override
   String get continueWithoutSensor => 'Kontunuuj bez czujnika';
