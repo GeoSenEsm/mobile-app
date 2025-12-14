@@ -30,7 +30,7 @@ class AppStyles {
       radioTheme: const RadioThemeData(
           fillColor: WidgetStatePropertyAll(_appNameColor)),
 
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),

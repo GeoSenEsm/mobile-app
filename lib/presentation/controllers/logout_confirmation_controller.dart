@@ -7,7 +7,6 @@ import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
-import 'package:workmanager/workmanager.dart';
 
 class LogoutConfirmationController extends ControllerBase {
   final GetStorage _storage;
@@ -27,7 +26,6 @@ class LogoutConfirmationController extends ControllerBase {
       await _storage.erase();
       await _databaseHelper.clearAllTables();
       await _surveyImagesUseCase.clearImages();
-      await Workmanager().cancelAll();
       await FlutterLocalNotificationsPlugin().cancelAll();
 
       Get.offAllNamed(Routes.login);

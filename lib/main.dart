@@ -6,13 +6,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/backgroud.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/bindings/accept_privacy_policy_bindings.dart';
-import 'package:survey_frontend/presentation/bindings/bindings_options.dart';
 import 'package:survey_frontend/presentation/bindings/calendar_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/change_password_bindings.dart';
 import 'package:survey_frontend/presentation/bindings/home_bindings.dart';
@@ -186,11 +184,6 @@ void main() async {
   ));
 }
 
-Future<BindingOptions> _getBindingOptions() async {
-  return BindingOptions(
-      locationAlwaysGranted: await Permission.locationAlways.status.isGranted);
-}
-
 Future<String> _getCurrentLocale() {
   final fullLocale = Platform.localeName;
   var locale = fullLocale.split('_')[0];
@@ -204,7 +197,8 @@ Future<String> _getCurrentLocale() {
 }
 
 Future<void> prepareWorkManager() async {
-  await BackgroundFetch.configure(
+  try{
+    await BackgroundFetch.configure(
       BackgroundFetchConfig(
           minimumFetchInterval: 20,
           stopOnTerminate: false,
@@ -215,7 +209,8 @@ Future<void> prepareWorkManager() async {
           requiresStorageNotLow: false,
           requiresDeviceIdle: false,),
       backgroundTask);
-  await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
+      await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
+  } catch (e){}
 }
 
 @pragma('vm:entry-point')
