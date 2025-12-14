@@ -6,9 +6,14 @@ class AppLogo extends StatelessWidget{
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-            'assets/logo.png',
+            _getLogoAssetPath(),
             width: 145,
             height: 145);
+  }
+
+  String _getLogoAssetPath() {
+    String appType = const String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
+    return 'assets/$appType/logo.png';
   }
 
 }

@@ -8,11 +8,15 @@ import 'package:survey_frontend/presentation/screens/home/widgets/survey_tile.da
 import 'package:survey_frontend/presentation/screens/home/widgets/time_circle.dart';
 
 class HomeScreen extends GetView<HomeController> {
-  const HomeScreen({super.key});
+  static const appType =
+      String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
+  static const appTitle =
+      appType == 'urbeat' ? 'UrbEaT' : 'GeoSenEsm';
 
+  const HomeScreen({super.key});
+  
   @override
   Widget build(BuildContext context) {
-
     WidgetsBinding.instance.addPostFrameCallback((_){
       controller.triggerPullToRefresh();
     });
@@ -30,7 +34,7 @@ class HomeScreen extends GetView<HomeController> {
         ),
         centerTitle: true,
         title: const Text(
-          'UrbEaT',
+          appTitle,
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
         actions: [
