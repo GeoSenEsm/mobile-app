@@ -29,6 +29,8 @@ class LoginController extends ControllerBase {
   bool _alwaysValidateInvalidCredentials = false;
   final Dio _dio;
   final IpLocalizationCountryCodeService _ipLocalizationCountryCodeService;
+  static const alwaysAllowUri =
+      String.fromEnvironment('ALWAYS_ALLOW_URI', defaultValue: 'false');
 
   LoginController(this._loginService, this._storage,
       this._needInsertRespondentDataUseCase, this._dio,
@@ -74,7 +76,7 @@ class LoginController extends ControllerBase {
   }
 
   Future<bool> _isUrlAllowed() async {
-    if (kDebugMode) {
+    if (kDebugMode || alwaysAllowUri == "true") {
       return true;
     }
     final myLocalizationResponse = await _ipLocalizationCountryCodeService.getIpLoclization(null);

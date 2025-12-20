@@ -9,6 +9,10 @@ import 'package:survey_frontend/presentation/screens/survey/widgets/single_quest
 
 class SurveyQuestionScreen extends GetView<SurveyQuestionController> {
   final SurveyQuestionController _controller;
+  static const appType =
+      String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
+  static const appTitle =
+      appType == 'urbeat' ? 'UrbEaT' : 'GeoSenEsm';
 
   SurveyQuestionScreen({super.key}) : _controller = Get.find();
 
@@ -20,7 +24,7 @@ class SurveyQuestionScreen extends GetView<SurveyQuestionController> {
       appBar: AppBar(
         centerTitle: true,
         title: const Text(
-          'UrBEaT',
+          appTitle,
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
