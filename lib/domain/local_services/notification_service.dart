@@ -12,12 +12,14 @@ class NotificationService {
   static final FlutterLocalNotificationsPlugin
       _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   static final onClickNotification = BehaviorSubject<String>();
+  static const appType =
+      String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
   static Future initialize() async {
     tz.initializeTimeZones();
     final String localTimeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(localTimeZone));
 
-    const androidInit = AndroidInitializationSettings('@drawable/logo4');
+    const androidInit = AndroidInitializationSettings('@drawable/logo4_$appType');
     const iOSInize = DarwinInitializationSettings();
     const initializationSettings =
         InitializationSettings(android: androidInit, iOS: iOSInize);
@@ -35,7 +37,7 @@ class NotificationService {
       'Reminder',
       importance: Importance.max,
       priority: Priority.high,
-      largeIcon: DrawableResourceAndroidBitmap('@drawable/large_icon'),
+      largeIcon: DrawableResourceAndroidBitmap('@drawable/large_icon_$appType'),
     );
 
     const iOSDetails = DarwinNotificationDetails();

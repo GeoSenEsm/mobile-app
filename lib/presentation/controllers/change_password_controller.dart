@@ -81,7 +81,7 @@ class ChangePasswordController extends ControllerBase {
   }
 
   String? validateNewPassword(String? value) {
-    if (value == null || value.length < 8) {
+    if (value == null || value.length < 12) {
       return getAppLocalizations().minNewPasswordLenError;
     }
 
