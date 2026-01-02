@@ -76,6 +76,14 @@ void main() async {
 
   runApp(GetMaterialApp(
     title: 'UrbEaT',
+    builder: (context, child) {
+    if (child == null) return const SizedBox();
+    return SafeArea(
+      top: false,
+      bottom: true,
+      child: child,
+    );
+    },
     navigatorObservers: [
       routeObserver,
       SensorNavigatorObserver(),
