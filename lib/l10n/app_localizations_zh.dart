@@ -393,6 +393,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get map => '地图';
 
   @override
+  String get mapProvider => '地图提供方';
+
+  @override
+  String get googleMap => '谷歌地图';
+
+  @override
+  String get baiduMap => '百度地图';
+
+  @override
   String get today => '今天';
 
   @override

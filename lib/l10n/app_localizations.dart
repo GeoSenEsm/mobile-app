@@ -856,6 +856,24 @@ abstract class AppLocalizations {
   /// **'Map'**
   String get map;
 
+  /// No description provided for @mapProvider.
+  ///
+  /// In en, this message translates to:
+  /// **'Map provider'**
+  String get mapProvider;
+
+  /// No description provided for @googleMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Google map'**
+  String get googleMap;
+
+  /// No description provided for @baiduMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Baidu map'**
+  String get baiduMap;
+
   /// No description provided for @today.
   ///
   /// In en, this message translates to:

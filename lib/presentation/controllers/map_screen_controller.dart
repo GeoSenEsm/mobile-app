@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/date_filters.dart';
@@ -9,19 +10,61 @@ import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/screens/date_filters/date_filters_screen.dart';
+import 'package:survey_frontend/presentation/screens/map/map_coordinate_converter.dart';
+import 'package:survey_frontend/presentation/screens/map/map_provider_type.dart';
 import 'package:survey_frontend/presentation/screens/map/location_details_screen.dart';
 
 class MapScreenController extends ControllerBase {
-  final String mapUrlTemplate =
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
   final DateFilters filters = DateFilters();
   final Rx<DateTime?> from = Rx<DateTime?>(null);
   final Rx<DateTime?> to = Rx<DateTime?>(null);
   final DatabaseHelper _databaseHelper;
+  final GetStorage _storage;
   final MapController mapController = MapController();
   final RxList<LocationModel> locations = RxList.empty();
+  final Rx<MapProviderType> selectedMapProvider = MapProviderType.google.obs;
 
-  MapScreenController(this._databaseHelper);
+  MapScreenController(this._databaseHelper, this._storage) {
+    _loadSelectedMapProvider();
+  }
+
+  String get mapUrlTemplate => selectedMapProvider.value.tileUrlTemplate;
+
+  List<String> get mapSubdomains => selectedMapProvider.value.subdomains;
+
+  LatLng get initialCenter => mapPointForCoordinates(52.2297, 21.0122);
+
+  LatLng mapPointForLocation(LocationModel model) {
+    return mapPointForCoordinates(model.latitude, model.longitude);
+  }
+
+  LatLng mapPointForCoordinates(double latitude, double longitude) {
+    return MapCoordinateConverter.wgs84ToProvider(
+      LatLng(latitude, longitude),
+      selectedMapProvider.value,
+    );
+  }
+
+  Future<void> setMapProvider(MapProviderType provider) async {
+    if (provider == selectedMapProvider.value) {
+      return;
+    }
+
+    selectedMapProvider.value = provider;
+    await _storage.write(selectedMapProviderStorageKey, provider.storageValue);
+
+    if (locations.isEmpty) {
+      await _centerToCurrentPosition();
+      return;
+    }
+
+    await _setBounds(locations.toList(growable: false));
+  }
+
+  void _loadSelectedMapProvider() {
+    final storedValue = _storage.read<String>(selectedMapProviderStorageKey);
+    selectedMapProvider.value = mapProviderTypeFromStorage(storedValue);
+  }
 
   void loadData() async {
     try {
@@ -68,8 +111,7 @@ class MapScreenController extends ControllerBase {
       return;
     }
 
-    final points =
-        locations.map((e) => LatLng(e.latitude, e.longitude)).toList();
+    final points = locations.map(mapPointForLocation).toList();
     final bounds = LatLngBounds.fromPoints(points);
     final center = bounds.center;
     final zoom = _calculateZoom(bounds);
@@ -79,8 +121,13 @@ class MapScreenController extends ControllerBase {
   Future<void> _centerToCurrentPosition() async {
     final currentPosition = await Geolocator.getCurrentPosition();
     mapController.move(
-        LatLng(currentPosition.latitude, currentPosition.longitude), 14);
-    }
+      mapPointForCoordinates(
+        currentPosition.latitude,
+        currentPosition.longitude,
+      ),
+      14,
+    );
+  }
 
   void openFilters() {
     Get.to(DateFiltersScreen(originalFilters: filters));

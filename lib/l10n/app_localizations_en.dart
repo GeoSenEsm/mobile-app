@@ -410,6 +410,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get map => 'Map';
 
   @override
+  String get mapProvider => 'Map provider';
+
+  @override
+  String get googleMap => 'Google map';
+
+  @override
+  String get baiduMap => 'Baidu map';
+
+  @override
   String get today => 'Today';
 
   @override

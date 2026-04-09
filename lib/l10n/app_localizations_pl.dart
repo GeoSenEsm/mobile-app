@@ -412,6 +412,15 @@ class AppLocalizationsPl extends AppLocalizations {
   String get map => 'Mapa';
 
   @override
+  String get mapProvider => 'Dostawca mapy';
+
+  @override
+  String get googleMap => 'Mapa Google';
+
+  @override
+  String get baiduMap => 'Mapa Baidu';
+
+  @override
   String get today => 'Dzisiaj';
 
   @override
