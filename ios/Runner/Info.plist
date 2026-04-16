@@ -38,6 +38,8 @@
 	<string>We need to track you location for the scientific research</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>We need to track you location for the scientific research</string>
+	<key>BaiduMapsAPIKey</key>
+	<string>YOUR_BAIDU_MAPS_API_KEY_HERE</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

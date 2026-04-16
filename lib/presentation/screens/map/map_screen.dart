@@ -114,8 +114,12 @@ class MapScreen extends GetView<MapScreenController> {
         children: [
           TileLayer(
             urlTemplate: controller.mapUrlTemplate,
-            subdomains: const ['a', 'b', 'c'],
             userAgentPackageName: 'urbeat.site.app',
+            // Baidu Maps tiles configuration
+            tileSize: 256.0,
+            maxZoom: 18.0,
+            minZoom: 1.0,
+            maxNativeZoom: 18,
           ),
           Obx(() => MarkerLayer(
               markers:

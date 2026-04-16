@@ -53,6 +53,13 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+
+        // Baidu Maps API Key for Android
+        // Replace with your Baidu Maps API key
+        // Get key at: https://lbsyun.baidu.com/apiconsole/key
+        manifestPlaceholders = [
+            BAIDU_MAPS_API_KEY: "YOUR_BAIDU_MAPS_API_KEY_HERE"
+        ]
     }
 
     signingConfigs {

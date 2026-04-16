@@ -7,13 +7,14 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/date_filters.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
+import 'package:survey_frontend/domain/local_services/baidu_maps_service.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/screens/date_filters/date_filters_screen.dart';
 import 'package:survey_frontend/presentation/screens/map/location_details_screen.dart';
 
 class MapScreenController extends ControllerBase {
-  final String mapUrlTemplate =
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  // Using Baidu Maps tile URL template for global coverage (China and Europe)
+  final String mapUrlTemplate = BaiduMapsService.baiduTileUrlTemplate;
   final DateFilters filters = DateFilters();
   final Rx<DateTime?> from = Rx<DateTime?>(null);
   final Rx<DateTime?> to = Rx<DateTime?>(null);
