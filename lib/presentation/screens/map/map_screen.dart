@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:survey_frontend/core/models/map_provider.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
@@ -16,12 +17,10 @@ class MapScreen extends GetView<MapScreenController> {
     return Scaffold(
       body: Column(
         children: [
-          const SizedBox(
-            height: 60,
-          ),
+          const SizedBox(height: 60),
           _buildTopBar(context),
           _buildFilters(context),
-          _buildMap(),
+          _buildMap(context),
         ],
       ),
     );
@@ -45,13 +44,8 @@ class MapScreen extends GetView<MapScreenController> {
             style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 24),
           ),
           IconButton(
-            icon: const Icon(
-              Icons.close,
-              size: 22,
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-            },
+            icon: const Icon(Icons.close, size: 22),
+            onPressed: () => Navigator.pop(context),
           ),
         ],
       ),
@@ -84,10 +78,7 @@ class MapScreen extends GetView<MapScreenController> {
                 final toString = controller.to.value == null
                     ? ''
                     : dateTimeShortFormat(controller.to.value!);
-                return Text(
-                  '$fromString - $toString',
-                  style: style,
-                );
+                return Text('$fromString - $toString', style: style);
               }),
             ),
             Align(
@@ -102,39 +93,173 @@ class MapScreen extends GetView<MapScreenController> {
     );
   }
 
-  Widget _buildMap() {
+  Widget _buildMap(BuildContext context) {
     return Expanded(
       child: Container(
         color: AppStyles.backgroundSecondary,
-        child: FlutterMap(mapController: controller.mapController, 
-        options: const MapOptions(
-          initialCenter: LatLng(52.2297, 21.0122),
-          initialZoom: 13.0,
+        child: Stack(
+          children: [
+            Obx(() {
+              final provider = controller.mapProvider.value;
+              return FlutterMap(
+                mapController: controller.mapController,
+                options: const MapOptions(
+                  initialCenter: LatLng(52.2297, 21.0122),
+                  initialZoom: 13.0,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: controller.tileUrlTemplate,
+                    subdomains: controller.tileSubdomains,
+                    userAgentPackageName: 'urbeat.site.app',
+                  ),
+                  MarkerLayer(
+                    markers: controller.locations
+                        .map((loc) => _getMarkerForLocation(loc, provider))
+                        .toList(),
+                  ),
+                ],
+              );
+            }),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: _buildProviderButton(context),
+            ),
+          ],
         ),
-        children: [
-          TileLayer(
-            urlTemplate: controller.mapUrlTemplate,
-            subdomains: const ['a', 'b', 'c'],
-            userAgentPackageName: 'urbeat.site.app',
-          ),
-          Obx(() => MarkerLayer(
-              markers:
-                  controller.locations.map(_getMarkerForLocation).toList()))
-        ]),
       ),
     );
   }
 
-  Marker _getMarkerForLocation(LocationModel model) {
-    return Marker(
-        point: LatLng(model.latitude, model.longitude),
-        child: GestureDetector(
-          onTap: () => controller.openDetails(model),
-            child: Icon(
-              Icons.circle,
-              color: model.sentToServer ? Colors.blue : Colors.red,
-              size: 40,
+  Widget _buildProviderButton(BuildContext context) {
+    return Obx(() {
+      final isBaidu = controller.mapProvider.value == MapProvider.baidu;
+      return Material(
+        elevation: 4,
+        borderRadius: BorderRadius.circular(8),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: () => _showProviderDialog(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
             ),
-        ));
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.map, size: 18,
+                    color: isBaidu ? Colors.red : Colors.green),
+                const SizedBox(width: 4),
+                Text(
+                  isBaidu ? 'Baidu' : 'OSM',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: isBaidu ? Colors.red : Colors.green,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  void _showProviderDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Obx(() {
+        final current = controller.mapProvider.value;
+        return AlertDialog(
+          title: const Text('Wybierz mapę'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildProviderTile(
+                ctx,
+                provider: MapProvider.openStreetMap,
+                label: 'OpenStreetMap',
+                icon: Icons.public,
+                color: Colors.green,
+                isSelected: current == MapProvider.openStreetMap,
+              ),
+              const SizedBox(height: 8),
+              _buildProviderTile(
+                ctx,
+                provider: MapProvider.baidu,
+                label: 'Baidu Maps',
+                icon: Icons.map,
+                color: Colors.red,
+                isSelected: current == MapProvider.baidu,
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildProviderTile(
+    BuildContext context, {
+    required MapProvider provider,
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool isSelected,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: () {
+        controller.setMapProvider(provider);
+        Navigator.of(context).pop();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+          color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(width: 10),
+            Text(label,
+                style: TextStyle(
+                    fontWeight:
+                        isSelected ? FontWeight.bold : FontWeight.normal,
+                    color: isSelected ? color : null)),
+            const Spacer(),
+            if (isSelected)
+              Icon(Icons.check_circle, color: color, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Marker _getMarkerForLocation(LocationModel model, MapProvider provider) {
+    final point = provider == MapProvider.baidu
+        ? controller.convertCoordinate(model.latitude, model.longitude)
+        : LatLng(model.latitude, model.longitude);
+
+    return Marker(
+      point: point,
+      child: GestureDetector(
+        onTap: () => controller.openDetails(model),
+        child: Icon(
+          Icons.circle,
+          color: model.sentToServer ? Colors.blue : Colors.red,
+          size: 40,
+        ),
+      ),
+    );
   }
 }

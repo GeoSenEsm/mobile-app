@@ -2,9 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/date_filters.dart';
+import 'package:survey_frontend/core/models/map_provider.dart';
+import 'package:survey_frontend/core/utils/coordinate_converter.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
@@ -12,23 +15,61 @@ import 'package:survey_frontend/presentation/screens/date_filters/date_filters_s
 import 'package:survey_frontend/presentation/screens/map/location_details_screen.dart';
 
 class MapScreenController extends ControllerBase {
-  final String mapUrlTemplate =
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+  static const String _storageKey = 'map_provider';
+
   final DateFilters filters = DateFilters();
   final Rx<DateTime?> from = Rx<DateTime?>(null);
   final Rx<DateTime?> to = Rx<DateTime?>(null);
   final DatabaseHelper _databaseHelper;
   final MapController mapController = MapController();
   final RxList<LocationModel> locations = RxList.empty();
+  late final Rx<MapProvider> mapProvider;
 
-  MapScreenController(this._databaseHelper);
+  MapScreenController(this._databaseHelper) {
+    mapProvider = Rx<MapProvider>(_loadProvider());
+  }
+
+  MapProvider _defaultProvider() {
+    const appType = String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
+    return appType == 'geosenesm' ? MapProvider.openStreetMap : MapProvider.baidu;
+  }
+
+  MapProvider _loadProvider() {
+    final stored = GetStorage().read<String>(_storageKey);
+    if (stored == 'baidu') return MapProvider.baidu;
+    if (stored == 'openStreetMap') return MapProvider.openStreetMap;
+    return _defaultProvider();
+  }
+
+  void setMapProvider(MapProvider provider) {
+    mapProvider.value = provider;
+    GetStorage().write(_storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
+  }
+
+  String get tileUrlTemplate {
+    if (mapProvider.value == MapProvider.baidu) {
+      return 'https://maponline{s}.bdimg.com/tile/?qt=vtile&x={x}&y={y}&z={z}&styles=pl&scaler=1';
+    }
+    return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  }
+
+  List<String> get tileSubdomains {
+    if (mapProvider.value == MapProvider.baidu) {
+      return ['0', '1', '2', '3'];
+    }
+    return const [];
+  }
+
+  LatLng convertCoordinate(double lat, double lng) {
+    if (mapProvider.value == MapProvider.baidu) {
+      final (bdLat, bdLng) = CoordinateConverter.wgs84ToBd09(lat, lng);
+      return LatLng(bdLat, bdLng);
+    }
+    return LatLng(lat, lng);
+  }
 
   void loadData() async {
     try {
-      //TODO: can this be done cleaner?
-      //it looks very dirty to me, but so far I have not found a better solution
-      //if not deleayed, the map sometimes throws some exception, because I try to add pins, when it's not ready yet
-      //this small delay seems to do the trick
       await Future.delayed(const Duration(milliseconds: 200));
       locations.clear();
       final actualFrom = _getActualFromUtc();
@@ -80,7 +121,7 @@ class MapScreenController extends ControllerBase {
     final currentPosition = await Geolocator.getCurrentPosition();
     mapController.move(
         LatLng(currentPosition.latitude, currentPosition.longitude), 14);
-    }
+  }
 
   void openFilters() {
     Get.to(DateFiltersScreen(originalFilters: filters));

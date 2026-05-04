@@ -28,6 +28,43 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+def appType = (project.findProperty('appType') ?: System.getenv('APP_TYPE') ?: 'geosenesm')
+        .toString()
+        .trim()
+        .toLowerCase(Locale.ROOT)
+
+def appConfigs = [
+        geosenesm: [
+        appName      : 'GeoSenEsm',
+        applicationId: 'com.example.survey_frontend',
+        ],
+        urbeat    : [
+        appName      : 'UrbEaT',
+        applicationId: 'appcn.urbeat.site',
+        ],
+]
+
+if (!appConfigs.containsKey(appType)) {
+    throw new GradleException("Unsupported APP_TYPE '${appType}'. Supported values: ${appConfigs.keySet().join(', ')}")
+}
+
+def selectedAppConfig = appConfigs[appType]
+def signingPropertyPrefix = "${appType}."
+def requiredSigningKeys = ['keyAlias', 'keyPassword', 'storeFile', 'storePassword']
+def selectedSigningConfig = requiredSigningKeys.collectEntries { key ->
+    [(key): keystoreProperties["${signingPropertyPrefix}${key}"]]
+}
+
+if (!keystorePropertiesFile.exists()) {
+    throw new GradleException('Missing android/key.properties file.')
+}
+
+requiredSigningKeys.each { requiredKey ->
+    if (!selectedSigningConfig[requiredKey]) {
+        throw new GradleException("Missing '${signingPropertyPrefix}${requiredKey}' in android/key.properties.")
+    }
+}
+
 android {
     namespace "com.example.survey_frontend"
     compileSdk rootProject.ext.compileSdkVersion
@@ -47,7 +84,8 @@ android {
     }
 
     defaultConfig {
-        applicationId "urbeat.site.app"
+        applicationId selectedAppConfig.applicationId
+        resValue "string", "app_name", selectedAppConfig.appName
         multiDexEnabled true
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
@@ -57,10 +95,10 @@ android {
 
     signingConfigs {
         release {
-            keyAlias = keystoreProperties['keyAlias']
-            keyPassword = keystoreProperties['keyPassword']
-            storeFile = keystoreProperties['storeFile'] ? file(keystoreProperties['storeFile']) : null
-            storePassword = keystoreProperties['storePassword']
+            keyAlias = selectedSigningConfig.keyAlias
+            keyPassword = selectedSigningConfig.keyPassword
+            storeFile = file(selectedSigningConfig.storeFile)
+            storePassword = selectedSigningConfig.storePassword
         }
     }
 

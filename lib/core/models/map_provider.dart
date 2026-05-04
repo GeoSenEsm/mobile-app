@@ -1,0 +1,1 @@
+enum MapProvider { openStreetMap, baidu }
