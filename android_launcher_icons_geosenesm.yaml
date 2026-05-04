@@ -1,0 +1,7 @@
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/geosenesm/appicon.png"
+  adaptive_icon_background: "#ffffff"
+  adaptive_icon_foreground: "assets/geosenesm/appicon.png"
+  min_sdk_android: 24
