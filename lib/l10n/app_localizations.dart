@@ -856,6 +856,36 @@ abstract class AppLocalizations {
   /// **'Map'**
   String get map;
 
+  /// No description provided for @chooseMap.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose map'**
+  String get chooseMap;
+
+  /// No description provided for @openStreetMap.
+  ///
+  /// In en, this message translates to:
+  /// **'OpenStreetMap'**
+  String get openStreetMap;
+
+  /// No description provided for @baiduMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'Baidu Maps'**
+  String get baiduMaps;
+
+  /// No description provided for @osm.
+  ///
+  /// In en, this message translates to:
+  /// **'OSM'**
+  String get osm;
+
+  /// No description provided for @baidu.
+  ///
+  /// In en, this message translates to:
+  /// **'Baidu'**
+  String get baidu;
+
   /// No description provided for @today.
   ///
   /// In en, this message translates to:

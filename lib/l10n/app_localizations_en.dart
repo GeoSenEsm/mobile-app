@@ -410,6 +410,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get map => 'Map';
 
   @override
+  String get chooseMap => 'Choose map';
+
+  @override
+  String get openStreetMap => 'OpenStreetMap';
+
+  @override
+  String get baiduMaps => 'Baidu Maps';
+
+  @override
+  String get osm => 'OSM';
+
+  @override
+  String get baidu => 'Baidu';
+
+  @override
   String get today => 'Today';
 
   @override

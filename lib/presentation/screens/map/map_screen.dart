@@ -154,7 +154,7 @@ class MapScreen extends GetView<MapScreenController> {
                     color: isBaidu ? Colors.red : Colors.green),
                 const SizedBox(width: 4),
                 Text(
-                  isBaidu ? 'Baidu' : 'OSM',
+                  isBaidu ? getAppLocalizations().baidu : getAppLocalizations().osm,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -175,14 +175,14 @@ class MapScreen extends GetView<MapScreenController> {
       builder: (ctx) => Obx(() {
         final current = controller.mapProvider.value;
         return AlertDialog(
-          title: const Text('Wybierz mapę'),
+          title: Text(getAppLocalizations().chooseMap),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildProviderTile(
                 ctx,
                 provider: MapProvider.openStreetMap,
-                label: 'OpenStreetMap',
+                label: getAppLocalizations().openStreetMap,
                 icon: Icons.public,
                 color: Colors.green,
                 isSelected: current == MapProvider.openStreetMap,
@@ -191,7 +191,7 @@ class MapScreen extends GetView<MapScreenController> {
               _buildProviderTile(
                 ctx,
                 provider: MapProvider.baidu,
-                label: 'Baidu Maps',
+                label: getAppLocalizations().baiduMaps,
                 icon: Icons.map,
                 color: Colors.red,
                 isSelected: current == MapProvider.baidu,
