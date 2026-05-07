@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:get/get.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:survey_frontend/core/models/map_provider.dart';
+import 'package:survey_frontend/core/utils/baidu_tile_provider.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
@@ -101,16 +102,20 @@ class MapScreen extends GetView<MapScreenController> {
           children: [
             Obx(() {
               final provider = controller.mapProvider.value;
+              final tileProvider =
+                  provider == MapProvider.baidu ? BaiduTileProvider() : null;
               return FlutterMap(
                 mapController: controller.mapController,
-                options: const MapOptions(
-                  initialCenter: LatLng(52.2297, 21.0122),
-                  initialZoom: 13.0,
+                options: MapOptions(
+                  crs: controller.mapCrs,
+                  initialCenter: controller.initialCenter,
+                  initialZoom: controller.initialZoom,
                 ),
                 children: [
                   TileLayer(
                     urlTemplate: controller.tileUrlTemplate,
                     subdomains: controller.tileSubdomains,
+                    tileProvider: tileProvider,
                     userAgentPackageName: 'urbeat.site.app',
                   ),
                   MarkerLayer(
@@ -150,11 +155,13 @@ class MapScreen extends GetView<MapScreenController> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.map, size: 18,
-                    color: isBaidu ? Colors.red : Colors.green),
+                Icon(Icons.map,
+                    size: 18, color: isBaidu ? Colors.red : Colors.green),
                 const SizedBox(width: 4),
                 Text(
-                  isBaidu ? getAppLocalizations().baidu : getAppLocalizations().osm,
+                  isBaidu
+                      ? getAppLocalizations().baidu
+                      : getAppLocalizations().osm,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -225,7 +232,8 @@ class MapScreen extends GetView<MapScreenController> {
             color: isSelected ? color : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
-          color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+          color:
+              isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -237,8 +245,7 @@ class MapScreen extends GetView<MapScreenController> {
                         isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? color : null)),
             const Spacer(),
-            if (isSelected)
-              Icon(Icons.check_circle, color: color, size: 20),
+            if (isSelected) Icon(Icons.check_circle, color: color, size: 20),
           ],
         ),
       ),

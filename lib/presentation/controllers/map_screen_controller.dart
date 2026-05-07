@@ -7,6 +7,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/date_filters.dart';
 import 'package:survey_frontend/core/models/map_provider.dart';
+import 'package:survey_frontend/core/utils/baidu_crs.dart';
 import 'package:survey_frontend/core/utils/coordinate_converter.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/location_model.dart';
@@ -16,6 +17,8 @@ import 'package:survey_frontend/presentation/screens/map/location_details_screen
 
 class MapScreenController extends ControllerBase {
   static const String _storageKey = 'map_provider';
+  static const LatLng _warsawCenter = LatLng(52.2297, 21.0122);
+  static const LatLng _beijingCenter = LatLng(39.9042, 116.4074);
 
   final DateFilters filters = DateFilters();
   final Rx<DateTime?> from = Rx<DateTime?>(null);
@@ -30,8 +33,11 @@ class MapScreenController extends ControllerBase {
   }
 
   MapProvider _defaultProvider() {
-    const appType = String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
-    return appType == 'geosenesm' ? MapProvider.openStreetMap : MapProvider.baidu;
+    const appType =
+        String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
+    return appType == 'geosenesm'
+        ? MapProvider.openStreetMap
+        : MapProvider.baidu;
   }
 
   MapProvider _loadProvider() {
@@ -43,15 +49,25 @@ class MapScreenController extends ControllerBase {
 
   void setMapProvider(MapProvider provider) {
     mapProvider.value = provider;
-    GetStorage().write(_storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
+    GetStorage().write(
+        _storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
   }
 
   String get tileUrlTemplate {
     if (mapProvider.value == MapProvider.baidu) {
-      return 'https://maponline{s}.bdimg.com/tile/?qt=vtile&x={x}&y={y}&z={z}&styles=pl&scaler=1';
+      return 'https://gss{s}.bdstatic.com/8bo_dTSlRsgBo1vgoIiO_jowehsv/tile/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1';
     }
     return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   }
+
+  LatLng get initialCenter => _convertLatLng(
+      mapProvider.value == MapProvider.baidu ? _beijingCenter : _warsawCenter);
+
+  double get initialZoom => 13.0;
+
+  Crs get mapCrs => mapProvider.value == MapProvider.baidu
+      ? const BaiduCrs()
+      : const Epsg3857();
 
   List<String> get tileSubdomains {
     if (mapProvider.value == MapProvider.baidu) {
@@ -67,6 +83,9 @@ class MapScreenController extends ControllerBase {
     }
     return LatLng(lat, lng);
   }
+
+  LatLng _convertLatLng(LatLng point) =>
+      convertCoordinate(point.latitude, point.longitude);
 
   void loadData() async {
     try {
@@ -105,22 +124,18 @@ class MapScreenController extends ControllerBase {
 
   Future<void> _setBounds(List<LocationModel> locations) async {
     if (locations.isEmpty) {
-      await _centerToCurrentPosition();
+      mapController.move(initialCenter, initialZoom);
       return;
     }
 
-    final points =
-        locations.map((e) => LatLng(e.latitude, e.longitude)).toList();
+    final points = locations
+        .map((location) =>
+            convertCoordinate(location.latitude, location.longitude))
+        .toList();
     final bounds = LatLngBounds.fromPoints(points);
     final center = bounds.center;
     final zoom = _calculateZoom(bounds);
     mapController.move(center, zoom);
-  }
-
-  Future<void> _centerToCurrentPosition() async {
-    final currentPosition = await Geolocator.getCurrentPosition();
-    mapController.move(
-        LatLng(currentPosition.latitude, currentPosition.longitude), 14);
   }
 
   void openFilters() {
