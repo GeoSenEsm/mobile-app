@@ -8,6 +8,7 @@ import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/controllers/map_screen_controller.dart';
 import 'package:survey_frontend/presentation/functions/formatters.dart';
+import 'package:survey_frontend/presentation/screens/map/baidu_tile_provider.dart';
 
 class MapScreen extends GetView<MapScreenController> {
   const MapScreen({super.key});
@@ -103,8 +104,8 @@ class MapScreen extends GetView<MapScreenController> {
               final provider = controller.mapProvider.value;
               return FlutterMap(
                 mapController: controller.mapController,
-                options: const MapOptions(
-                  initialCenter: LatLng(52.2297, 21.0122),
+                options: MapOptions(
+                  initialCenter: controller.initialCenter,
                   initialZoom: 13.0,
                 ),
                 children: [
@@ -112,10 +113,12 @@ class MapScreen extends GetView<MapScreenController> {
                     urlTemplate: controller.tileUrlTemplate,
                     subdomains: controller.tileSubdomains,
                     userAgentPackageName: 'urbeat.site.app',
+                    tileProvider:
+                        provider == MapProvider.baidu ? const BaiduTileProvider() : null,
                   ),
                   MarkerLayer(
                     markers: controller.locations
-                        .map((loc) => _getMarkerForLocation(loc, provider))
+                        .map(_getMarkerForLocation)
                         .toList(),
                   ),
                 ],
@@ -245,13 +248,9 @@ class MapScreen extends GetView<MapScreenController> {
     );
   }
 
-  Marker _getMarkerForLocation(LocationModel model, MapProvider provider) {
-    final point = provider == MapProvider.baidu
-        ? controller.convertCoordinate(model.latitude, model.longitude)
-        : LatLng(model.latitude, model.longitude);
-
+  Marker _getMarkerForLocation(LocationModel model) {
     return Marker(
-      point: point,
+      point: controller.mapPointForLocation(model),
       child: GestureDetector(
         onTap: () => controller.openDetails(model),
         child: Icon(
