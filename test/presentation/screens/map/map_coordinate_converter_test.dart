@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:survey_frontend/presentation/screens/map/baidu_tile_provider.dart';
 import 'package:survey_frontend/presentation/screens/map/map_coordinate_converter.dart';
 import 'package:survey_frontend/presentation/screens/map/map_provider_type.dart';
 
@@ -47,6 +48,30 @@ void main() {
     test('restores known storage values', () {
       expect(mapProviderTypeFromStorage('google'), MapProviderType.google);
       expect(mapProviderTypeFromStorage('baidu'), MapProviderType.baidu);
+    });
+  });
+
+  group('BaiduTileCoordinateConverter', () {
+    test('keeps zoom zero coordinates unchanged', () {
+      final converted = BaiduTileCoordinateConverter.fromSlippy(
+        x: 0,
+        y: 0,
+        zoom: 0,
+      );
+
+      expect(converted.x, 0);
+      expect(converted.y, 0);
+    });
+
+    test('converts slippy tile coordinates to baidu tile coordinates', () {
+      final converted = BaiduTileCoordinateConverter.fromSlippy(
+        x: 6743,
+        y: 3101,
+        zoom: 13,
+      );
+
+      expect(converted.x, 2647);
+      expect(converted.y, 994);
     });
   });
 }

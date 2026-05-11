@@ -7,6 +7,7 @@ import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/controllers/map_screen_controller.dart';
 import 'package:survey_frontend/presentation/functions/formatters.dart';
+import 'package:survey_frontend/presentation/screens/map/baidu_tile_provider.dart';
 import 'package:survey_frontend/presentation/screens/map/map_provider_type.dart';
 
 class MapScreen extends GetView<MapScreenController> {
@@ -146,25 +147,32 @@ class MapScreen extends GetView<MapScreenController> {
     return Expanded(
       child: Container(
         color: AppStyles.backgroundSecondary,
-        child: Obx(() => FlutterMap(
-              mapController: controller.mapController,
-              options: MapOptions(
-                initialCenter: controller.initialCenter,
-                initialZoom: 13.0,
+        child: Obx(() {
+          final selectedProvider = controller.selectedMapProvider.value;
+
+          return FlutterMap(
+            mapController: controller.mapController,
+            options: MapOptions(
+              initialCenter: controller.initialCenter,
+              initialZoom: 13.0,
+            ),
+            children: [
+              TileLayer(
+                urlTemplate: controller.mapUrlTemplate,
+                subdomains: controller.mapSubdomains,
+                userAgentPackageName: 'urbeat.site.app',
+                tileProvider: selectedProvider == MapProviderType.baidu
+                    ? const BaiduTileProvider()
+                    : null,
               ),
-              children: [
-                TileLayer(
-                  urlTemplate: controller.mapUrlTemplate,
-                  subdomains: controller.mapSubdomains,
-                  userAgentPackageName: 'urbeat.site.app',
-                ),
-                MarkerLayer(
-                  markers: controller.locations
-                      .map(_getMarkerForLocation)
-                      .toList(growable: false),
-                )
-              ],
-            )),
+              MarkerLayer(
+                markers: controller.locations
+                    .map(_getMarkerForLocation)
+                    .toList(growable: false),
+              )
+            ],
+          );
+        }),
       ),
     );
   }
