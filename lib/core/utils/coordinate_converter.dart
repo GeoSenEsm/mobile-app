@@ -55,6 +55,8 @@ class CoordinateConverter {
 
   /// WGS-84 → BD-09
   static (double lat, double lng) wgs84ToBd09(double lat, double lng) {
+    if (_isOutOfChina(lat, lng)) return (lat, lng);
+
     final gcj = wgs84ToGcj02(lat, lng);
     return gcj02ToBd09(gcj.$1, gcj.$2);
   }

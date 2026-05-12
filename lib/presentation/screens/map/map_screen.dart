@@ -103,10 +103,14 @@ class MapScreen extends GetView<MapScreenController> {
             Obx(() {
               final provider = controller.mapProvider.value;
               return FlutterMap(
+                key: ValueKey(provider),
                 mapController: controller.mapController,
                 options: MapOptions(
                   initialCenter: controller.initialCenter,
                   initialZoom: 13.0,
+                  crs: provider == MapProvider.baidu
+                      ? const BaiduCrs()
+                      : const Epsg3857(),
                 ),
                 children: [
                   TileLayer(

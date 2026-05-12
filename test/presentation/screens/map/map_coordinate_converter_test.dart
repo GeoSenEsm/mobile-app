@@ -28,7 +28,7 @@ void main() {
   });
 
   group('BaiduTileCoordinateConverter', () {
-    test('keeps zoom zero coordinates unchanged', () {
+    test('uses browser-compatible Baidu tile y inversion at zoom zero', () {
       final converted = BaiduTileCoordinateConverter.fromSlippy(
         x: 0,
         y: 0,
@@ -36,22 +36,22 @@ void main() {
       );
 
       expect(converted.x, 0);
-      expect(converted.y, 0);
+      expect(converted.y, -1);
     });
 
-    test('converts slippy tile coordinates to Baidu tile coordinates', () {
+    test('converts Flutter Baidu CRS tile coordinates to Baidu URL coordinates', () {
       final converted = BaiduTileCoordinateConverter.fromSlippy(
         x: 6743,
         y: 3101,
         zoom: 13,
       );
 
-      expect(converted.x, 2647);
-      expect(converted.y, 994);
+      expect(converted.x, 6743);
+      expect(converted.y, -3102);
     });
 
-    test('formats negative tile values using Baidu M prefix', () {
-      expect(BaiduTileCoordinateConverter.formatBaiduTileValue(-12), 'M12');
+    test('formats negative tile values numerically for maponline endpoint', () {
+      expect(BaiduTileCoordinateConverter.formatBaiduTileValue(-12), '-12');
       expect(BaiduTileCoordinateConverter.formatBaiduTileValue(0), '0');
       expect(BaiduTileCoordinateConverter.formatBaiduTileValue(34), '34');
     });

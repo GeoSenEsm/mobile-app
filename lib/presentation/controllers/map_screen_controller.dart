@@ -49,17 +49,19 @@ class MapScreenController extends ControllerBase {
     mapProvider.value = provider;
     GetStorage().write(_storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
 
-    if (locations.isEmpty) {
-      _centerToCurrentPosition();
-      return;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (locations.isEmpty) {
+        _centerToCurrentPosition();
+        return;
+      }
 
-    _setBounds(locations.toList(growable: false));
+      _setBounds(locations.toList(growable: false));
+    });
   }
 
   String get tileUrlTemplate {
     if (mapProvider.value == MapProvider.baidu) {
-      return 'https://maponline{s}.bdimg.com/tile/?qt=vtile&x={x}&y={y}&z={z}&styles=pl&scaler=1';
+      return 'https://maponline{s}.bdimg.com/tile/?qt=tile&x={x}&y={y}&z={z}&styles=pl&scaler=1&p=1';
     }
     return 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
   }
