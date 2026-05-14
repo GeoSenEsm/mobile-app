@@ -108,6 +108,10 @@ class MapScreen extends GetView<MapScreenController> {
                 options: MapOptions(
                   initialCenter: controller.initialCenter,
                   initialZoom: 13.0,
+                  minZoom: provider == MapProvider.baidu ? 3.0 : 0.0,
+                  maxZoom: provider == MapProvider.baidu
+                      ? baiduMaxZoom.toDouble()
+                      : 19.0,
                   crs: provider == MapProvider.baidu
                       ? const BaiduCrs()
                       : const Epsg3857(),
@@ -116,6 +120,9 @@ class MapScreen extends GetView<MapScreenController> {
                   TileLayer(
                     urlTemplate: controller.tileUrlTemplate,
                     subdomains: controller.tileSubdomains,
+                    minZoom: provider == MapProvider.baidu ? 3 : 0,
+                    maxZoom: provider == MapProvider.baidu ? baiduMaxZoom : 19,
+                    maxNativeZoom: provider == MapProvider.baidu ? baiduMaxZoom : 19,
                     userAgentPackageName: 'urbeat.site.app',
                     tileProvider:
                         provider == MapProvider.baidu ? const BaiduTileProvider() : null,

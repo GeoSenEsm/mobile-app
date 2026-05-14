@@ -55,6 +55,20 @@ void main() {
       expect(BaiduTileCoordinateConverter.formatBaiduTileValue(0), '0');
       expect(BaiduTileCoordinateConverter.formatBaiduTileValue(34), '34');
     });
+
+    test('matches browser Baidu tile URL coordinate rule', () {
+      const leafletTileX = 1581;
+      const leafletTileY = -589;
+
+      final converted = BaiduTileCoordinateConverter.fromSlippy(
+        x: leafletTileX,
+        y: leafletTileY,
+        zoom: 13,
+      );
+
+      expect(converted.x, leafletTileX);
+      expect(converted.y, 588);
+    });
   });
 }
 
