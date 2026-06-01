@@ -42,8 +42,19 @@ class MapScreenController extends ControllerBase {
   }
 
   void setMapProvider(MapProvider provider) {
+    if (provider == mapProvider.value) {
+      return;
+    }
+
     mapProvider.value = provider;
     GetStorage().write(_storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
+
+    if (locations.isEmpty) {
+      _centerToCurrentPosition();
+      return;
+    }
+
+    _setBounds(locations.toList(growable: false));
   }
 
   String get tileUrlTemplate {
@@ -67,6 +78,12 @@ class MapScreenController extends ControllerBase {
     }
     return LatLng(lat, lng);
   }
+
+  LatLng mapPointForLocation(LocationModel model) {
+    return convertCoordinate(model.latitude, model.longitude);
+  }
+
+  LatLng get initialCenter => convertCoordinate(52.2297, 21.0122);
 
   void loadData() async {
     try {
@@ -109,8 +126,7 @@ class MapScreenController extends ControllerBase {
       return;
     }
 
-    final points =
-        locations.map((e) => LatLng(e.latitude, e.longitude)).toList();
+    final points = locations.map(mapPointForLocation).toList(growable: false);
     final bounds = LatLngBounds.fromPoints(points);
     final center = bounds.center;
     final zoom = _calculateZoom(bounds);
@@ -120,7 +136,9 @@ class MapScreenController extends ControllerBase {
   Future<void> _centerToCurrentPosition() async {
     final currentPosition = await Geolocator.getCurrentPosition();
     mapController.move(
-        LatLng(currentPosition.latitude, currentPosition.longitude), 14);
+      convertCoordinate(currentPosition.latitude, currentPosition.longitude),
+      14,
+    );
   }
 
   void openFilters() {

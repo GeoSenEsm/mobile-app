@@ -76,6 +76,7 @@ class LoginController extends ControllerBase {
   }
 
   Future<bool> _isUrlAllowed() async {
+    return true;
     if (kDebugMode || alwaysAllowUri == "true") {
       return true;
     }

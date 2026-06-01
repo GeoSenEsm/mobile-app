@@ -47,7 +47,7 @@ class ContactController extends ControllerBase {
 
   void call(PhoneContactDto contact) async {
     try{
-      if (!await launchUrl(Uri.parse("tel://${contact.number}"))){
+      if (!await launchUrl(Uri.parse("tel:${contact.number}"))){
         _couldNotCall();
       }
     } catch (e){
