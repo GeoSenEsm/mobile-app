@@ -74,8 +74,10 @@ class AppLocalizationsPl extends AppLocalizations {
   String get error => 'Błąd';
 
   @override
-  String get nextSurveyTime =>
-      'Pozostały czas do zakończenia najbliższej ankiety';
+  String get nextSurveyTime => 'Czas do zakończenia aktualnej ankiety';
+
+  @override
+  String get noSurveysToComplete => 'Brak ankiet do wypełnienia';
 
   @override
   String get surveyDetails => 'Szczegóły ankiety';

@@ -73,8 +73,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get error => 'Error';
 
   @override
-  String get nextSurveyTime =>
-      'Remaining time until the most urgent survey finishes';
+  String get nextSurveyTime => 'Time until the current survey ends';
+
+  @override
+  String get noSurveysToComplete => 'No surveys to complete';
 
   @override
   String get surveyDetails => 'Survey details';

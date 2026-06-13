@@ -229,8 +229,14 @@ abstract class AppLocalizations {
   /// No description provided for @nextSurveyTime.
   ///
   /// In en, this message translates to:
-  /// **'Remaining time until the most urgent survey finishes'**
+  /// **'Time until the current survey ends'**
   String get nextSurveyTime;
+
+  /// No description provided for @noSurveysToComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'No surveys to complete'**
+  String get noSurveysToComplete;
 
   /// No description provided for @surveyDetails.
   ///

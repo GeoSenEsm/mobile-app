@@ -52,11 +52,13 @@ class HomeScreen extends GetView<HomeController> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
-              AppLocalizations.of(context)!.nextSurveyTime,
-              style: const TextStyle(fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
+            Obx(() => Text(
+                  controller.pendingSurveys.isEmpty
+                      ? AppLocalizations.of(context)!.noSurveysToComplete
+                      : AppLocalizations.of(context)!.nextSurveyTime,
+                  style: const TextStyle(fontSize: 14),
+                  textAlign: TextAlign.center,
+                )),
             const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,

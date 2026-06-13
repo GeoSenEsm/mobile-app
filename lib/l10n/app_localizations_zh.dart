@@ -72,7 +72,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get error => '错误';
 
   @override
-  String get nextSurveyTime => '下次计划调查的剩余时间';
+  String get nextSurveyTime => '当前问卷结束剩余时间';
+
+  @override
+  String get noSurveysToComplete => '暂无可填写的问卷';
 
   @override
   String get surveyDetails => '调查详情';
