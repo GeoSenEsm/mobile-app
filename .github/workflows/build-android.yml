@@ -1,0 +1,90 @@
+name: Build Android APK and AAB
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [geosenesm, urbeat]
+        artifact: [apk, appbundle]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.5'
+          channel: stable
+          cache: true
+
+      - name: Write .env
+        env:
+          MOBILE_APP_ENV: ${{ secrets.MOBILE_APP_ENV }}
+        run: |
+          if [ -n "${MOBILE_APP_ENV:-}" ]; then
+            printf '%s' "$MOBILE_APP_ENV" > .env
+          else
+            : > .env
+          fi
+
+      - name: Decode Android keystores
+        working-directory: android
+        env:
+          GEOSENESM_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_GEOSENESM_B64 }}
+          URBEAT_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_URBEAT_B64 }}
+        run: |
+          echo "$GEOSENESM_KEYSTORE_B64" | base64 -d > geosenesm.jks
+          echo "$URBEAT_KEYSTORE_B64" | base64 -d > urbeat.jks
+
+      - name: Write android/key.properties
+        working-directory: android
+        env:
+          GEOSENESM_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_GEOSENESM_STORE_PASSWORD }}
+          GEOSENESM_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_GEOSENESM_KEY_PASSWORD }}
+          GEOSENESM_KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_GEOSENESM_KEY_ALIAS }}
+          URBEAT_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_URBEAT_STORE_PASSWORD }}
+          URBEAT_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_URBEAT_KEY_PASSWORD }}
+          URBEAT_KEY_ALIAS: ${{ secrets.ANDROID_KEYSTORE_URBEAT_KEY_ALIAS }}
+        run: |
+          cat > key.properties <<EOF
+          geosenesm.storeFile=geosenesm.jks
+          geosenesm.storePassword=${GEOSENESM_STORE_PASSWORD}
+          geosenesm.keyPassword=${GEOSENESM_KEY_PASSWORD}
+          geosenesm.keyAlias=${GEOSENESM_KEY_ALIAS}
+          urbeat.storeFile=urbeat.jks
+          urbeat.storePassword=${URBEAT_STORE_PASSWORD}
+          urbeat.keyPassword=${URBEAT_KEY_PASSWORD}
+          urbeat.keyAlias=${URBEAT_KEY_ALIAS}
+          EOF
+
+      - name: flutter pub get
+        run: flutter pub get
+
+      - name: Build ${{ matrix.variant }} ${{ matrix.artifact }}
+        run: |
+          chmod +x scripts/build-android-${{ matrix.variant }}.sh
+          ./scripts/build-android-${{ matrix.variant }}.sh ${{ matrix.artifact }}
+
+      - name: Upload ${{ matrix.variant }} ${{ matrix.artifact }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-${{ matrix.variant }}-${{ matrix.artifact }}
+          if-no-files-found: error
+          path: |
+            build/app/outputs/flutter-apk/app-${{ matrix.variant }}-release.apk
+            build/app/outputs/bundle/release/app-${{ matrix.variant }}-release.aab
