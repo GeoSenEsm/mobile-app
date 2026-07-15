@@ -208,8 +208,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         "futureSensorData": futureSensorData
       });
     } catch (e) {
+      Sentry.captureException(e);
       await popup(AppLocalizations.of(Get.context!)!.error,
-          AppLocalizations.of(Get.context!)!.loadingSurveyError);
+          AppLocalizations.of(Get.context!)!.loadingSurveyErrorTryAgainLater);
     } finally {
       _isBusy = false;
     }

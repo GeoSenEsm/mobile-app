@@ -24,7 +24,7 @@
     "nextSurveyTime": "Remaining time until the most urgent survey finishes",
     "surveyDetails": "Survey details",
     "loadingSurveyErrorTryAgainLater": "Failed to load the survey. Please try again later.",
-    "loadingSurveyError": "Failed to load selected survey",
+    "loadingSurveyError": "This survey is not currently active. It may have ended or is not yet available.",
     "answerSubmitError": "Failed to submit the answer",
     "mainPageTransitionError": "The response was successfully sent to the server, but an error occurred while returning to the home page. Try restarting the application.",
     "selectOneOption": "Select one of the options",

@@ -24,7 +24,7 @@
     "nextSurveyTime": "Pozostały czas do zakończenia najbliższej ankiety",
     "surveyDetails": "Szczegóły ankiety",
     "loadingSurveyErrorTryAgainLater": "Nie udało się załadować ankiet. Spróbuj ponownie później.",
-    "loadingSurveyError": "Nie udało się załadować wybranej ankiety",
+    "loadingSurveyError": "Ta ankieta nie jest obecnie aktywna. Mogła się zakończyć lub jeszcze nie jest dostępna.",
     "answerSubmitError": "Nie udało się przesłać odpowiedzi",
     "mainPageTransitionError": "Pomyślnie przesłano odpowiedź na serwer, ale wystąpił błąd podczas powrotu na stronę główną. Spróbuj ponownie uruchomić aplikację.",
     "selectOneOption": "Wybierz jedną z opcji",

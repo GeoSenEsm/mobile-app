@@ -81,7 +81,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get loadingSurveyErrorTryAgainLater => '未能加载调查，请稍后再试';
 
   @override
-  String get loadingSurveyError => '未能加载所选调查';
+  String get loadingSurveyError => '该问卷当前不可用，可能已结束或尚未开放。';
 
   @override
   String get answerSubmitError => '未能提交答案';

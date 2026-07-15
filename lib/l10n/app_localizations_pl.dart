@@ -85,7 +85,8 @@ class AppLocalizationsPl extends AppLocalizations {
       'Nie udało się załadować ankiet. Spróbuj ponownie później.';
 
   @override
-  String get loadingSurveyError => 'Nie udało się załadować wybranej ankiety';
+  String get loadingSurveyError =>
+      'Ta ankieta nie jest obecnie aktywna. Mogła się zakończyć lub jeszcze nie jest dostępna.';
 
   @override
   String get answerSubmitError => 'Nie udało się przesłać odpowiedzi';

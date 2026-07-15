@@ -84,7 +84,8 @@ class AppLocalizationsEn extends AppLocalizations {
       'Failed to load the survey. Please try again later.';
 
   @override
-  String get loadingSurveyError => 'Failed to load selected survey';
+  String get loadingSurveyError =>
+      'This survey is not currently active. It may have ended or is not yet available.';
 
   @override
   String get answerSubmitError => 'Failed to submit the answer';
