@@ -18,7 +18,7 @@ class SensorConnectionFactory {
       throw BluetoothTurnedOffException();
     }
 
-    if (selectedSensor == null || selectedSensor == SensorKind.none) {
+    if (selectedSensor == null || !SensorKind.usesBluetooth(selectedSensor)) {
       throw SensorNotSpecifiedException();
     }
 

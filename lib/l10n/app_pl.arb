@@ -46,6 +46,7 @@
     "save": "Zapisz",
     "chooseATemperatureSensorYouReceived": "Wybierz otrzymany przez Ciebie czujnik temperatury",
     "noSensor": "Brak czujnika",
+    "manualSensor": "Odczyty ręczne",
     "xiaomiSensor": "Czujnik Xiaomi",
     "settings": "Ustawienia",
     "editSensor": "Edytuj czujnik",

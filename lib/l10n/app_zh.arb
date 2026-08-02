@@ -62,6 +62,7 @@
     "save": "保存",
     "chooseATemperatureSensorYouReceived": "选择您已接收的温度传感器",
     "noSensor": "无传感器",
+    "manualSensor": "手动读数",
     "xiaomiSensor": "小米传感器",
     "settings": "设置",
     "editSensor": "编辑传感器",

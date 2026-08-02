@@ -16,7 +16,8 @@ class HomeBindings extends Bindings {
         fenix: true);
     Get.lazyPut<HomeController>(
         () => HomeController(Get.find(), Get.find(), Get.find(), Get.find(),
-            Get.find(), Get.find(), Get.find(), Get.find(), Get.find(), Get.find()),
+            Get.find(), Get.find(), Get.find(), Get.find(), Get.find(), Get.find(),
+            Get.find()),
         fenix: true);
   }
 }

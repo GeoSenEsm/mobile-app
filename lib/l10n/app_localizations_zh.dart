@@ -151,6 +151,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get noSensor => '无传感器';
 
   @override
+  String get manualSensor => '手动读数';
+
+  @override
   String get xiaomiSensor => '小米传感器';
 
   @override

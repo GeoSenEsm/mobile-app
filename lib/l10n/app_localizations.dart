@@ -376,6 +376,12 @@ abstract class AppLocalizations {
   /// **'No sensor'**
   String get noSensor;
 
+  /// Manual temperature/humidity entry (no BLE device).
+  ///
+  /// In en, this message translates to:
+  /// **'Manual readings'**
+  String get manualSensor;
+
   /// No description provided for @xiaomiSensor.
   ///
   /// In en, this message translates to:

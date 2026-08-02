@@ -158,6 +158,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get noSensor => 'Brak czujnika';
 
   @override
+  String get manualSensor => 'Odczyty ręczne';
+
+  @override
   String get xiaomiSensor => 'Czujnik Xiaomi';
 
   @override

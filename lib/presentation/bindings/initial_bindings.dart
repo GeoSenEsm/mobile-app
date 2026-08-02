@@ -30,6 +30,7 @@ import 'package:survey_frontend/data/datasources/respondent_group_service_impl.d
 import 'package:survey_frontend/data/datasources/sensors_data_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_response_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_service_impl.dart';
+import 'package:survey_frontend/data/datasources/xiaomi_mac_impl.dart';
 import 'package:survey_frontend/domain/external_services/initial_survey_service.dart';
 import 'package:survey_frontend/domain/external_services/ip_localization_country_code_service.dart';
 import 'package:survey_frontend/domain/external_services/location_service.dart';
@@ -37,6 +38,7 @@ import 'package:survey_frontend/domain/external_services/login_service.dart';
 import 'package:survey_frontend/domain/external_services/phone_contact_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_date_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_group_service.dart';
+import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
 import 'package:survey_frontend/domain/external_services/sensors_data_service.dart';
 import 'package:survey_frontend/domain/external_services/survey_response_service.dart';
 import 'package:survey_frontend/domain/external_services/survey_service.dart';
@@ -96,6 +98,8 @@ class InitialBindings extends Bindings {
         SurveyNotificationUseCaseImpl(Get.find(), Get.find()));
     Get.put<SensorsDataService>(
         SensorsDataServiceImpl(Get.find(), tokenProvider: Get.find()));
+    Get.put<SensorMacService>(
+        XiaomiMacImpl(Get.find(), tokenProvider: Get.find()));
     Get.put(SensorConnectionFactory(Get.find()));
     Get.put<SendSensorsDataUsecase>(
         SendSensorsDataUsecaseImpl(Get.find(), Get.find(), Get.find()));

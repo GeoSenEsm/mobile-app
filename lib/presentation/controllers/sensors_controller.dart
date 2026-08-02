@@ -35,6 +35,7 @@ class SensorsController extends ControllerBase {
       selectedSensor.value == SensorKind.kestrelDrop2 &&
       (kestrelId.value != null);
   bool get canSaveNone => selectedSensor.value == SensorKind.none;
+  bool get canSaveManual => selectedSensor.value == SensorKind.manual;
 
   SensorsController(this._storage, this._sensorService) {
     _loadSelectedSensor();
@@ -42,12 +43,14 @@ class SensorsController extends ControllerBase {
 
   final List<String> possibleOptions = [
     SensorKind.none,
+    SensorKind.manual,
     SensorKind.xiaomi,
     SensorKind.kestrelDrop2
   ];
 
   final Map<String, String> optionsDisplays = {
     SensorKind.none: AppLocalizations.of(Get.context!)!.noSensor,
+    SensorKind.manual: AppLocalizations.of(Get.context!)!.manualSensor,
     SensorKind.xiaomi: AppLocalizations.of(Get.context!)!.xiaomiSensor,
     SensorKind.kestrelDrop2: AppLocalizations.of(Get.context!)!.kestrelDrop2
   };
@@ -123,7 +126,7 @@ class SensorsController extends ControllerBase {
   }
 
   void saveSelectedSensor() {
-    bool canSave = canSaveKestrel || canSaveXiaomi || canSaveNone;
+    bool canSave = canSaveKestrel || canSaveXiaomi || canSaveNone || canSaveManual;
     if (!canSave) {
       return;
     }

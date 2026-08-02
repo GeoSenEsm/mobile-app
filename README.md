@@ -2,7 +2,10 @@
 
 Flutter respondent client for GeoSenEsm. Respondents log in, complete
 scheduled surveys (online and offline), and sync location / sensor data to
-`survey-api`.
+`survey-api`. On home refresh the app also pulls any admin-assigned sensor
+(`GET /api/sensormac/assigned`) into local GetStorage so BLE / mode
+selection matches the server type (`xiaomi`, `kestrel`, `manual`, or
+`none`).
 
 
 |                      |                                                                                                                                       |

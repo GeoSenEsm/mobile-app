@@ -157,6 +157,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noSensor => 'No sensor';
 
   @override
+  String get manualSensor => 'Manual readings';
+
+  @override
   String get xiaomiSensor => 'Xiaomi sensor';
 
   @override

@@ -16,6 +16,7 @@ import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
+import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
 import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
@@ -46,6 +47,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
   final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   final SendLocationDataUsecase _sendLocationDataUsecase;
+  final SensorMacService _sensorMacService;
 
   HomeController(
       this._homeService,
@@ -57,7 +59,8 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._submitSurveyUsecase,
       this._storage,
       this._sendSensorsDataUsecase,
-      this._sendLocationDataUsecase);
+      this._sendLocationDataUsecase,
+      this._sensorMacService);
 
   @override
   void onInit() async {
@@ -134,6 +137,42 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       await _surveyImagesUseCase.saveImages(response.body!);
       await _databaseHelper.upsertSurveys(response.body!);
       await _surveyNotificationUseCase.scheduleSurveysNotifications();
+    }
+
+    await _syncAssignedSensor();
+  }
+
+  Future<void> _syncAssignedSensor() async {
+    try {
+      final assigned = await _sensorMacService.getAssignedSensor();
+      if (assigned.statusCode != 200 || assigned.body == null) {
+        return;
+      }
+      final body = assigned.body!;
+      final kind = _mapSensorTypeCode(body.sensorTypeCode);
+      _storage.write('selectedSensor', kind);
+      if (kind == SensorKind.xiaomi) {
+        _storage.write('selectedSensorId', body.sensorId);
+        _storage.write('xiaomiMac', body.sensorMac);
+      } else if (kind == SensorKind.kestrelDrop2) {
+        _storage.write('selectedSensorId', body.sensorId);
+      }
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
+  }
+
+  String _mapSensorTypeCode(String? code) {
+    switch (code) {
+      case 'kestrel':
+        return SensorKind.kestrelDrop2;
+      case 'manual':
+        return SensorKind.manual;
+      case 'none':
+        return SensorKind.none;
+      case 'xiaomi':
+      default:
+        return SensorKind.xiaomi;
     }
   }
 
@@ -240,7 +279,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
   Future<bool> isBluetoothWorking() async {
     final selectedSensor = _storage.read('selectedSensor');
-    if (selectedSensor == null || selectedSensor == SensorKind.none) {
+    if (selectedSensor == null || !SensorKind.usesBluetooth(selectedSensor)) {
       return true;
     }
     final state = await FlutterBluePlus.adapterState.first;
