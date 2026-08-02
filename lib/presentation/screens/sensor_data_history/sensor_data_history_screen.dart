@@ -111,16 +111,20 @@ class SensorDataHistoryScreen extends GetView<SensorDataHistoryController> {
           child: Obx(() => DataTable(
                 columns: [
                   DataColumn(label: Text(getAppLocalizations().date)),
-                  DataColumn(label: Text(getAppLocalizations().temperature)),
-                  DataColumn(label: Text(getAppLocalizations().humidity)),
+                  const DataColumn(label: Text('Source')),
+                  const DataColumn(label: Text('Values')),
                 ],
                 rows: controller.entries
                     .map((e) => DataRow(cells: [
                           DataCell(Center(
                               child: Text(
                                   dateTimeShortFormat(e.dateTime.toLocal())))),
-                          DataCell(Center(child: Text('${e.temperature} °C'))),
-                          DataCell(Center(child: Text('${e.humidity}%'))),
+                          DataCell(Center(child: Text(e.source))),
+                          DataCell(Center(
+                              child: Text(e.values
+                                  .map((value) =>
+                                      '${value.parameterCode}: ${value.value}')
+                                  .join(', ')))),
                         ]))
                     .toList(),
               )),

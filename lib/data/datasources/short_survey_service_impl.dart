@@ -11,10 +11,11 @@ class ShortSurveyServiceImpl extends APIServiceBase
       {required super.tokenProvider});
 
   @override
-  Future<APIResponse<List<SurveyWithTimeSlots>>> getSurveysWithTimeSlots() =>
-      get<List<SurveyWithTimeSlots>>(
-          '/api/surveys/allwithtimeslots?maxRowVersoin=${_storage.read<int>('surveysRowVersion') ?? 0}',
-          (dynamic items) => items
-              .map<SurveyWithTimeSlots>((e) => SurveyWithTimeSlots.fromJson(e))
-              .toList());
+  Future<
+      APIResponse<List<SurveyWithTimeSlots>>> getSurveysWithTimeSlots() => get<
+          List<SurveyWithTimeSlots>>(
+      '/api/surveys/allwithtimeslots?maxRowVersoin=${_storage.read<int>('surveysRowVersion') ?? 0}',
+      (dynamic items) => items
+          .map<SurveyWithTimeSlots>((e) => SurveyWithTimeSlots.fromJson(e))
+          .toList());
 }

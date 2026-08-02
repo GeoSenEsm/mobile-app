@@ -152,6 +152,7 @@
     "surveyHasBeenComplitedInThisLocation": "该位置已完成问卷",
     "enterResponse": "输入回答",
     "kestrelDrop2": "Kestrel Drop 2 传感器",
+    "assignedByAdministrator": "由管理员分配",
     "sensorId": "传感器ID",
     "serverNotResponding": "服务器无响应。请确保提供了正确的API地址，如无误，请稍后重试。",
     "bluetoothRequired": "请打开蓝牙以完成问卷。",

@@ -445,6 +445,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get kestrelDrop2 => 'Czujnik Kestrel Drop 2';
 
   @override
+  String get assignedByAdministrator => 'Przypisany przez administratora';
+
+  @override
   String get sensorId => 'Id sensora';
 
   @override

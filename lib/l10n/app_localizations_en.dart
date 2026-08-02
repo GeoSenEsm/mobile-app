@@ -443,6 +443,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get kestrelDrop2 => 'Kestrel Drop 2 sensor';
 
   @override
+  String get assignedByAdministrator => 'Assigned by administrator';
+
+  @override
   String get sensorId => 'Sensor id';
 
   @override

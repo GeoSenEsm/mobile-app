@@ -43,7 +43,8 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
         await _databaseHelper.addLocation(location);
       }
 
-      final yesterday = DateTime.now().toUtc().subtract(const Duration(days: 1));
+      final yesterday =
+          DateTime.now().toUtc().subtract(const Duration(days: 1));
       final allToSend = await _databaseHelper.getAllLocationsToSend(yesterday);
       final submitResult = await _locationService.submitLocations(allToSend);
 
@@ -77,13 +78,14 @@ class SendLocationDataUsecaseImpl implements SendLocationDataUsecase {
         return null;
       }
       Position currentLocation = await Geolocator.getCurrentPosition();
-      final double? accuracy = currentLocation.accuracy >= 0 && currentLocation.accuracy <  99999 ?
-          double.parse(currentLocation.accuracy.toStringAsFixed(2)) : null;
+      final double? accuracy =
+          currentLocation.accuracy >= 0 && currentLocation.accuracy < 99999
+              ? double.parse(currentLocation.accuracy.toStringAsFixed(2))
+              : null;
       final locationData = LocalizationData(
           dateTime: now.toUtc().toIso8601String(),
           latitude: double.parse(currentLocation.latitude.toStringAsFixed(6)),
-          longitude:
-              double.parse(currentLocation.longitude.toStringAsFixed(6)),
+          longitude: double.parse(currentLocation.longitude.toStringAsFixed(6)),
           accuracyMeters: accuracy);
 
       return locationData;

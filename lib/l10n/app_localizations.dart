@@ -376,7 +376,7 @@ abstract class AppLocalizations {
   /// **'No sensor'**
   String get noSensor;
 
-  /// Manual temperature/humidity entry (no BLE device).
+  /// No description provided for @manualSensor.
   ///
   /// In en, this message translates to:
   /// **'Manual readings'**
@@ -915,6 +915,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Kestrel Drop 2 sensor'**
   String get kestrelDrop2;
+
+  /// No description provided for @assignedByAdministrator.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned by administrator'**
+  String get assignedByAdministrator;
 
   /// No description provided for @sensorId.
   ///

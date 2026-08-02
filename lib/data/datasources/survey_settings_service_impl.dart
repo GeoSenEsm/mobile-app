@@ -14,4 +14,13 @@ class SurveySettingsServiceImpl extends APIServiceBase
       (dynamic json) => SurveySettings.fromJson(json as Map<String, dynamic>),
     );
   }
+
+  @override
+  Future<APIResponse<MobileSensorSetup>> getMobileSensorSetup() {
+    return get<MobileSensorSetup>(
+      '/api/surveysettings/sensordata/mobile',
+      (dynamic json) =>
+          MobileSensorSetup.fromJson(json as Map<String, dynamic>),
+    );
+  }
 }

@@ -103,8 +103,8 @@ class InitialBindings extends Bindings {
     Get.put<SensorMacService>(
         SensorMacServiceImpl(Get.find(), tokenProvider: Get.find()));
     Get.put(SensorConnectionFactory(Get.find()));
-    Get.put<SendSensorsDataUsecase>(
-        SendSensorsDataUsecaseImpl(Get.find(), Get.find(), Get.find()));
+    Get.put<SendSensorsDataUsecase>(SendSensorsDataUsecaseImpl(
+        Get.find(), Get.find(), Get.find(), Get.find()));
     Get.put<LocalizationService>(LocalizationServiceImpl(Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put<SurveyImagesUseCase>(SurveyImagesUseCaseImpl(Get.find()));

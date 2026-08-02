@@ -6,9 +6,12 @@ import 'package:survey_frontend/presentation/controllers/survey_end_controller.d
 class SurveyEndBindings extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => SurveyEndController(
-        Get.find(), Get.find(), Get.find(), Get.find(), Get.find(), Get.find()), fenix: true);
+    Get.lazyPut(
+        () => SurveyEndController(Get.find(), Get.find(), Get.find(),
+            Get.find(), Get.find(), Get.find()),
+        fenix: true);
     Get.lazyPut<SurveyParticipationService>(
-        () => SurveyParticipationServiceImpl(Get.find()), fenix: true);
+        () => SurveyParticipationServiceImpl(Get.find()),
+        fenix: true);
   }
 }

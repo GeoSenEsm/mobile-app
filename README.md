@@ -4,10 +4,13 @@ Flutter respondent client for GeoSenEsm. Respondents log in, complete
 scheduled surveys (online and offline), and sync location / sensor data to
 `survey-api`. Local notifications for each time slot follow the per-survey
 rules synced from `/api/surveys/allwithtimeslots` (defaults: at start, and
-15 minutes before end). On home refresh the app also pulls any admin-assigned sensor
-(`GET /api/sensormac/assigned`) into local GetStorage so BLE / mode
-selection matches the server type (`xiaomi`, `kestrel`, `manual`, or
-`none`).
+15 minutes before end). On home refresh the app also pulls sensor data setup
+from `/api/surveysettings/sensordata/mobile`, including no-sensor mode,
+enabled sources, connection timeouts, parameter definitions, and ordered
+respondent assignments for backend-provided sensor type codes such as
+`xiaomi`, `kestrel`, `pc_60fw`, `bluetooth_sig_plx`, `flower_care`,
+`xiaomi_door_sensor_2`, `inkbird_ibs_th1`, `manual`, or `none`. See
+`../docs/AddingSensor.md` for the sensor extension guide.
 
 
 |                      |                                                                                                                                       |

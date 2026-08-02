@@ -76,8 +76,8 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
         .where((d) => d != null)
         .map((d) => SensorDataModel(
             dateTime: DateTime.parse(d!.dateTime),
-            temperature: d.temperature,
-            humidity: d.humidity,
+            source: d.source,
+            values: d.values,
             sentToServer: true))
         .toList();
     for (final model in models) {
@@ -101,7 +101,8 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
         await _surveyResponseService.submitResponses(currentlySaved);
     if (apiResponse.statusCode == 201) {
       await _storage.remove('savedResponses');
-      await _saveSensorDataLocally(currentlySaved.map((e) => e.sensorData).toList());
+      await _saveSensorDataLocally(
+          currentlySaved.map((e) => e.sensorData).toList());
       await _updateLocations(apiResponse.body!);
       return true;
     }

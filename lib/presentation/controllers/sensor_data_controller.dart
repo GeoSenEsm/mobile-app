@@ -1,6 +1,6 @@
 import 'package:get/get.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:survey_frontend/core/models/sensors_response.dart';
+import 'package:survey_frontend/core/models/sensor_reading.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection.dart';
@@ -10,7 +10,7 @@ import 'package:survey_frontend/presentation/static/routes.dart';
 
 class SensorDataController extends ControllerBase {
   final Rx<SensorDataState> state = SensorDataState.initial.obs;
-  final Rx<SensorsResponse?> sensorResponse = Rx<SensorsResponse?>(null);
+  final Rx<SensorReading?> sensorResponse = Rx<SensorReading?>(null);
   final RxBool isSendingData = false.obs;
   final SensorConnectionFactory _sensorConnectionFactory;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
@@ -18,7 +18,8 @@ class SensorDataController extends ControllerBase {
   SensorConnection? _currentConnection;
   bool disconnected = false;
 
-  SensorDataController(this._sensorConnectionFactory, this._sendSensorsDataUsecase, this._sendLocationDataUsecase);
+  SensorDataController(this._sensorConnectionFactory,
+      this._sendSensorsDataUsecase, this._sendLocationDataUsecase);
 
   void startScanning() async {
     if (state.value == SensorDataState.scanning) {
@@ -32,7 +33,7 @@ class SensorDataController extends ControllerBase {
       _currentConnection = await _sensorConnectionFactory
           .getSensorConnection(const Duration(seconds: 60));
       state.value = SensorDataState.sensorFound;
-      if (disconnected){
+      if (disconnected) {
         await disconnect();
         return;
       }
@@ -72,7 +73,7 @@ class SensorDataController extends ControllerBase {
   }
 
   Future<void> sendSensorData() async {
-    if (isSendingData.value || sensorResponse.value == null){
+    if (isSendingData.value || sensorResponse.value == null) {
       return;
     }
 

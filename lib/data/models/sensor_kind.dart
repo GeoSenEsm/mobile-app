@@ -2,23 +2,22 @@ class SensorKind {
   static String get none => 'none';
   static String get manual => 'manual';
   static String get xiaomi => 'xiaomi';
-  static String get kestrelDrop2 => 'kestrelDrop2';
+  static String get kestrel => 'kestrel';
+  static String get kestrelDrop2 => kestrel;
 
   static bool usesBluetooth(String? kind) =>
-      kind == xiaomi || kind == kestrelDrop2;
+      kind != null && kind != none && kind != manual;
 
-  /// Maps API {@code sensor_type.code} to the local storage value.
   static String fromTypeCode(String? code) {
-    switch (code) {
-      case 'kestrel':
-        return kestrelDrop2;
-      case 'manual':
-        return manual;
-      case 'none':
-        return none;
-      case 'xiaomi':
-      default:
-        return xiaomi;
+    if (code == null || code.isEmpty) {
+      throw const UnknownSensorKindException();
     }
+    return code;
   }
+}
+
+class UnknownSensorKindException implements Exception {
+  final String? sensorTypeCode;
+
+  const UnknownSensorKindException([this.sensorTypeCode]);
 }

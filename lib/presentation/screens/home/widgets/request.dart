@@ -39,7 +39,8 @@ Future<void> buildLocationAlwaysDenyDialog() async {
     builder: (context) {
       return AlertDialog(
         title: Text(getAppLocalizations().locationBackgroundPermissionDenied),
-        content: Text(getAppLocalizations().locationBackgroundPermissionDeniedMessage),
+        content: Text(
+            getAppLocalizations().locationBackgroundPermissionDeniedMessage),
         actions: [
           TextButton(
             onPressed: () {

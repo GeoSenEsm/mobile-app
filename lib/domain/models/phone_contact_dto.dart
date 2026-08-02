@@ -8,8 +8,7 @@ class PhoneContactDto {
   final String name;
   final String number;
 
-  PhoneContactDto(
-      {required this.id, required this.name, required this.number});
+  PhoneContactDto({required this.id, required this.name, required this.number});
 
   factory PhoneContactDto.fromJson(Map<String, dynamic> json) =>
       _$PhoneContactDtoFromJson(json);

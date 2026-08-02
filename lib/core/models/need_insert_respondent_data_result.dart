@@ -1,3 +1,1 @@
-enum NeedInsertRespondentDataResult{
-  need, noNeed, error
-}
+enum NeedInsertRespondentDataResult { need, noNeed, error }

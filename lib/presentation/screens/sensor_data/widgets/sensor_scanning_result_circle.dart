@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
-import 'package:survey_frontend/core/models/sensors_response.dart';
+import 'package:survey_frontend/core/models/sensor_reading.dart';
 
 class SensorScanningResultCircle extends StatelessWidget {
-  final Rx<SensorsResponse?> sensorResponse;
+  final Rx<SensorReading?> sensorResponse;
 
   const SensorScanningResultCircle({super.key, required this.sensorResponse});
 
@@ -14,48 +14,38 @@ class SensorScanningResultCircle extends StatelessWidget {
       width: 200,
       height: 200,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Theme.of(context).cardColor
-      ),
+          shape: BoxShape.circle, color: Theme.of(context).cardColor),
       child: Obx(() {
         if (sensorResponse.value == null) return const SizedBox();
+        final values = sensorResponse.value!.values.entries.toList();
         return Center(
-            child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 150,
-              child: Text(
-                '${sensorResponse.value!.temperature.toStringAsFixed(1)} °C',
-                style: const TextStyle(
-                    fontSize: 35,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,),
-                textAlign: TextAlign.center,
-                softWrap: true,
+            child: ListView.separated(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          itemCount: values.length,
+          separatorBuilder: (_, __) => const SizedBox(height: 8),
+          itemBuilder: (context, index) {
+            final value = values[index];
+            return Text(
+              '${value.key}: ${_format(value.value)}',
+              style: TextStyle(
+                fontSize: index == 0 ? 26 : 20,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-              
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            SizedBox(
-              width: 150,
-              child: Text(
-                '${sensorResponse.value!.humidity.toStringAsFixed(0)}%',
-                style: const TextStyle(
-                    fontSize: 25,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,),
-                textAlign: TextAlign.center,
-                softWrap: true,
-              ),
-              
-            ),
-          ],
+              textAlign: TextAlign.center,
+              softWrap: true,
+            );
+          },
         ));
       }),
     );
+  }
+
+  String _format(num value) {
+    final decimal = value.toDouble();
+    return decimal == decimal.roundToDouble()
+        ? decimal.toStringAsFixed(0)
+        : decimal.toStringAsFixed(2);
   }
 }

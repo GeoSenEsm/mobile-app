@@ -24,7 +24,8 @@ class SensorDataHistoryController extends ControllerBase {
       entries.clear();
       final actualFrom = _getActualFromUtc();
       final actualTo = _getActualToUtc();
-      final results = await _databaseHelper.getAllSensorDataFilterByDate(actualFrom, actualTo);
+      final results = await _databaseHelper.getAllSensorDataFilterByDate(
+          actualFrom, actualTo);
       entries.addAll(results);
     } catch (e) {
       Sentry.captureException(e);
@@ -51,7 +52,8 @@ class SensorDataHistoryController extends ControllerBase {
     final today = DateTime.now();
     final daysToSubstract = DateTime.sunday - today.weekday;
     final startOfWeek = today.add(Duration(days: daysToSubstract));
-    return DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day, 23, 59)
+    return DateTime(
+            startOfWeek.year, startOfWeek.month, startOfWeek.day, 23, 59)
         .toUtc();
   }
 }

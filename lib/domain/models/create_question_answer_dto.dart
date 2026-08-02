@@ -4,7 +4,7 @@ import 'package:survey_frontend/domain/models/create_selected_option_dto.dart';
 part 'create_question_answer_dto.g.dart';
 
 @JsonSerializable()
-class CreateQuestionAnswerDto{
+class CreateQuestionAnswerDto {
   String questionId;
   final List<CreateSelectedOptionDto>? selectedOptions;
   int? numericAnswer;
@@ -18,6 +18,7 @@ class CreateQuestionAnswerDto{
       this.yesNoAnswer,
       this.textAnswer});
 
-  factory CreateQuestionAnswerDto.fromJson(Map<String, dynamic> json) => _$CreateQuestionAnswerDtoFromJson(json);
+  factory CreateQuestionAnswerDto.fromJson(Map<String, dynamic> json) =>
+      _$CreateQuestionAnswerDtoFromJson(json);
   Map<String, dynamic> toJson() => _$CreateQuestionAnswerDtoToJson(this);
 }

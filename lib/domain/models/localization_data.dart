@@ -10,13 +10,12 @@ class LocalizationData {
   final double longitude;
   final double? accuracyMeters;
 
-  LocalizationData({
-    this.surveyParticipationId,
-    required this.dateTime,
-    required this.latitude,
-    required this.longitude,
-    this.accuracyMeters
-  });
+  LocalizationData(
+      {this.surveyParticipationId,
+      required this.dateTime,
+      required this.latitude,
+      required this.longitude,
+      this.accuracyMeters});
 
   factory LocalizationData.fromJson(Map<String, dynamic> json) =>
       _$LocalizationDataFromJson(json);

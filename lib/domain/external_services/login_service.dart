@@ -3,4 +3,4 @@ import 'api_response.dart';
 
 abstract class LoginService{
   Future<APIResponse<String>> login(LoginDto loginDto);
-}
+}

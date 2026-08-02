@@ -5,4 +5,4 @@ class APIResponse<T>{
   final dynamic errorBody;
 
   const APIResponse({this.statusCode, this.body, this.error, this.errorBody});
-}
+}

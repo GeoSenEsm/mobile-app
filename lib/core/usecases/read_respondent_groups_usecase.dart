@@ -5,7 +5,7 @@ abstract class ReadResopndentGroupdUseCase {
   Future<List<RespondentGroupDto>> getAll();
 }
 
-class ReadResopndentGroupdUseCaseImpl implements ReadResopndentGroupdUseCase{
+class ReadResopndentGroupdUseCaseImpl implements ReadResopndentGroupdUseCase {
   final GetStorage _storage;
 
   ReadResopndentGroupdUseCaseImpl(this._storage);
@@ -13,17 +13,16 @@ class ReadResopndentGroupdUseCaseImpl implements ReadResopndentGroupdUseCase{
   @override
   Future<List<RespondentGroupDto>> getAll() {
     final result = _storage.read<List<dynamic>>('groups');
-    if (result == null){
+    if (result == null) {
       return Future.value([]);
     }
 
-    return Future.value(result.map((e){
-      if (e.runtimeType == RespondentGroupDto){
+    return Future.value(result.map((e) {
+      if (e.runtimeType == RespondentGroupDto) {
         return e as RespondentGroupDto;
       }
 
       return RespondentGroupDto.fromJson(e);
     }).toList());
   }
-
 }

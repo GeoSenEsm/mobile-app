@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -16,10 +18,12 @@ import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
+import 'package:survey_frontend/domain/models/survey_settings.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
+import 'package:survey_frontend/core/utils/study_time_zone.dart';
 
 class SurveyEndController extends ControllerBase {
   late CreateSurveyResponseDto dto;
@@ -72,12 +76,13 @@ class SurveyEndController extends ControllerBase {
 
   Future<SurveyParticipationDto?> _submitToServer() async {
     try {
-      final sensorData = await futureSensorData;
+      final sensorData =
+          await _collectManualSensorDataIfNeeded(await futureSensorData);
       await _checkSensorDataRead(sensorData);
       dto.sensorData = sensorData;
       _clearDto();
-      dto.finishDate = DateTime.now().toUtc().toIso8601String();
-      final participation = _submitSurveyUsecase.submitSurvey(dto);
+      dto.finishDate = StudyTimeZone.nowWithLocalOffsetIso8601();
+      final participation = await _submitSurveyUsecase.submitSurvey(dto);
       return participation;
     } catch (e) {
       popup(AppLocalizations.of(Get.context!)!.error,
@@ -87,27 +92,117 @@ class SurveyEndController extends ControllerBase {
     }
   }
 
-  Future<void> _checkSensorDataRead(SensorData? sensorData) async{
-    if (sensorData != null || !_isSensorSelected()){
+  Future<void> _checkSensorDataRead(SensorData? sensorData) async {
+    if (sensorData != null || !_isSensorSelected()) {
       return;
     }
 
     if (sensorData == null) {
       await Get.defaultDialog(
-        title: getAppLocalizations().sensorNotFoundDialogTitle,
-        middleText: getAppLocalizations().sensorNotFoundDialogContent,
-        textConfirm: getAppLocalizations().ok,
-        confirmTextColor: Colors.white,
-        onConfirm: (){
-          Get.back();
-        }
-      );
+          title: getAppLocalizations().sensorNotFoundDialogTitle,
+          middleText: getAppLocalizations().sensorNotFoundDialogContent,
+          textConfirm: getAppLocalizations().ok,
+          confirmTextColor: Colors.white,
+          onConfirm: () {
+            Get.back();
+          });
     }
   }
 
-  bool _isSensorSelected(){
+  Future<SensorData?> _collectManualSensorDataIfNeeded(
+      SensorData? sensorData) async {
+    if (sensorData != null || !_hasManualFallback()) {
+      return sensorData;
+    }
+
+    final setup = _readSensorSetup();
+    if (setup == null) {
+      return null;
+    }
+    final parameters =
+        setup.parameters.where((parameter) => parameter.active).toList();
+    if (parameters.isEmpty) {
+      return null;
+    }
+
+    final controllers = {
+      for (final parameter in parameters)
+        parameter.code: TextEditingController()
+    };
+    final shouldSubmit = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Enter sensor data manually'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: parameters
+                .map((parameter) => TextField(
+                      controller: controllers[parameter.code],
+                      decoration: InputDecoration(
+                        labelText: parameter.unit == null
+                            ? parameter.name
+                            : '${parameter.name} (${parameter.unit})',
+                      ),
+                    ))
+                .toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Get.back(result: false),
+              child: Text(getAppLocalizations().cancel)),
+          TextButton(
+              onPressed: () => Get.back(result: true),
+              child: Text(getAppLocalizations().ok)),
+        ],
+      ),
+      barrierDismissible: false,
+    );
+
+    if (shouldSubmit != true) {
+      return null;
+    }
+
+    final values = parameters
+        .map((parameter) => SensorDataValue(
+              parameterCode: parameter.code,
+              value: controllers[parameter.code]!.text,
+            ))
+        .where((value) => value.value.trim().isNotEmpty)
+        .toList();
+
+    if (values.isEmpty) {
+      return null;
+    }
+
+    return SensorData(
+        dateTime: DateTime.now().toUtc().toIso8601String(),
+        source: 'manual',
+        values: values);
+  }
+
+  bool _hasManualFallback() {
+    final setup = _readSensorSetup();
+    return setup?.assignments.any((assignment) =>
+            assignment.enabled && assignment.sensorTypeCode == 'manual') ??
+        false;
+  }
+
+  MobileSensorSetup? _readSensorSetup() {
+    final raw = _storage.read<String>(MobileSensorSetup.storageKey);
+    if (raw == null) {
+      return null;
+    }
+    return MobileSensorSetup.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  bool _isSensorSelected() {
     final selectedSensor = _storage.read<String>('selectedSensor');
-    return selectedSensor != null && selectedSensor != SensorKind.none;
+    final mode = _storage.read<String>(MobileSensorSetup.sensorModeKey);
+    return mode != MobileSensorSetup.noSensorData &&
+        selectedSensor != null &&
+        selectedSensor != SensorKind.none &&
+        selectedSensor != SensorKind.manual;
   }
 
   Future<void> _saveLocation(String? surveyParticipationId) async {
@@ -130,12 +225,12 @@ class SurveyEndController extends ControllerBase {
 
   void _clearDto() {
     for (final answer in dto.answers) {
-      if (answer.selectedOptions == null){
+      if (answer.selectedOptions == null) {
         continue;
       }
 
-      for (int i = 0; i < answer.selectedOptions!.length; i++){
-        if (answer.selectedOptions![i].optionId == null){
+      for (int i = 0; i < answer.selectedOptions!.length; i++) {
+        if (answer.selectedOptions![i].optionId == null) {
           answer.selectedOptions!.removeAt(i);
           i--;
         }
@@ -147,7 +242,8 @@ class SurveyEndController extends ControllerBase {
       return e.yesNoAnswer != null ||
           e.numericAnswer != null ||
           e.textAnswer != null ||
-          (e.selectedOptions != null && e.selectedOptions!.isNotEmpty &&
+          (e.selectedOptions != null &&
+              e.selectedOptions!.isNotEmpty &&
               e.selectedOptions!.every((e) => e.optionId != null));
     }).toList();
   }

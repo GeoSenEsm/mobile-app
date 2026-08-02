@@ -137,6 +137,7 @@
     "surveyHasBeenComplitedInThisLocation": "W tym miejscu wypełniono ankietę",
     "enterResponse": "Podaj odpowiedź",
     "kestrelDrop2": "Czujnik Kestrel Drop 2",
+    "assignedByAdministrator": "Przypisany przez administratora",
     "sensorId": "Id sensora",
     "serverNotResponding": "Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później.",
     "bluetoothRequired": "Włącz bluetooth, aby wypełnić ankietę.",

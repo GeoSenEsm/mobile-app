@@ -37,23 +37,40 @@ class SensorsController extends ControllerBase {
   bool get canSaveNone => selectedSensor.value == SensorKind.none;
   bool get canSaveManual => selectedSensor.value == SensorKind.manual;
 
+  // Set when the respondent's current sensor was assigned by an admin using a
+  // type this screen doesn't know how to configure manually (e.g. a
+  // profile-driven type such as pc_60fw). Kept unchanged and selectable so the
+  // dropdown never binds to a value missing from `possibleOptions`.
+  String? _externallyAssignedKind;
+  bool get canSaveExternallyAssigned =>
+      _externallyAssignedKind != null &&
+      selectedSensor.value == _externallyAssignedKind;
+
   SensorsController(this._storage, this._sensorService) {
     _loadSelectedSensor();
   }
 
-  final List<String> possibleOptions = [
+  final List<String> _legacyOptions = [
     SensorKind.none,
     SensorKind.manual,
     SensorKind.xiaomi,
     SensorKind.kestrelDrop2
   ];
 
-  final Map<String, String> optionsDisplays = {
+  List<String> get possibleOptions => _externallyAssignedKind == null
+      ? _legacyOptions
+      : [..._legacyOptions, _externallyAssignedKind!];
+
+  final Map<String, String> _legacyOptionsDisplays = {
     SensorKind.none: AppLocalizations.of(Get.context!)!.noSensor,
     SensorKind.manual: AppLocalizations.of(Get.context!)!.manualSensor,
     SensorKind.xiaomi: AppLocalizations.of(Get.context!)!.xiaomiSensor,
     SensorKind.kestrelDrop2: AppLocalizations.of(Get.context!)!.kestrelDrop2
   };
+
+  String displayNameFor(String option) =>
+      _legacyOptionsDisplays[option] ??
+      getAppLocalizations().assignedByAdministrator;
 
   @override
   void onInit() {
@@ -113,9 +130,16 @@ class SensorsController extends ControllerBase {
   void _loadSelectedSensor() {
     try {
       selectedSensor.value = _storage.read("selectedSensor") ?? SensorKind.none;
+      if (!_legacyOptions.contains(selectedSensor.value)) {
+        _externallyAssignedKind = selectedSensor.value;
+      }
       if (selectedSensor.value == SensorKind.xiaomi) {
         xiaomiId.value = _storage.read("selectedSensorId");
-        xiaomiMac.value = _storage.read("xiaomiMac");
+        // A prior admin-driven assignment may have left a MAC under the
+        // shared `selectedSensorMac` key; surface it too so the field isn't
+        // blank when the respondent re-opens this screen.
+        xiaomiMac.value =
+            _storage.read("xiaomiMac") ?? _storage.read("selectedSensorMac");
       }
       if (selectedSensor.value == SensorKind.kestrelDrop2) {
         kestrelId.value = _storage.read<Object>("selectedSensorId").toString();
@@ -126,21 +150,33 @@ class SensorsController extends ControllerBase {
   }
 
   void saveSelectedSensor() {
-    bool canSave = canSaveKestrel || canSaveXiaomi || canSaveNone || canSaveManual;
+    bool canSave = canSaveKestrel ||
+        canSaveXiaomi ||
+        canSaveNone ||
+        canSaveManual ||
+        canSaveExternallyAssigned;
     if (!canSave) {
       return;
     }
 
-    _storage.write("selectedSensor", selectedSensor.value);
-    if (selectedSensor.value == SensorKind.kestrelDrop2) {
-      _storage.write('selectedSensorId', kestrelId.value.toString());
-    }
-    if (selectedSensor.value == SensorKind.xiaomi) {
-      _storage.write('selectedSensorId', xiaomiId.value);
-      _storage.write('xiaomiMac', xiaomiMac.value);
+    if (!canSaveExternallyAssigned) {
+      _storage.write("selectedSensor", selectedSensor.value);
+      // `selectedSensorMac` is only meaningful for admin-driven assignments;
+      // a manual pick here must not keep matching against a stale MAC left
+      // over from a previous assignment (see sensor_connection_factory.dart).
+      _storage.remove('selectedSensorMac');
+      _storage.remove('selectedSensorId');
+      _storage.remove('xiaomiMac');
+      if (selectedSensor.value == SensorKind.kestrelDrop2) {
+        _storage.write('selectedSensorId', kestrelId.value.toString());
+      }
+      if (selectedSensor.value == SensorKind.xiaomi) {
+        _storage.write('selectedSensorId', xiaomiId.value);
+        _storage.write('xiaomiMac', xiaomiMac.value);
+      }
     }
     Get.until((route) => Get.currentRoute == Routes.home);
-    if (Get.currentRoute != Routes.home){
+    if (Get.currentRoute != Routes.home) {
       Get.toNamed(Routes.home);
     }
   }

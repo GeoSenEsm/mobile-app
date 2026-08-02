@@ -48,7 +48,8 @@ class MultipleQuestions extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Center(
-              child: Text(questions[i].content,
+              child: Text(
+                questions[i].content,
                 style: const TextStyle(fontSize: 18),
               ),
             ),

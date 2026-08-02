@@ -9,6 +9,7 @@ class ManuController extends ControllerBase {
   final SurveySettingsService _surveySettingsService;
   final GetStorage _storage;
   final RxBool showSendingPolicyCalendar = true.obs;
+  final RxBool showSensorScreens = true.obs;
 
   ManuController(this._surveySettingsService, this._storage) {
     final cached =
@@ -16,6 +17,7 @@ class ManuController extends ControllerBase {
     if (cached != null) {
       showSendingPolicyCalendar.value = cached;
     }
+    syncSensorVisibilityFromStorage();
   }
 
   @override
@@ -35,8 +37,7 @@ class ManuController extends ControllerBase {
 
   void applySendingPolicyCalendarVisibility(bool enabled) {
     showSendingPolicyCalendar.value = enabled;
-    _storage.write(
-        SurveySettings.showSendingPolicyCalendarStorageKey, enabled);
+    _storage.write(SurveySettings.showSendingPolicyCalendarStorageKey, enabled);
   }
 
   void syncCalendarVisibilityFromStorage() {
@@ -45,6 +46,12 @@ class ManuController extends ControllerBase {
     if (cached != null) {
       showSendingPolicyCalendar.value = cached;
     }
+  }
+
+  void syncSensorVisibilityFromStorage() {
+    showSensorScreens.value =
+        _storage.read<String>(MobileSensorSetup.sensorModeKey) !=
+            MobileSensorSetup.noSensorData;
   }
 
   void privacySettings() {

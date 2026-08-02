@@ -66,8 +66,8 @@ class ProfileScreen extends GetView<ProfileController> {
                         borderSide: BorderSide(color: Colors.black),
                       ),
                     ),
-                    initialValue: controller.getValueForIndex(
-                        controller.getLabelFormIndex(index)),
+                    initialValue: controller
+                        .getValueForIndex(controller.getLabelFormIndex(index)),
                   ),
                 ),
               ),

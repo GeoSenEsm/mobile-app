@@ -30,11 +30,12 @@ class SurveyStartScreen extends GetView<QuestionNavigableController> {
         ),
       ),
       bottomNavigationBar: NextButton(
-          nextAction: () {
-            _controller.navigateToNextQuestion(QuestionNavigationMode.off);
-          },
-          hasToScrollDown: false.obs,
-          child: Text(AppLocalizations.of(context)!.start),),
+        nextAction: () {
+          _controller.navigateToNextQuestion(QuestionNavigationMode.off);
+        },
+        hasToScrollDown: false.obs,
+        child: Text(AppLocalizations.of(context)!.start),
+      ),
     );
   }
 }

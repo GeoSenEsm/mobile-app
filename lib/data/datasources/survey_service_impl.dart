@@ -1,4 +1,3 @@
-
 import 'package:survey_frontend/data/datasources/api_service_base.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/survey_service.dart';
@@ -14,7 +13,7 @@ class SurveyServiceImpl extends APIServiceBase implements SurveyService {
   //   final jsonString = await rootBundle.loadString(surveyID);
   //   final json = jsonDecode(jsonString);
   //   final items = SurveyDto.fromJson(json);
-    
+
   //   return Future.value(APIResponse(body: items));
   // }
 

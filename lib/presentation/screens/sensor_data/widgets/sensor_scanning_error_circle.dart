@@ -4,13 +4,14 @@ class SensorScanningErrorCircle extends StatelessWidget {
   final String errorMessage;
   final void Function()? onRetry;
 
-  const SensorScanningErrorCircle({super.key, required this.errorMessage, this.onRetry});
+  const SensorScanningErrorCircle(
+      {super.key, required this.errorMessage, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: (){
-        if (onRetry != null){
+      onTap: () {
+        if (onRetry != null) {
           onRetry!();
         }
       },
@@ -42,10 +43,10 @@ class SensorScanningErrorCircle extends StatelessWidget {
               height: 10,
             ),
             const Icon(
-                Icons.refresh_outlined,
-                size: 50,
-                color: Colors.white,
-              )
+              Icons.refresh_outlined,
+              size: 50,
+              color: Colors.white,
+            )
           ],
         )),
       ),

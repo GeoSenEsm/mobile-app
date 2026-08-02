@@ -3,8 +3,7 @@ import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/login_service.dart';
 import 'package:survey_frontend/domain/models/login_dto.dart';
 
-class LoginServiceImpl extends APIServiceBase implements LoginService{
- 
+class LoginServiceImpl extends APIServiceBase implements LoginService {
   LoginServiceImpl(super.dio);
 
   @override

@@ -126,14 +126,13 @@ class Option {
   final int rowVersion;
   final String? imagePath;
 
-  Option({
-    required this.id,
-    required this.order,
-    required this.label,
-    this.showSection,
-    required this.rowVersion,
-    this.imagePath
-  });
+  Option(
+      {required this.id,
+      required this.order,
+      required this.label,
+      this.showSection,
+      required this.rowVersion,
+      this.imagePath});
 
   factory Option.fromJson(Map<String, dynamic> json) => _$OptionFromJson(json);
 

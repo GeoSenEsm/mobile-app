@@ -1,91 +1,148 @@
+import 'dart:async';
+
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:survey_frontend/core/models/sensors_response.dart';
+import 'package:survey_frontend/core/models/sensor_reading.dart';
+import 'package:survey_frontend/core/usecases/gatt_profile_decoder.dart';
+import 'package:survey_frontend/domain/models/gatt_profile.dart';
 
 abstract class SensorConnection {
-  Future<SensorsResponse> getSensorData();
+  Future<SensorReading> getSensorData();
   Future<void> dispose();
 }
 
-class XiaomiSensorConnection implements SensorConnection {
+class GattProfileSensorConnection implements SensorConnection {
   final BluetoothDevice _device;
-  BluetoothCharacteristic? _characteristic;
+  final GattProfile _profile;
+  final GattProfileDecoder _decoder;
+  List<BluetoothService>? _services;
+  List<BluetoothCharacteristic>? _characteristics;
 
-  XiaomiSensorConnection(this._device);
+  GattProfileSensorConnection(
+    this._device,
+    this._profile, {
+    GattProfileDecoder decoder = const GattProfileDecoder(),
+  }) : _decoder = decoder;
 
   @override
-  Future<SensorsResponse> getSensorData() async {
-    await _ensureCharacteristic();
-    final values = await _characteristic!.read();
-    final temp = values[0] + values[1] * 256;
-    final humidity = values[2];
-    return SensorsResponse(
-        temperature: temp.toDouble() / 100, humidity: humidity.toDouble());
-  }
-
-  Future<void> _ensureCharacteristic() async {
-    if (_characteristic != null) {
-      return;
+  Future<SensorReading> getSensorData() async {
+    await _ensureCharacteristics();
+    await _executeActions();
+    final packets = <List<int>>[];
+    for (var index = 0; index < _characteristics!.length; index++) {
+      packets.add(await _acquirePacket(
+          _profile.reads[index], _characteristics![index]));
     }
-    List<BluetoothService> services = await _device.discoverServices();
-    final serviceGuid = Guid('ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6');
-    final characteristicGuid = Guid('ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6');
-    final service = services.firstWhere((e) => e.uuid == serviceGuid);
-    _characteristic =
-        service.characteristics.firstWhere((e) => e.uuid == characteristicGuid);
+    return _decoder.decode(_profile, packets);
+  }
+
+  Future<void> _executeActions() async {
+    for (final action in _profile.actions) {
+      if (action.type == 'delay') {
+        await Future<void>.delayed(
+            Duration(milliseconds: action.milliseconds!));
+        continue;
+      }
+      final characteristic =
+          _findCharacteristic(action.serviceUuid!, action.characteristicUuid!);
+      await characteristic.write(action.value, withoutResponse: false);
+    }
+  }
+
+  Future<List<int>> _acquirePacket(
+      GattRead read, BluetoothCharacteristic characteristic) async {
+    if (read.acquisition.mode == 'read') {
+      return characteristic.read();
+    }
+
+    final completer = Completer<List<int>>();
+    var packetsSeen = 0;
+    late StreamSubscription<List<int>> subscription;
+    Timer? timer;
+    subscription = characteristic.onValueReceived.listen(
+      (packet) {
+        if (completer.isCompleted) return;
+        packetsSeen++;
+        try {
+          _decoder.validateFrame(read, packet);
+          completer.complete(List<int>.unmodifiable(packet));
+        } on GattPacketException {
+          if (packetsSeen >= read.acquisition.maxPackets) {
+            completer.completeError(
+                const GattPacketException('No valid packet within maxPackets'));
+          }
+        }
+      },
+      onError: (Object error, StackTrace stackTrace) {
+        if (!completer.isCompleted) {
+          completer.completeError(error, stackTrace);
+        }
+      },
+    );
+    try {
+      timer = Timer(
+        Duration(milliseconds: read.acquisition.timeoutMilliseconds),
+        () {
+          if (!completer.isCompleted) {
+            completer.completeError(
+                const GattPacketException('Notification timed out'));
+          }
+        },
+      );
+      await characteristic.setNotifyValue(true);
+      return await completer.future;
+    } finally {
+      timer?.cancel();
+      await subscription.cancel();
+      await characteristic.setNotifyValue(false);
+    }
+  }
+
+  Future<void> _ensureCharacteristics() async {
+    if (_characteristics != null) return;
+    _services = await _device.discoverServices();
+    _characteristics = _profile.reads.map((read) {
+      return _findCharacteristic(read.serviceUuid, read.characteristicUuid);
+    }).toList(growable: false);
+  }
+
+  BluetoothCharacteristic _findCharacteristic(
+      String serviceUuidValue, String characteristicUuidValue) {
+    final serviceUuid = Guid(serviceUuidValue);
+    final characteristicUuid = Guid(characteristicUuidValue);
+    final service = _services!.firstWhere(
+        (candidate) => candidate.uuid == serviceUuid,
+        orElse: () => throw GattServiceNotFoundException(serviceUuidValue));
+    return service.characteristics.firstWhere(
+      (candidate) => candidate.uuid == characteristicUuid,
+      orElse: () =>
+          throw GattCharacteristicNotFoundException(characteristicUuidValue),
+    );
   }
 
   @override
-  Future<void> dispose() async {
-    await _device.disconnect();
-  }
+  Future<void> dispose() => _device.disconnect();
 }
 
-class KestrelDrop2Connection implements SensorConnection {
-  final BluetoothDevice _device;
-  BluetoothCharacteristic? _tempCharacteristic;
-  BluetoothCharacteristic? _humidityCharacteristic;
+class AdvertisementSensorConnection implements SensorConnection {
+  final SensorReading _reading;
 
-  KestrelDrop2Connection(this._device);
+  const AdvertisementSensorConnection(this._reading);
 
   @override
-  Future<void> dispose() async {
-    await _device.disconnect();
-  }
+  Future<SensorReading> getSensorData() async => _reading;
 
   @override
-  Future<SensorsResponse> getSensorData() async {
-    await _ensureCharacteristic();
-    final tempValues = await _tempCharacteristic!.read();
-    final humValues = await _humidityCharacteristic!.read();
-
-    if (tempValues[0] != 7 || humValues[0] != 7){
-      throw KestrelReadingError();
-    }
-
-    final temp = tempValues[1] + tempValues[2] * 256;
-    final humidity = humValues[1] + humValues[2] * 256;
-    return SensorsResponse(
-        temperature: temp.toDouble() / 100, humidity: humidity.toDouble() / 100);
-  }
-
-  Future<void> _ensureCharacteristic() async {
-    if (_tempCharacteristic != null || _humidityCharacteristic != null) {
-      return;
-    }
-    List<BluetoothService> services = await _device.discoverServices();
-    final serviceGuid = Guid('12630000-cc25-497d-9854-9b6c02c77054');
-    final tempCharacteristicGuid = Guid('12630001-cc25-497d-9854-9b6c02c77054');
-    final humidityCharacteristicGuid =
-        Guid('12630002-cc25-497d-9854-9b6c02c77054');
-    final service = services.firstWhere((e) => e.uuid == serviceGuid);
-    _tempCharacteristic = service.characteristics
-        .firstWhere((e) => e.uuid == tempCharacteristicGuid);
-    _humidityCharacteristic = service.characteristics
-        .firstWhere((e) => e.uuid == humidityCharacteristicGuid);
-  }
+  Future<void> dispose() async {}
 }
 
+class GattServiceNotFoundException implements Exception {
+  final String uuid;
 
-class KestrelReadingError extends Error{
+  const GattServiceNotFoundException(this.uuid);
+}
 
+class GattCharacteristicNotFoundException implements Exception {
+  final String uuid;
+
+  const GattCharacteristicNotFoundException(this.uuid);
 }

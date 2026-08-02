@@ -3,4 +3,5 @@ import 'package:survey_frontend/domain/models/survey_settings.dart';
 
 abstract class SurveySettingsService {
   Future<APIResponse<SurveySettings>> getSettings();
+  Future<APIResponse<MobileSensorSetup>> getMobileSensorSetup();
 }

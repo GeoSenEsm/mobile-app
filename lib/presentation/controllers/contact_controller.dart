@@ -6,7 +6,6 @@ import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-
 class ContactController extends ControllerBase {
   final RxBool isLoadingContacts = false.obs;
   final RxBool loadingError = false.obs;
@@ -24,7 +23,7 @@ class ContactController extends ControllerBase {
   void loadContacts() async {
     if (isLoadingContacts.value) return;
 
-    try{
+    try {
       isLoadingContacts.value = true;
       loadingError.value = false;
       contacts.clear();
@@ -37,7 +36,7 @@ class ContactController extends ControllerBase {
       }
 
       contacts.addAll(contactsResult.body!);
-    } catch (e){
+    } catch (e) {
       Sentry.captureException(e);
       loadingError.value = true;
     } finally {
@@ -46,17 +45,17 @@ class ContactController extends ControllerBase {
   }
 
   void call(PhoneContactDto contact) async {
-    try{
-      if (!await launchUrl(Uri.parse("tel:${contact.number}"))){
+    try {
+      if (!await launchUrl(Uri.parse("tel:${contact.number}"))) {
         _couldNotCall();
       }
-    } catch (e){
+    } catch (e) {
       _couldNotCall();
       Sentry.captureException(e);
     }
   }
 
-  void _couldNotCall(){
+  void _couldNotCall() {
     Get.rawSnackbar(message: getAppLocalizations().couldNotMakeCall);
   }
 }

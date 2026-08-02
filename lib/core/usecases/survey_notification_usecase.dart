@@ -43,8 +43,7 @@ class SurveyNotificationUseCaseImpl implements SurveyNotificationUseCase {
         final rule = notifications[i];
         final isEnd = rule.relativeTo == 'end';
         final anchor = isEnd ? finishTimeLocal : startTimeLocal;
-        final fireTime =
-            anchor.subtract(Duration(minutes: rule.minutesBefore));
+        final fireTime = anchor.subtract(Duration(minutes: rule.minutesBefore));
 
         if (!fireTime.isAfter(now)) {
           continue;

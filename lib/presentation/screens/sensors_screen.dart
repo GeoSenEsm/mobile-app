@@ -43,7 +43,7 @@ class SensorsScreen extends GetView<SensorsController> {
                   items: controller.possibleOptions
                       .map((val) => DropdownMenuItem(
                             value: val,
-                            child: Text(controller.optionsDisplays[val]!),
+                            child: Text(controller.displayNameFor(val)),
                           ))
                       .toList(),
                 ),

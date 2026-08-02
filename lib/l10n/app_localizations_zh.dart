@@ -423,6 +423,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get kestrelDrop2 => 'Kestrel Drop 2 传感器';
 
   @override
+  String get assignedByAdministrator => '由管理员分配';
+
+  @override
   String get sensorId => '传感器ID';
 
   @override

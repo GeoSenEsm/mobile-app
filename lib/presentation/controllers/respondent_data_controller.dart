@@ -13,4 +13,4 @@ class RespondentDataController extends ControllerBase{
   Rx<String?> lifeSatisfaction = "good".obs;
   Rx<String?> stressLevel = "medium".obs; 
   Rx<String?> qualityOfSleep = "high".obs; 
-}
+}

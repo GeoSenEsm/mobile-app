@@ -16,19 +16,15 @@ class ControllerBase extends GetxController {
       if (error.type == DioExceptionType.connectionTimeout ||
           error.type == DioExceptionType.sendTimeout ||
           error.type == DioExceptionType.receiveTimeout) {
-        message = AppLocalizations.of(Get.context!)!
-            .couldNotReachTheServer;
+        message = AppLocalizations.of(Get.context!)!.couldNotReachTheServer;
       } else if (error.type == DioExceptionType.unknown &&
           error.error is SocketException) {
-        message = AppLocalizations.of(Get.context!)!
-            .couldNotReachTheServer;
+        message = AppLocalizations.of(Get.context!)!.couldNotReachTheServer;
       } else {
-        message =
-            AppLocalizations.of(Get.context!)!.somethingWentWrong;
+        message = AppLocalizations.of(Get.context!)!.somethingWentWrong;
       }
     } else {
-      message =
-          AppLocalizations.of(Get.context!)!.somethingWentWrong; 
+      message = AppLocalizations.of(Get.context!)!.somethingWentWrong;
     }
 
     await Sentry.captureException(error);
@@ -37,7 +33,7 @@ class ControllerBase extends GetxController {
 
   Future<void> popup(String title, String message) async {
     await Get.defaultDialog(
-      backgroundColor: Colors.white,
+        backgroundColor: Colors.white,
         title: title,
         middleText: message,
         confirm: ElevatedButton(
@@ -62,8 +58,8 @@ class ControllerBase extends GetxController {
 
   Future<bool> hasInternetConnectionNoDialog() async {
     var connectivityResult = await connectivity.checkConnectivity();
-    return connectivityResult.contains(ConnectivityResult.ethernet)
-    || connectivityResult.contains(ConnectivityResult.mobile)
-    || connectivityResult.contains(ConnectivityResult.wifi);
+    return connectivityResult.contains(ConnectivityResult.ethernet) ||
+        connectivityResult.contains(ConnectivityResult.mobile) ||
+        connectivityResult.contains(ConnectivityResult.wifi);
   }
 }

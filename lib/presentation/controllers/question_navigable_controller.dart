@@ -75,8 +75,9 @@ class QuestionNavigableController extends ControllerBase {
   }
 
   int _getNextValidQuestionIndex() {
-    if (questionIndex == -1){
-      final question = questions.firstWhereOrNull((element) => element.canQuestionBeShown(groupsIds, triggerableSectionActivationsCounts));
+    if (questionIndex == -1) {
+      final question = questions.firstWhereOrNull((element) => element
+          .canQuestionBeShown(groupsIds, triggerableSectionActivationsCounts));
       if (question == null) {
         return -1;
       }
@@ -96,7 +97,7 @@ class QuestionNavigableController extends ControllerBase {
       responseModel.answers[i].numericAnswer = null;
       responseModel.answers[i].textAnswer = null;
       if (responseModel.answers[i].selectedOptions != null) {
-        for (final option in responseModel.answers[i].selectedOptions!){
+        for (final option in responseModel.answers[i].selectedOptions!) {
           option.optionId = null;
         }
       }
@@ -109,7 +110,7 @@ class QuestionNavigableController extends ControllerBase {
   int _getNextQestionsCount(int nextQuestionIndex) {
     final firstQuestion = questions[nextQuestionIndex];
 
-    if (!firstQuestion.section.displayOnOneScreen){
+    if (!firstQuestion.section.displayOnOneScreen) {
       return 1;
     }
 

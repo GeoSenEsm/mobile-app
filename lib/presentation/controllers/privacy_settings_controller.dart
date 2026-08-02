@@ -51,21 +51,20 @@ class PrivacySettingsController extends ControllerBase {
   }
 
   setTimeTo(TimeOfDay newTo) {
-  if (!_isLater(newTo, const TimeOfDay(hour: 0, minute: 1))) {
-    return;
-  }
+    if (!_isLater(newTo, const TimeOfDay(hour: 0, minute: 1))) {
+      return;
+    }
 
-  timeTo.value = newTo;
-  if (!_isLater(timeTo.value, timeFrom.value)) {
-    if (!_isLater(newTo, const TimeOfDay(hour: 1, minute: 0))) {
-      timeFrom.value = const TimeOfDay(hour: 0, minute: 1);
-    } else {
-      timeFrom.value = TimeOfDay(
-          hour: timeTo.value.hour - 1, minute: timeTo.value.minute);
+    timeTo.value = newTo;
+    if (!_isLater(timeTo.value, timeFrom.value)) {
+      if (!_isLater(newTo, const TimeOfDay(hour: 1, minute: 0))) {
+        timeFrom.value = const TimeOfDay(hour: 0, minute: 1);
+      } else {
+        timeFrom.value =
+            TimeOfDay(hour: timeTo.value.hour - 1, minute: timeTo.value.minute);
+      }
     }
   }
-}
-
 
   bool _isLater(TimeOfDay x, TimeOfDay y) {
     return (60 * x.hour + x.minute) > (60 * y.hour + y.minute);

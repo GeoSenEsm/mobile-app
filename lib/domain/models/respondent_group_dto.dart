@@ -12,4 +12,4 @@ class RespondentGroupDto{
   factory RespondentGroupDto.fromJson(Map<String, dynamic> json) =>
       _$RespondentGroupDtoFromJson(json);
   Map<String, dynamic> toJson() => _$RespondentGroupDtoToJson(this);
-}
+}

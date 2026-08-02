@@ -20,8 +20,8 @@ class CalendarController extends ControllerBase {
   @override
   void onInit() {
     super.onInit();
-    final enabled = _storage.read<bool>(
-            SurveySettings.showSendingPolicyCalendarStorageKey) ??
+    final enabled = _storage
+            .read<bool>(SurveySettings.showSendingPolicyCalendarStorageKey) ??
         true;
     if (!enabled) {
       Future.microtask(() => Get.back());

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,6 +11,7 @@ import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
+import 'package:survey_frontend/core/usecases/sensor_bind_key_store.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
@@ -33,6 +36,7 @@ import 'package:survey_frontend/presentation/controllers/menu_controller.dart';
 import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
+import 'package:survey_frontend/core/utils/study_time_zone.dart';
 
 class HomeController extends ControllerBase with WidgetsBindingObserver {
   final ShortSurveyService _homeService;
@@ -52,6 +56,8 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final SensorMacService _sensorMacService;
   final SurveySettingsService _surveySettingsService;
+  final SensorBindKeyStore _sensorBindKeyStore = const SensorBindKeyStore();
+  final RxnString logoUrl = RxnString();
 
   HomeController(
       this._homeService,
@@ -73,6 +79,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     askForPermissions();
     listenToNotifications();
     _storage.write("loggedBefore", true);
+    logoUrl.value = _buildLogoUrl(
+      _storage.read<String>(SurveySettings.logoPathStorageKey),
+    );
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -144,7 +153,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       await _surveyNotificationUseCase.scheduleSurveysNotifications();
     }
 
-    await _syncAssignedSensor();
+    await _syncMobileSensorSetup();
     await _syncSurveySettings();
   }
 
@@ -154,18 +163,35 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       if (response.statusCode != 200 || response.body == null) {
         return;
       }
-      final enabled = response.body!.showSendingPolicyCalendar;
+      final settings = response.body!;
       _storage.write(
         SurveySettings.showSendingPolicyCalendarStorageKey,
-        enabled,
+        settings.showSendingPolicyCalendar,
       );
       if (Get.isRegistered<ManuController>()) {
-        Get.find<ManuController>()
-            .applySendingPolicyCalendarVisibility(enabled);
+        Get.find<ManuController>().applySendingPolicyCalendarVisibility(
+          settings.showSendingPolicyCalendar,
+        );
       }
+      if (settings.logoPath == null) {
+        _storage.remove(SurveySettings.logoPathStorageKey);
+      } else {
+        _storage.write(
+          SurveySettings.logoPathStorageKey,
+          settings.logoPath,
+        );
+      }
+      logoUrl.value = _buildLogoUrl(settings.logoPath);
     } on Exception catch (e) {
       Sentry.captureException(e);
     }
+  }
+
+  String? _buildLogoUrl(String? logoPath) {
+    if (logoPath == null || logoPath.isEmpty) {
+      return null;
+    }
+    return (_storage.read<String>('apiUrl') ?? '') + logoPath;
   }
 
   Future<void> _syncAssignedSensor() async {
@@ -177,12 +203,68 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       final body = assigned.body!;
       final kind = SensorKind.fromTypeCode(body.sensorTypeCode);
       _storage.write('selectedSensor', kind);
-      if (kind == SensorKind.xiaomi) {
-        _storage.write('selectedSensorId', body.sensorId);
-        _storage.write('xiaomiMac', body.sensorMac);
-      } else if (kind == SensorKind.kestrelDrop2) {
-        _storage.write('selectedSensorId', body.sensorId);
+      _storage.write('selectedSensorId', body.sensorId);
+      _storage.write('selectedSensorMac', body.sensorMac);
+      _storage.remove('xiaomiMac');
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
+  }
+
+  Future<void> _syncMobileSensorSetup() async {
+    try {
+      final response = await _surveySettingsService.getMobileSensorSetup();
+      if (response.statusCode != 200 || response.body == null) {
+        await _syncAssignedSensor();
+        return;
       }
+
+      final setup = response.body!;
+      final secretsByMacId = {
+        for (final s in setup.deviceSecrets) s.sensorMacId: s.secrets,
+      };
+      for (final assignment in setup.assignments) {
+        final macId = assignment.sensorMacId;
+        if (macId == null) continue;
+        final bindKey = secretsByMacId[macId]?['bind_key'];
+        if (bindKey != null) {
+          await _sensorBindKeyStore.write(
+              assignment.sensorTypeCode, assignment.sensorId, bindKey);
+        } else {
+          await _sensorBindKeyStore.delete(
+              assignment.sensorTypeCode, assignment.sensorId);
+        }
+      }
+      _storage.write(MobileSensorSetup.sensorModeKey, setup.mode);
+      _storage.write(MobileSensorSetup.storageKey, jsonEncode(setup.toJson()));
+      if (Get.isRegistered<ManuController>()) {
+        Get.find<ManuController>().syncSensorVisibilityFromStorage();
+      }
+
+      if (setup.mode == MobileSensorSetup.noSensorData ||
+          setup.assignments.isEmpty) {
+        _storage.write('selectedSensor', SensorKind.none);
+        _storage.remove('selectedSensorId');
+        _storage.remove('selectedSensorMac');
+        _storage.remove('xiaomiMac');
+        return;
+      }
+
+      final assignment = setup.assignments
+          .where((assignment) => assignment.enabled)
+          .toList()
+        ..sort((a, b) => a.priorityOrder.compareTo(b.priorityOrder));
+      if (assignment.isEmpty) {
+        _storage.write('selectedSensor', SensorKind.none);
+        return;
+      }
+
+      final first = assignment.first;
+      final kind = SensorKind.fromTypeCode(first.sensorTypeCode);
+      _storage.write('selectedSensor', kind);
+      _storage.write('selectedSensorId', first.sensorId);
+      _storage.write('selectedSensorMac', first.sensorMac);
+      _storage.remove('xiaomiMac');
     } on Exception catch (e) {
       Sentry.captureException(e);
     }
@@ -290,6 +372,10 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   }
 
   Future<bool> isBluetoothWorking() async {
+    if (_storage.read<String>(MobileSensorSetup.sensorModeKey) ==
+        MobileSensorSetup.noSensorData) {
+      return true;
+    }
     final selectedSensor = _storage.read('selectedSensor');
     if (selectedSensor == null || !SensorKind.usesBluetooth(selectedSensor)) {
       return true;
@@ -325,7 +411,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
     return CreateSurveyResponseDto(
         surveyId: surveyId,
-        startDate: DateTime.now().toUtc().toIso8601String(),
+        startDate: StudyTimeZone.nowWithLocalOffsetIso8601(),
         answers: questionAnswerDtos,
         sensorData: null);
   }
@@ -394,6 +480,10 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   }
 
   Future<bool> _ensureSensorSelected() async {
+    if (_storage.read<String>(MobileSensorSetup.sensorModeKey) ==
+        MobileSensorSetup.noSensorData) {
+      return true;
+    }
     final selectedSensor = _storage.read<String>('selectedSensor');
 
     if (selectedSensor == null || selectedSensor == SensorKind.none) {

@@ -30,8 +30,11 @@ class MapScreenController extends ControllerBase {
   }
 
   MapProvider _defaultProvider() {
-    const appType = String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
-    return appType == 'geosenesm' ? MapProvider.openStreetMap : MapProvider.baidu;
+    const appType =
+        String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
+    return appType == 'geosenesm'
+        ? MapProvider.openStreetMap
+        : MapProvider.baidu;
   }
 
   MapProvider _loadProvider() {
@@ -47,7 +50,8 @@ class MapScreenController extends ControllerBase {
     }
 
     mapProvider.value = provider;
-    GetStorage().write(_storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
+    GetStorage().write(
+        _storageKey, provider == MapProvider.baidu ? 'baidu' : 'openStreetMap');
 
     if (locations.isEmpty) {
       _centerToCurrentPosition();

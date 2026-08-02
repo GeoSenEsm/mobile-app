@@ -10,14 +10,13 @@ import 'package:survey_frontend/presentation/screens/home/widgets/time_circle.da
 class HomeScreen extends GetView<HomeController> {
   static const appType =
       String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
-  static const appTitle =
-      appType == 'urbeat' ? 'UrbEaT' : 'GeoSenEsm';
+  static const appTitle = appType == 'urbeat' ? 'UrbEaT' : 'GeoSenEsm';
 
   const HomeScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_){
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.triggerPullToRefresh();
     });
 
@@ -52,6 +51,16 @@ class HomeScreen extends GetView<HomeController> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            Obx(() => controller.logoUrl.value == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: Image.network(
+                      controller.logoUrl.value!,
+                      height: 60,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  )),
             Text(
               AppLocalizations.of(context)!.nextSurveyTime,
               style: const TextStyle(fontSize: 14),
@@ -80,7 +89,7 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget _buildSurveyList(BuildContext context){
+  Widget _buildSurveyList(BuildContext context) {
     return Obx(() => RefreshIndicator(
           color: Theme.of(context).primaryColor,
           backgroundColor: AppStyles.backgroundSecondary,
