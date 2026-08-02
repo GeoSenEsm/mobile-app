@@ -18,10 +18,12 @@ import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
+import 'package:survey_frontend/domain/external_services/survey_settings_service.dart';
 import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
+import 'package:survey_frontend/domain/models/survey_settings.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
 import 'package:survey_frontend/domain/models/visibility_type.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
@@ -48,6 +50,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final SensorMacService _sensorMacService;
+  final SurveySettingsService _surveySettingsService;
 
   HomeController(
       this._homeService,
@@ -60,7 +63,8 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._storage,
       this._sendSensorsDataUsecase,
       this._sendLocationDataUsecase,
-      this._sensorMacService);
+      this._sensorMacService,
+      this._surveySettingsService);
 
   @override
   void onInit() async {
@@ -140,6 +144,22 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     }
 
     await _syncAssignedSensor();
+    await _syncSurveySettings();
+  }
+
+  Future<void> _syncSurveySettings() async {
+    try {
+      final response = await _surveySettingsService.getSettings();
+      if (response.statusCode != 200 || response.body == null) {
+        return;
+      }
+      _storage.write(
+        SurveySettings.showSendingPolicyCalendarStorageKey,
+        response.body!.showSendingPolicyCalendar,
+      );
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
   }
 
   Future<void> _syncAssignedSensor() async {

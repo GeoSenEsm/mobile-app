@@ -25,6 +25,7 @@ import 'package:survey_frontend/data/datasources/local/survey_participation_serv
 import 'package:survey_frontend/data/datasources/location_service_impl.dart';
 import 'package:survey_frontend/data/datasources/login_service_impl.dart';
 import 'package:survey_frontend/data/datasources/phone_contact_service_impl.dart';
+import 'package:survey_frontend/data/datasources/survey_settings_service_impl.dart';
 import 'package:survey_frontend/data/datasources/respondent_data_service_impl.dart';
 import 'package:survey_frontend/data/datasources/respondent_group_service_impl.dart';
 import 'package:survey_frontend/data/datasources/sensors_data_service_impl.dart';
@@ -36,6 +37,7 @@ import 'package:survey_frontend/domain/external_services/ip_localization_country
 import 'package:survey_frontend/domain/external_services/location_service.dart';
 import 'package:survey_frontend/domain/external_services/login_service.dart';
 import 'package:survey_frontend/domain/external_services/phone_contact_service.dart';
+import 'package:survey_frontend/domain/external_services/survey_settings_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_date_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_group_service.dart';
 import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
@@ -116,7 +118,7 @@ class InitialBindings extends Bindings {
     Get.lazyPut<CalendarEventUsecase>(
         () => CalendarEventUsecaseImpl(Get.find()),
         fenix: true);
-    Get.lazyPut(() => CalendarController(Get.find()), fenix: true);
+    Get.lazyPut(() => CalendarController(Get.find(), Get.find()), fenix: true);
     Get.lazyPut<SendLocationDataUsecase>(
         () => SendLocationDataUsecaseImpl(Get.find(), Get.find(), Get.find()),
         fenix: true);
@@ -128,6 +130,9 @@ class InitialBindings extends Bindings {
         fenix: true);
     Get.lazyPut<PhoneContactService>(
         () => PhoneContactServiceImpl(Get.find(), tokenProvider: Get.find()),
+        fenix: true);
+    Get.lazyPut<SurveySettingsService>(
+        () => SurveySettingsServiceImpl(Get.find(), tokenProvider: Get.find()),
         fenix: true);
     Get.lazyPut(() => ContactController(Get.find()), fenix: true);
     Get.put<AppState>(AppState());

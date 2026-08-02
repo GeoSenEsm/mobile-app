@@ -1,8 +1,10 @@
 import 'package:calendar_view/calendar_view.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/usecases/calendar_event_usecase.dart';
 import 'package:survey_frontend/data/models/survey_calendar_event.dart';
+import 'package:survey_frontend/domain/models/survey_settings.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/screens/calendar/widgets/event_details.dart';
@@ -10,9 +12,21 @@ import 'package:survey_frontend/presentation/screens/calendar/widgets/event_deta
 class CalendarController extends ControllerBase {
   final eventController = EventController();
   final CalendarEventUsecase _calendarEventUsecase;
+  final GetStorage _storage;
   final Rx<CalendarView> selectedView = CalendarView.day.obs;
 
-  CalendarController(this._calendarEventUsecase);
+  CalendarController(this._calendarEventUsecase, this._storage);
+
+  @override
+  void onInit() {
+    super.onInit();
+    final enabled = _storage.read<bool>(
+            SurveySettings.showSendingPolicyCalendarStorageKey) ??
+        true;
+    if (!enabled) {
+      Future.microtask(() => Get.back());
+    }
+  }
 
   void loadEvents() async {
     try {

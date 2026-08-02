@@ -52,10 +52,12 @@ class MenuScreen extends GetView<ManuController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    NavItem(
-                        icon: Icons.calendar_month_outlined,
-                        label: getAppLocalizations().calendar,
-                        onTap: controller.calendar),
+                    Obx(() => controller.showSendingPolicyCalendar.value
+                        ? NavItem(
+                            icon: Icons.calendar_month_outlined,
+                            label: getAppLocalizations().calendar,
+                            onTap: controller.calendar)
+                        : const SizedBox.shrink()),
                     NavItem(
                         icon: Icons.wb_sunny_outlined,
                         label: getAppLocalizations().sensorData,
