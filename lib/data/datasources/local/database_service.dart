@@ -37,7 +37,7 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'survey_database.db');
     return await openDatabase(path,
-        version: 5, onCreate: _onCreate, onUpgrade: _onUpgrade);
+        version: 6, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -155,6 +155,27 @@ class DatabaseHelper {
       ALTER TABLE locations ADD COLUMN accuracyMeters REAL;
       ''');
     }
+
+    if (oldVersion < 6) {
+      await db.execute('''
+      CREATE TABLE survey_notifications (
+        id TEXT PRIMARY KEY,
+        surveyId TEXT NOT NULL,
+        "order" INTEGER NOT NULL,
+        relativeTo TEXT NOT NULL,
+        minutesBefore INTEGER NOT NULL,
+        FOREIGN KEY (surveyId) REFERENCES surveys (id) ON DELETE CASCADE
+      )
+      ''');
+      await db.execute('''
+      INSERT INTO survey_notifications (id, surveyId, "order", relativeTo, minutesBefore)
+      SELECT id || '_0', id, 0, 'beginning', 0 FROM surveys
+      ''');
+      await db.execute('''
+      INSERT INTO survey_notifications (id, surveyId, "order", relativeTo, minutesBefore)
+      SELECT id || '_1', id, 1, 'end', 15 FROM surveys
+      ''');
+    }
   }
 
   Future<void> upsertSurveys(
@@ -174,6 +195,27 @@ class DatabaseHelper {
         );
         maxRowVersion =
             max(maxRowVersion, surveyWithTimeSlots.survey.rowVersion);
+
+        await txn.delete('survey_notifications',
+            where: 'surveyId = ?',
+            whereArgs: [surveyWithTimeSlots.survey.id]);
+
+        final notifications = surveyWithTimeSlots.survey.notifications;
+        for (var i = 0; i < notifications.length; i++) {
+          final notification = notifications[i];
+          await txn.insert(
+            'survey_notifications',
+            {
+              'id': notification.id ??
+                  '${surveyWithTimeSlots.survey.id}_$i',
+              'surveyId': surveyWithTimeSlots.survey.id,
+              'order': notification.order,
+              'relativeTo': notification.relativeTo,
+              'minutesBefore': notification.minutesBefore,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
 
         for (var timeSlot in surveyWithTimeSlots.surveySendingPolicyTimes) {
           await txn.insert(
@@ -328,6 +370,34 @@ class DatabaseHelper {
     }).toList();
   }
 
+  Future<List<SurveyNotificationDto>> getSurveyNotifications(
+      String surveyId) async {
+    final db = await database;
+    final rows = await db.query(
+      'survey_notifications',
+      where: 'surveyId = ?',
+      whereArgs: [surveyId],
+      orderBy: '"order" ASC',
+    );
+    return rows
+        .map((row) => SurveyNotificationDto(
+              id: row['id'] as String?,
+              order: row['order'] as int,
+              relativeTo: row['relativeTo'] as String,
+              minutesBefore: row['minutesBefore'] as int,
+            ))
+        .toList();
+  }
+
+  Future<int> getSurveyNotificationCount(String surveyId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) AS c FROM survey_notifications WHERE surveyId = ?',
+      [surveyId],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
   Future markAsSubmited(String id) async {
     final db = await database;
     final String currentDate = DateTime.now().toUtc().toIso8601String();
@@ -340,6 +410,7 @@ class DatabaseHelper {
     final db = await database;
     final now = DateTime.now().toUtc().toIso8601String();
     await db.delete('timeSlots', where: 'finish >= ? AND (submited = 0 OR submited IS NULL)', whereArgs: [now]);
+    await db.delete('survey_notifications');
     await db.delete('surveys');
     await db.delete('sections');
     await db.delete('questions');

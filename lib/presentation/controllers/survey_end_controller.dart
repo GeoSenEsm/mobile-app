@@ -52,8 +52,12 @@ class SurveyEndController extends ControllerBase {
       final participation = await _submitToServer();
       //no need to await, let's do it in background
       _saveLocation(participation?.id);
-      final notificationId = _surveyNotificationIdUsecase.getFinishNotificationId(surveyShortInfo);
-      NotificationService.cancelNotification(notificationId);
+      final notificationCount =
+          await _databaseHelper.getSurveyNotificationCount(surveyShortInfo.id);
+      for (var i = 0; i < notificationCount; i++) {
+        NotificationService.cancelNotification(
+            _surveyNotificationIdUsecase.getNotificationId(surveyShortInfo, i));
+      }
       await _databaseHelper.markAsSubmited(dto.surveyId);
       _appState.justSubmitedSurvey = true;
       Get.until((route) => Get.currentRoute == Routes.home);

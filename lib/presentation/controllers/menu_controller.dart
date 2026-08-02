@@ -29,10 +29,22 @@ class ManuController extends ControllerBase {
     if (response.statusCode != 200 || response.body == null) {
       return;
     }
-    final enabled = response.body!.showSendingPolicyCalendar;
+    applySendingPolicyCalendarVisibility(
+        response.body!.showSendingPolicyCalendar);
+  }
+
+  void applySendingPolicyCalendarVisibility(bool enabled) {
     showSendingPolicyCalendar.value = enabled;
     _storage.write(
         SurveySettings.showSendingPolicyCalendarStorageKey, enabled);
+  }
+
+  void syncCalendarVisibilityFromStorage() {
+    final cached =
+        _storage.read<bool>(SurveySettings.showSendingPolicyCalendarStorageKey);
+    if (cached != null) {
+      showSendingPolicyCalendar.value = cached;
+    }
   }
 
   void privacySettings() {

@@ -29,6 +29,7 @@ import 'package:survey_frontend/domain/models/visibility_type.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
+import 'package:survey_frontend/presentation/controllers/menu_controller.dart';
 import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
@@ -153,10 +154,15 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       if (response.statusCode != 200 || response.body == null) {
         return;
       }
+      final enabled = response.body!.showSendingPolicyCalendar;
       _storage.write(
         SurveySettings.showSendingPolicyCalendarStorageKey,
-        response.body!.showSendingPolicyCalendar,
+        enabled,
       );
+      if (Get.isRegistered<ManuController>()) {
+        Get.find<ManuController>()
+            .applySendingPolicyCalendarVisibility(enabled);
+      }
     } on Exception catch (e) {
       Sentry.captureException(e);
     }

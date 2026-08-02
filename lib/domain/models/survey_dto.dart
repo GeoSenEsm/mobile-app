@@ -8,21 +8,51 @@ class SurveyDto {
   final String name;
   final int rowVersion;
   final List<Section> sections;
+  final List<SurveyNotificationDto> notifications;
 
   SurveyDto({
     required this.id,
     required this.name,
     required this.rowVersion,
     required this.sections,
+    this.notifications = const [],
   });
 
   factory SurveyDto.fromJson(Map<String, dynamic> json) {
     final survey = _$SurveyDtoFromJson(json);
     survey.sections.sort((a, b) => a.order.compareTo(b.order));
-    return survey;
+    final notifications = List<SurveyNotificationDto>.of(survey.notifications)
+      ..sort((a, b) => a.order.compareTo(b.order));
+    return SurveyDto(
+      id: survey.id,
+      name: survey.name,
+      rowVersion: survey.rowVersion,
+      sections: survey.sections,
+      notifications: notifications,
+    );
   }
 
   Map<String, dynamic> toJson() => _$SurveyDtoToJson(this);
+}
+
+@JsonSerializable()
+class SurveyNotificationDto {
+  final String? id;
+  final int order;
+  final String relativeTo;
+  final int minutesBefore;
+
+  SurveyNotificationDto({
+    this.id,
+    required this.order,
+    required this.relativeTo,
+    required this.minutesBefore,
+  });
+
+  factory SurveyNotificationDto.fromJson(Map<String, dynamic> json) =>
+      _$SurveyNotificationDtoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$SurveyNotificationDtoToJson(this);
 }
 
 @JsonSerializable()
