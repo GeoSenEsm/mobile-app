@@ -149,7 +149,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         return;
       }
       final body = assigned.body!;
-      final kind = _mapSensorTypeCode(body.sensorTypeCode);
+      final kind = SensorKind.fromTypeCode(body.sensorTypeCode);
       _storage.write('selectedSensor', kind);
       if (kind == SensorKind.xiaomi) {
         _storage.write('selectedSensorId', body.sensorId);
@@ -159,20 +159,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       }
     } on Exception catch (e) {
       Sentry.captureException(e);
-    }
-  }
-
-  String _mapSensorTypeCode(String? code) {
-    switch (code) {
-      case 'kestrel':
-        return SensorKind.kestrelDrop2;
-      case 'manual':
-        return SensorKind.manual;
-      case 'none':
-        return SensorKind.none;
-      case 'xiaomi':
-      default:
-        return SensorKind.xiaomi;
     }
   }
 

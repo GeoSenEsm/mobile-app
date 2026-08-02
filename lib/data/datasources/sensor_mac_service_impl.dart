@@ -3,8 +3,8 @@ import 'package:survey_frontend/domain/external_services/api_response.dart';
 import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
 import 'package:survey_frontend/domain/models/assigned_sensor_mac.dart';
 
-class XiaomiMacImpl extends APIServiceBase implements SensorMacService {
-  XiaomiMacImpl(super.dio, {required super.tokenProvider});
+class SensorMacServiceImpl extends APIServiceBase implements SensorMacService {
+  SensorMacServiceImpl(super.dio, {required super.tokenProvider});
 
   @override
   Future<APIResponse<String>> getMacAddress(String sensorId) {
