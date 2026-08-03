@@ -302,6 +302,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ok => 'Ok';
 
   @override
+  String get cancel => 'Cancel';
+
+  @override
   String get currentPasswordMustNotBeEmpty =>
       'Current password must not be empty';
 
@@ -339,6 +342,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveReading => 'Save reading';
+
+  @override
+  String get sensorReadingCannotBeStored =>
+      'This sensor reading does not match the active sensor data setup. Contact the study administrator.';
+
+  @override
+  String get enterSensorDataManually => 'Enter sensor data manually';
+
+  @override
+  String get pleaseEnterTrueOrFalse => 'Please enter true or false';
 
   @override
   String get scanning => 'Scanning';

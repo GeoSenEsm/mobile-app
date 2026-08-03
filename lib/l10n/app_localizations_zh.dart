@@ -288,6 +288,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ok => '确定';
 
   @override
+  String get cancel => '取消';
+
+  @override
   String get currentPasswordMustNotBeEmpty => '当前密码不能为空';
 
   @override
@@ -322,6 +325,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get saveReading => '保存读数';
+
+  @override
+  String get sensorReadingCannotBeStored => '此传感器读数与当前启用的传感器数据设置不匹配。请联系研究管理员。';
+
+  @override
+  String get enterSensorDataManually => '手动输入传感器数据';
+
+  @override
+  String get pleaseEnterTrueOrFalse => '请输入 true 或 false';
 
   @override
   String get scanning => '正在扫描';

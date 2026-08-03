@@ -250,8 +250,15 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         return;
       }
 
+      final enabledTypeCodes = setup.sensorTypes
+          .where((type) => type.enabled)
+          .map((type) => type.sensorTypeCode)
+          .toSet();
       final assignment = setup.assignments
-          .where((assignment) => assignment.enabled)
+          .where((assignment) =>
+              assignment.enabled &&
+              (assignment.sensorTypeCode == SensorKind.manual ||
+                  enabledTypeCodes.contains(assignment.sensorTypeCode)))
           .toList()
         ..sort((a, b) => a.priorityOrder.compareTo(b.priorityOrder));
       if (assignment.isEmpty) {

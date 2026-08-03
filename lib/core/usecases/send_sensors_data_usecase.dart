@@ -19,6 +19,7 @@ abstract class SendSensorsDataUsecase {
   Future<bool> readAndSendSensorData(Duration connectionTimeout);
   Future<bool> sendSensorData(SensorReading? sensorResponse);
   Future<SensorData?> readSensorData();
+  List<SensorDataValue> valuesFromResponse(SensorReading sensorResponse);
 }
 
 class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
@@ -83,8 +84,7 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
   Future<bool> sendSensorData(SensorReading? sensorResponse) async {
     try {
       if (sensorResponse != null) {
-        final values =
-            SensorDataMapper.fromResponse(sensorResponse, _readSetup());
+        final values = valuesFromResponse(sensorResponse);
         if (values.isEmpty) {
           return false;
         }
@@ -120,6 +120,11 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
       Sentry.captureException(e);
       return false;
     }
+  }
+
+  @override
+  List<SensorDataValue> valuesFromResponse(SensorReading sensorResponse) {
+    return SensorDataMapper.fromResponse(sensorResponse, _readSetup());
   }
 
   @override

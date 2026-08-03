@@ -69,9 +69,9 @@ class SensorConnectionFactory {
     final timeout = requestedTimeout < configuredTimeout
         ? requestedTimeout
         : configuredTimeout;
-    final serviceUuid = definition.serviceUuid == null
-        ? null
-        : Guid(definition.serviceUuid);
+    final serviceUuidValue = definition.serviceUuid;
+    final serviceUuid =
+        serviceUuidValue == null ? null : Guid(serviceUuidValue);
     final completer = Completer<SensorReading>();
     var packetsSeen = 0;
     late StreamSubscription<List<ScanResult>> subscription;

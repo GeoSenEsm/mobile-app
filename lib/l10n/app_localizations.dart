@@ -646,6 +646,12 @@ abstract class AppLocalizations {
   /// **'Ok'**
   String get ok;
 
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
   /// No description provided for @currentPasswordMustNotBeEmpty.
   ///
   /// In en, this message translates to:
@@ -717,6 +723,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save reading'**
   String get saveReading;
+
+  /// No description provided for @sensorReadingCannotBeStored.
+  ///
+  /// In en, this message translates to:
+  /// **'This sensor reading does not match the active sensor data setup. Contact the study administrator.'**
+  String get sensorReadingCannotBeStored;
+
+  /// No description provided for @enterSensorDataManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter sensor data manually'**
+  String get enterSensorDataManually;
+
+  /// No description provided for @pleaseEnterTrueOrFalse.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter true or false'**
+  String get pleaseEnterTrueOrFalse;
 
   /// No description provided for @scanning.
   ///

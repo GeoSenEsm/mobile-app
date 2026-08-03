@@ -129,32 +129,52 @@ class SurveyEndController extends ControllerBase {
       for (final parameter in parameters)
         parameter.code: TextEditingController()
     };
+    final errors = <String, String?>{};
     final shouldSubmit = await Get.dialog<bool>(
-      AlertDialog(
-        title: const Text('Enter sensor data manually'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: parameters
-                .map((parameter) => TextField(
-                      controller: controllers[parameter.code],
-                      decoration: InputDecoration(
-                        labelText: parameter.unit == null
-                            ? parameter.name
-                            : '${parameter.name} (${parameter.unit})',
-                      ),
-                    ))
-                .toList(),
-          ),
-        ),
-        actions: [
-          TextButton(
-              onPressed: () => Get.back(result: false),
-              child: Text(getAppLocalizations().cancel)),
-          TextButton(
-              onPressed: () => Get.back(result: true),
-              child: Text(getAppLocalizations().ok)),
-        ],
+      StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(getAppLocalizations().enterSensorDataManually),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: parameters
+                    .map((parameter) => TextField(
+                          controller: controllers[parameter.code],
+                          keyboardType: _keyboardTypeFor(parameter),
+                          decoration: InputDecoration(
+                            labelText: _manualSensorLabel(parameter),
+                            errorText: errors[parameter.code],
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Get.back(result: false),
+                  child: Text(getAppLocalizations().cancel)),
+              TextButton(
+                  onPressed: () {
+                    final nextErrors = {
+                      for (final parameter in parameters)
+                        parameter.code: _manualValueError(
+                            parameter, controllers[parameter.code]!.text)
+                    };
+                    if (nextErrors.values.any((error) => error != null)) {
+                      setState(() {
+                        errors
+                          ..clear()
+                          ..addAll(nextErrors);
+                      });
+                      return;
+                    }
+                    Get.back(result: true);
+                  },
+                  child: Text(getAppLocalizations().ok)),
+            ],
+          );
+        },
       ),
       barrierDismissible: false,
     );
@@ -166,9 +186,9 @@ class SurveyEndController extends ControllerBase {
     final values = parameters
         .map((parameter) => SensorDataValue(
               parameterCode: parameter.code,
-              value: controllers[parameter.code]!.text,
+              value: controllers[parameter.code]!.text.trim(),
             ))
-        .where((value) => value.value.trim().isNotEmpty)
+        .where((value) => value.value.isNotEmpty)
         .toList();
 
     if (values.isEmpty) {
@@ -179,6 +199,53 @@ class SurveyEndController extends ControllerBase {
         dateTime: DateTime.now().toUtc().toIso8601String(),
         source: 'manual',
         values: values);
+  }
+
+  String _manualSensorLabel(SensorParameterDefinition parameter) {
+    final name = parameter.unit == null
+        ? parameter.name
+        : '${parameter.name} (${parameter.unit})';
+    return parameter.required ? '$name *' : name;
+  }
+
+  TextInputType _keyboardTypeFor(SensorParameterDefinition parameter) {
+    switch (parameter.dataType) {
+      case 'decimal':
+        return const TextInputType.numberWithOptions(decimal: true);
+      case 'integer':
+        return TextInputType.number;
+      default:
+        return TextInputType.text;
+    }
+  }
+
+  String? _manualValueError(
+      SensorParameterDefinition parameter, String rawValue) {
+    final value = rawValue.trim();
+    if (value.isEmpty) {
+      return parameter.required ? getAppLocalizations().valueNotEmpty : null;
+    }
+
+    switch (parameter.dataType) {
+      case 'decimal':
+        return num.tryParse(value) == null
+            ? getAppLocalizations().pleaseEnterValidNumber
+            : null;
+      case 'integer':
+        return int.tryParse(value) == null
+            ? getAppLocalizations().pleaseEnterValidNumber
+            : null;
+      case 'boolean':
+        final normalized = value.toLowerCase();
+        return normalized == 'true' ||
+                normalized == 'false' ||
+                normalized == '1' ||
+                normalized == '0'
+            ? null
+            : getAppLocalizations().pleaseEnterTrueOrFalse;
+      default:
+        return null;
+    }
   }
 
   bool _hasManualFallback() {

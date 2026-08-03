@@ -5,12 +5,15 @@ import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
+import 'package:survey_frontend/domain/models/sensor_data.dart';
+import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
 
 class SensorDataController extends ControllerBase {
   final Rx<SensorDataState> state = SensorDataState.initial.obs;
   final Rx<SensorReading?> sensorResponse = Rx<SensorReading?>(null);
+  final RxList<SensorDataValue> sensorValues = <SensorDataValue>[].obs;
   final RxBool isSendingData = false.obs;
   final SensorConnectionFactory _sensorConnectionFactory;
   final SendSensorsDataUsecase _sendSensorsDataUsecase;
@@ -53,7 +56,11 @@ class SensorDataController extends ControllerBase {
   void startReadingValueInBackground() async {
     while (_currentConnection != null) {
       try {
-        sensorResponse.value = await _currentConnection!.getSensorData();
+        final reading = await _currentConnection!.getSensorData();
+        sensorResponse.value = reading;
+        sensorValues.assignAll(
+          _sendSensorsDataUsecase.valuesFromResponse(reading),
+        );
         await Future.delayed(const Duration(seconds: 5));
       } catch (e) {
         Sentry.captureException(e);
@@ -69,6 +76,7 @@ class SensorDataController extends ControllerBase {
       await _currentConnection!.dispose();
       _currentConnection = null;
       sensorResponse.value = null;
+      sensorValues.clear();
     }
   }
 
@@ -77,9 +85,21 @@ class SensorDataController extends ControllerBase {
       return;
     }
 
+    if (sensorValues.isEmpty) {
+      await popup(AppLocalizations.of(Get.context!)!.error,
+          AppLocalizations.of(Get.context!)!.sensorReadingCannotBeStored);
+      return;
+    }
+
     try {
       isSendingData.value = true;
-      await _sendSensorsDataUsecase.sendSensorData(sensorResponse.value!);
+      final sent =
+          await _sendSensorsDataUsecase.sendSensorData(sensorResponse.value!);
+      if (!sent) {
+        await popup(AppLocalizations.of(Get.context!)!.error,
+            AppLocalizations.of(Get.context!)!.sensorReadingCannotBeStored);
+        return;
+      }
       //can be done in the background, therefore there is no need to await
       _sendLocationDataUsecase.readAndSendLocationData();
     } catch (e) {

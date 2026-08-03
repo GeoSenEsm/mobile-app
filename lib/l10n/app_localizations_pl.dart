@@ -304,6 +304,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get ok => 'Ok';
 
   @override
+  String get cancel => 'Anuluj';
+
+  @override
   String get currentPasswordMustNotBeEmpty =>
       'Aktualne hasło nie może być puste';
 
@@ -341,6 +344,16 @@ class AppLocalizationsPl extends AppLocalizations {
 
   @override
   String get saveReading => 'Zapisz odczyt';
+
+  @override
+  String get sensorReadingCannotBeStored =>
+      'Ten odczyt z czujnika nie pasuje do aktywnej konfiguracji danych sensorycznych. Skontaktuj się z administratorem badania.';
+
+  @override
+  String get enterSensorDataManually => 'Wprowadź dane z czujnika ręcznie';
+
+  @override
+  String get pleaseEnterTrueOrFalse => 'Wpisz prawda albo fałsz';
 
   @override
   String get scanning => 'Skanowanie';

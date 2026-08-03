@@ -109,8 +109,7 @@ class SensorDataScreen extends GetView<SensorDataController> {
       return _buildErrorCircle(getAppLocalizations().sensorNotSpecified);
     }
 
-    return SensorScanningResultCircle(
-        sensorResponse: controller.sensorResponse);
+    return SensorScanningResultCircle(sensorValues: controller.sensorValues);
   }
 
   Widget _buildErrorCircle(String errorMessage) {
@@ -124,7 +123,8 @@ class SensorDataScreen extends GetView<SensorDataController> {
     return Obx(() => SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: controller.sensorResponse.value == null
+            onPressed: controller.sensorResponse.value == null ||
+                    controller.sensorValues.isEmpty
                 ? null
                 : controller.sendSensorData,
             child: Obx(() {
