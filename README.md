@@ -88,9 +88,13 @@ Use the scripts under `scripts/` for release builds — do not run bare
 
 - Flutter SDK 3.16+ on `PATH`
 - Android SDK and/or Xcode
+- **JDK 17** for Android builds (e.g. Amazon Corretto 17). Android Studio's
+  bundled JBR may be Java 25, which breaks Gradle 8.11 with a cryptic
+  `Error resolving plugin ... > 25.0.2`. Pin with
+  `flutter config --jdk-dir="<path-to-jdk17>"` and/or `$env:JAVA_HOME`.
 - Running `survey-api` reachable from the device / emulator
-- Optional `mobile-app/.env` if the project loads dotenv assets (add a
-placeholder file if required by `pubspec.yaml`)
+- `mobile-app/.env` if listed as a dotenv asset in `pubspec.yaml` (placeholder
+  is enough when unused)
 
 
 
@@ -98,10 +102,14 @@ placeholder file if required by `pubspec.yaml`)
 
 ```bash
 flutter pub get
+flutter emulators --launch Pixel_API_35   # if needed
 flutter run
-flutter run --dart-define=APP_TYPE=geosenesm
+flutter run --dart-define=APP_TYPE=geosenesm -d emulator-5554
 flutter run --dart-define=APP_TYPE=urbeat
 ```
+
+For the full demo stack (API + admin + seed data), see workspace
+`scripts/dev-up.ps1 -Seed` and skill `geosenesm-run-locally`.
 
 
 

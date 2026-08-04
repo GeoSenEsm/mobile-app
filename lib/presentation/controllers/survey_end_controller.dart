@@ -6,7 +6,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
-import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_id_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
@@ -186,7 +185,8 @@ class SurveyEndController extends ControllerBase {
     final values = parameters
         .map((parameter) => SensorDataValue(
               parameterCode: parameter.code,
-              value: controllers[parameter.code]!.text.trim(),
+              value: _normalizedManualValue(
+                  parameter, controllers[parameter.code]!.text),
             ))
         .where((value) => value.value.isNotEmpty)
         .toList();
@@ -236,13 +236,37 @@ class SurveyEndController extends ControllerBase {
             ? getAppLocalizations().pleaseEnterValidNumber
             : null;
       case 'boolean':
-        final normalized = value.toLowerCase();
-        return normalized == 'true' ||
-                normalized == 'false' ||
-                normalized == '1' ||
-                normalized == '0'
-            ? null
-            : getAppLocalizations().pleaseEnterTrueOrFalse;
+        return _asBooleanDigit(value) == null
+            ? getAppLocalizations().pleaseEnterTrueOrFalse
+            : null;
+      default:
+        return null;
+    }
+  }
+
+  /// Normalizes to the "0"/"1" shape automatic readings produce: [SensorReading.values] is
+  /// `Map<String, num>`, and a `bool` advertisement object is decoded to 0/1 before
+  /// [SensorDataMapper] stringifies it. Storing a manual "true" here would leave two
+  /// incomparable representations of the same parameter in the export.
+  String _normalizedManualValue(
+      SensorParameterDefinition parameter, String rawValue) {
+    final value = rawValue.trim();
+    if (parameter.dataType != 'boolean') {
+      return value;
+    }
+    return _asBooleanDigit(value) ?? value;
+  }
+
+  /// Accepts the wire form ("1"/"0") and the human form ("true"/"false", any case), since both
+  /// reach this dialog: the former matches existing automatic rows, the latter the field's hint.
+  String? _asBooleanDigit(String value) {
+    switch (value.toLowerCase()) {
+      case 'true':
+      case '1':
+        return '1';
+      case 'false':
+      case '0':
+        return '0';
       default:
         return null;
     }

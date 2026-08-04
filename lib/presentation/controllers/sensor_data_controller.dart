@@ -96,8 +96,10 @@ class SensorDataController extends ControllerBase {
       final sent =
           await _sendSensorsDataUsecase.sendSensorData(sensorResponse.value!);
       if (!sent) {
-        await popup(AppLocalizations.of(Get.context!)!.error,
-            AppLocalizations.of(Get.context!)!.sensorReadingCannotBeStored);
+        // The setup-mismatch case (no recognized values) was already ruled out by the
+        // sensorValues.isEmpty check above, so a false here is a send failure (server
+        // rejection, auth, etc.) — show the generic error, not the setup-specific one.
+        await handleSomethingWentWrong(null);
         return;
       }
       //can be done in the background, therefore there is no need to await
