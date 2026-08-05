@@ -108,20 +108,29 @@ class SurveyEndController extends ControllerBase {
     }
   }
 
+  /// `manual` is a formal, admin-configured fallback source like any physical sensor type (see
+  /// [SensorParameterSource]) rather than an all-or-nothing mechanism: this only prompts for the
+  /// parameters the automatic reading didn't already cover, and only those that actually list
+  /// `manual` among their configured sources. Parameters an admin never wired to manual are left
+  /// uncollected when a sensor fails, instead of being blanket-prompted regardless of intent.
   Future<SensorData?> _collectManualSensorDataIfNeeded(
       SensorData? sensorData) async {
-    if (sensorData != null || !_hasManualFallback()) {
+    final setup = _readSensorSetup();
+    if (setup == null) {
       return sensorData;
     }
 
-    final setup = _readSensorSetup();
-    if (setup == null) {
-      return null;
-    }
-    final parameters =
-        setup.parameters.where((parameter) => parameter.active).toList();
+    final coveredCodes =
+        sensorData?.values.map((value) => value.parameterCode).toSet() ??
+            <String>{};
+    final parameters = setup.parameters
+        .where((parameter) =>
+            parameter.active &&
+            !coveredCodes.contains(parameter.code) &&
+            parameter.sourceFor('manual') != null)
+        .toList();
     if (parameters.isEmpty) {
-      return null;
+      return sensorData;
     }
 
     final controllers = {
@@ -179,10 +188,10 @@ class SurveyEndController extends ControllerBase {
     );
 
     if (shouldSubmit != true) {
-      return null;
+      return sensorData;
     }
 
-    final values = parameters
+    final manualValues = parameters
         .map((parameter) => SensorDataValue(
               parameterCode: parameter.code,
               value: _normalizedManualValue(
@@ -191,14 +200,15 @@ class SurveyEndController extends ControllerBase {
         .where((value) => value.value.isNotEmpty)
         .toList();
 
-    if (values.isEmpty) {
-      return null;
+    if (manualValues.isEmpty) {
+      return sensorData;
     }
 
     return SensorData(
-        dateTime: DateTime.now().toUtc().toIso8601String(),
-        source: 'manual',
-        values: values);
+        dateTime:
+            sensorData?.dateTime ?? DateTime.now().toUtc().toIso8601String(),
+        source: sensorData?.source ?? 'manual',
+        values: [...(sensorData?.values ?? []), ...manualValues]);
   }
 
   String _manualSensorLabel(SensorParameterDefinition parameter) {
@@ -270,13 +280,6 @@ class SurveyEndController extends ControllerBase {
       default:
         return null;
     }
-  }
-
-  bool _hasManualFallback() {
-    final setup = _readSensorSetup();
-    return setup?.assignments.any((assignment) =>
-            assignment.enabled && assignment.sensorTypeCode == 'manual') ??
-        false;
   }
 
   MobileSensorSetup? _readSensorSetup() {

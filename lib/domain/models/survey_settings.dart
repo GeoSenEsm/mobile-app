@@ -122,6 +122,7 @@ class SensorParameterDefinition {
   final String? unit;
   final bool required;
   final bool active;
+  final List<SensorParameterSource> sources;
 
   const SensorParameterDefinition({
     required this.code,
@@ -130,7 +131,19 @@ class SensorParameterDefinition {
     required this.unit,
     required this.required,
     required this.active,
+    this.sources = const [],
   });
+
+  /// Whether [sensorTypeCode] is a configured source for this parameter, and if so, the raw
+  /// field name that sensor type's reading uses (which may differ from [code]).
+  SensorParameterSource? sourceFor(String sensorTypeCode) {
+    for (final source in sources) {
+      if (source.sensorTypeCode == sensorTypeCode) {
+        return source;
+      }
+    }
+    return null;
+  }
 
   factory SensorParameterDefinition.fromJson(Map<String, dynamic> json) {
     return SensorParameterDefinition(
@@ -140,6 +153,9 @@ class SensorParameterDefinition {
       unit: json['unit'] as String?,
       required: json['required'] as bool? ?? false,
       active: json['active'] as bool? ?? true,
+      sources: (json['sources'] as List<dynamic>? ?? [])
+          .map((e) => SensorParameterSource.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -150,6 +166,38 @@ class SensorParameterDefinition {
         'unit': unit,
         'required': required,
         'active': active,
+        'sources': sources.map((e) => e.toJson()).toList(),
+      };
+}
+
+/// One configured source feeding a [SensorParameterDefinition]: a specific sensor type's raw
+/// field (`rawParameterCode`, which may differ from the parameter's own `code`), ordered by
+/// [priorityOrder] when more than one sensor type can supply the same parameter. `manual` is a
+/// real, selectable `sensorTypeCode` here too — it's a formal, admin-configured fallback source
+/// like any physical sensor, not a separate always-on mechanism.
+class SensorParameterSource {
+  final String sensorTypeCode;
+  final String rawParameterCode;
+  final int priorityOrder;
+
+  const SensorParameterSource({
+    required this.sensorTypeCode,
+    required this.rawParameterCode,
+    required this.priorityOrder,
+  });
+
+  factory SensorParameterSource.fromJson(Map<String, dynamic> json) {
+    return SensorParameterSource(
+      sensorTypeCode: json['sensorTypeCode'] as String,
+      rawParameterCode: json['rawParameterCode'] as String,
+      priorityOrder: json['priorityOrder'] as int? ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'sensorTypeCode': sensorTypeCode,
+        'rawParameterCode': rawParameterCode,
+        'priorityOrder': priorityOrder,
       };
 }
 
