@@ -8,13 +8,25 @@ $ErrorActionPreference = 'Stop'
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptDir
 
+function Invoke-Native {
+    param([scriptblock]$Command)
+    # Flutter/dart write progress and warnings to stderr; with Stop that aborts.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $Command
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    }
+    finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 Push-Location $repoRoot
 try {
     $env:APP_TYPE = 'urbeat'
-    dart run flutter_launcher_icons -f android_launcher_icons_urbeat.yaml
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    flutter build $ArtifactType --release --dart-define="APP_TYPE=$env:APP_TYPE"
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    Invoke-Native { dart run flutter_launcher_icons -f android_launcher_icons_urbeat.yaml }
+    Invoke-Native { flutter build $ArtifactType --release --dart-define="APP_TYPE=$env:APP_TYPE" }
 
     if ($ArtifactType -eq 'apk') {
         $sourcePath = Join-Path $repoRoot 'build\app\outputs\flutter-apk\app-release.apk'
