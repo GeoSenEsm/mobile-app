@@ -6,6 +6,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
+import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_id_usecase.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
@@ -27,11 +28,11 @@ import 'package:survey_frontend/core/utils/study_time_zone.dart';
 class SurveyEndController extends ControllerBase {
   late CreateSurveyResponseDto dto;
   late Future<LocalizationData> localizationData;
-  late Future<SensorData?> futureSensorData;
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final DatabaseHelper _databaseHelper;
   final SubmitSurveyUsecase _submitSurveyUsecase;
   final SurveyNotificationIdUsecase _surveyNotificationIdUsecase;
+  final SendSensorsDataUsecase _sendSensorsDataUsecase;
   late SurveyShortInfo surveyShortInfo;
   final GetStorage _storage;
   final AppState _appState;
@@ -43,7 +44,8 @@ class SurveyEndController extends ControllerBase {
       this._submitSurveyUsecase,
       this._surveyNotificationIdUsecase,
       this._storage,
-      this._appState);
+      this._appState,
+      this._sendSensorsDataUsecase);
 
   void endSurvey() async {
     if (isBusy.value) {
@@ -73,39 +75,48 @@ class SurveyEndController extends ControllerBase {
     }
   }
 
+  /// [SubmitSurveyUsecase.submitSurvey] already represents "queued for later" (no
+  /// connectivity, or the server rejected the request) as a plain `null` return rather than
+  /// an exception, so any exception reaching here is a genuinely unexpected failure. It is left
+  /// to propagate to [endSurvey]'s own try/catch, which surfaces the error without marking the
+  /// survey as submitted.
   Future<SurveyParticipationDto?> _submitToServer() async {
-    try {
-      final sensorData =
-          await _collectManualSensorDataIfNeeded(await futureSensorData);
-      await _checkSensorDataRead(sensorData);
-      dto.sensorData = sensorData;
-      _clearDto();
-      dto.finishDate = StudyTimeZone.nowWithLocalOffsetIso8601();
-      final participation = await _submitSurveyUsecase.submitSurvey(dto);
-      return participation;
-    } catch (e) {
-      popup(AppLocalizations.of(Get.context!)!.error,
-          AppLocalizations.of(Get.context!)!.mainPageTransitionError);
-      Sentry.captureException(e);
-      return null;
-    }
+    final sensorData =
+        await _collectManualSensorDataIfNeeded(await _resolveSensorData());
+    await _checkSensorDataRead(sensorData);
+    dto.sensorData = sensorData.isEmpty ? null : sensorData;
+    _clearDto();
+    dto.finishDate = StudyTimeZone.nowWithLocalOffsetIso8601();
+    return await _submitSurveyUsecase.submitSurvey(dto);
   }
 
-  Future<void> _checkSensorDataRead(SensorData? sensorData) async {
-    if (sensorData != null || !_isSensorSelected()) {
+  /// Prefers whatever readings were already attributed to this survey while it was open — one
+  /// per sensor source (see [AppState.currentSurveySensorData]) — and only falls back to a fresh
+  /// read here if none arrived during the survey. The fallback attempts every assigned sensor
+  /// concurrently (see [SendSensorsDataUsecase.readSensorData]) and returns one row per source
+  /// that actually answered, so [_collectManualSensorDataIfNeeded] below only prompts for
+  /// parameters no connected sensor could supply, not ones a slower sensor simply didn't get a
+  /// turn to answer.
+  Future<List<SensorData>> _resolveSensorData() async {
+    if (!_appState.currentSurveySensorData.isEmpty) {
+      return _appState.currentSurveySensorData.toList();
+    }
+    return await _sendSensorsDataUsecase.readSensorData();
+  }
+
+  Future<void> _checkSensorDataRead(List<SensorData> sensorDataList) async {
+    if (sensorDataList.isNotEmpty || !_isSensorSelected()) {
       return;
     }
 
-    if (sensorData == null) {
-      await Get.defaultDialog(
-          title: getAppLocalizations().sensorNotFoundDialogTitle,
-          middleText: getAppLocalizations().sensorNotFoundDialogContent,
-          textConfirm: getAppLocalizations().ok,
-          confirmTextColor: Colors.white,
-          onConfirm: () {
-            Get.back();
-          });
-    }
+    await Get.defaultDialog(
+        title: getAppLocalizations().sensorNotFoundDialogTitle,
+        middleText: getAppLocalizations().sensorNotFoundDialogContent,
+        textConfirm: getAppLocalizations().ok,
+        confirmTextColor: Colors.white,
+        onConfirm: () {
+          Get.back();
+        });
   }
 
   /// `manual` is a formal, admin-configured fallback source like any physical sensor type (see
@@ -113,24 +124,24 @@ class SurveyEndController extends ControllerBase {
   /// parameters the automatic reading didn't already cover, and only those that actually list
   /// `manual` among their configured sources. Parameters an admin never wired to manual are left
   /// uncollected when a sensor fails, instead of being blanket-prompted regardless of intent.
-  Future<SensorData?> _collectManualSensorDataIfNeeded(
-      SensorData? sensorData) async {
+  Future<List<SensorData>> _collectManualSensorDataIfNeeded(
+      List<SensorData> sensorDataList) async {
     final setup = _readSensorSetup();
     if (setup == null) {
-      return sensorData;
+      return sensorDataList;
     }
 
-    final coveredCodes =
-        sensorData?.values.map((value) => value.parameterCode).toSet() ??
-            <String>{};
+    final coveredCodes = sensorDataList
+        .expand((data) => data.values)
+        .map((value) => value.parameterCode)
+        .toSet();
     final parameters = setup.parameters
         .where((parameter) =>
-            parameter.active &&
             !coveredCodes.contains(parameter.code) &&
             parameter.sourceFor('manual') != null)
         .toList();
     if (parameters.isEmpty) {
-      return sensorData;
+      return sensorDataList;
     }
 
     final controllers = {
@@ -147,12 +158,15 @@ class SurveyEndController extends ControllerBase {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: parameters
-                    .map((parameter) => TextField(
-                          controller: controllers[parameter.code],
-                          keyboardType: _keyboardTypeFor(parameter),
-                          decoration: InputDecoration(
-                            labelText: _manualSensorLabel(parameter),
-                            errorText: errors[parameter.code],
+                    .map((parameter) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: TextField(
+                            controller: controllers[parameter.code],
+                            keyboardType: _keyboardTypeFor(parameter),
+                            decoration: InputDecoration(
+                              labelText: _manualSensorLabel(parameter),
+                              errorText: errors[parameter.code],
+                            ),
                           ),
                         ))
                     .toList(),
@@ -188,7 +202,7 @@ class SurveyEndController extends ControllerBase {
     );
 
     if (shouldSubmit != true) {
-      return sensorData;
+      return sensorDataList;
     }
 
     final manualValues = parameters
@@ -201,14 +215,18 @@ class SurveyEndController extends ControllerBase {
         .toList();
 
     if (manualValues.isEmpty) {
-      return sensorData;
+      return sensorDataList;
     }
 
-    return SensorData(
-        dateTime:
-            sensorData?.dateTime ?? DateTime.now().toUtc().toIso8601String(),
-        source: sensorData?.source ?? 'manual',
-        values: [...(sensorData?.values ?? []), ...manualValues]);
+    // Its own entry, source 'manual' — never merged into an automatic reading's values, so a
+    // manually-typed value is never misattributed to whichever sensor happened to report first.
+    return [
+      ...sensorDataList,
+      SensorData(
+          dateTime: DateTime.now().toUtc().toIso8601String(),
+          source: 'manual',
+          values: manualValues),
+    ];
   }
 
   String _manualSensorLabel(SensorParameterDefinition parameter) {
@@ -345,7 +363,6 @@ class SurveyEndController extends ControllerBase {
   void readGetArgs() {
     dto = Get.arguments['responseModel'];
     localizationData = Get.arguments['localizationData'];
-    futureSensorData = Get.arguments['futureSensorData'];
     surveyShortInfo = Get.arguments['shortSurveyInfo'];
   }
 }

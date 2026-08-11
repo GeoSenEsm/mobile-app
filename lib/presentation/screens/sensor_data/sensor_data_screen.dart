@@ -3,9 +3,7 @@ import 'package:get/get.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/controllers/sensor_data_controller.dart';
-import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_scanning_circle.dart';
-import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_scanning_error_circle.dart';
-import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_scanning_result_circle.dart';
+import 'package:survey_frontend/presentation/screens/sensor_data/widgets/sensor_slot_circle.dart';
 
 class SensorDataScreen extends GetView<SensorDataController> {
   const SensorDataScreen({super.key});
@@ -45,15 +43,8 @@ class SensorDataScreen extends GetView<SensorDataController> {
           Expanded(
             child: Container(
               color: AppStyles.backgroundSecondary,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SizedBox(
-                      height: 250,
-                      width: double.infinity,
-                      child: Obx(_circleBuilder))
-                ],
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Obx(_slotsBuilder),
             ),
           ),
         ],
@@ -72,6 +63,10 @@ class SensorDataScreen extends GetView<SensorDataController> {
               mainAxisAlignment: MainAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
+                _buildStartScanningButton(),
+                const SizedBox(
+                  height: 10,
+                ),
                 SizedBox(
                     width: double.infinity,
                     child: OutlinedButton(
@@ -87,43 +82,53 @@ class SensorDataScreen extends GetView<SensorDataController> {
     );
   }
 
-  Widget _circleBuilder() {
-    if (controller.state.value == SensorDataState.scanning ||
-        controller.state.value == SensorDataState.initial) {
-      return const SensorScanningCircle();
+  Widget _slotsBuilder() {
+    if (controller.noSensorConfigured.value) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            getAppLocalizations().sensorNotSpecified,
+            style: const TextStyle(fontSize: 16),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
     }
 
-    if (controller.state.value == SensorDataState.bluetoothTurnedOff) {
-      return _buildErrorCircle(getAppLocalizations().bluetoothTurnedOff);
-    }
-
-    if (controller.state.value == SensorDataState.sensorNotFound) {
-      return _buildErrorCircle(getAppLocalizations().sensorNotFound);
-    }
-
-    if (controller.state.value == SensorDataState.error) {
-      return _buildErrorCircle(getAppLocalizations().error);
-    }
-
-    if (controller.state.value == SensorDataState.sensorNotSpecified) {
-      return _buildErrorCircle(getAppLocalizations().sensorNotSpecified);
-    }
-
-    return SensorScanningResultCircle(sensorValues: controller.sensorValues);
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        children: [
+          for (final slot in controller.slots) ...[
+            SensorSlotCircle(
+              slot: slot,
+              onRetry: () => controller.retrySlot(slot),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ],
+      ),
+    );
   }
 
-  Widget _buildErrorCircle(String errorMessage) {
-    return SensorScanningErrorCircle(
-      errorMessage: errorMessage,
-      onRetry: controller.startScanning,
-    );
+  Widget _buildStartScanningButton() {
+    return Obx(() => SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: controller.noSensorConfigured.value
+                ? null
+                : controller.startScanning,
+            child: Text(getAppLocalizations().startScanning),
+          ),
+        ));
   }
 
   Widget _buildSendReadingButton() {
     return Obx(() => SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: controller.sensorResponse.value == null ||
+            onPressed: controller.sensorResponses.isEmpty ||
                     controller.sensorValues.isEmpty
                 ? null
                 : controller.sendSensorData,

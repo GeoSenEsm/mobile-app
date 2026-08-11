@@ -8,7 +8,7 @@ class SurveyEndBindings extends Bindings {
   void dependencies() {
     Get.lazyPut(
         () => SurveyEndController(Get.find(), Get.find(), Get.find(),
-            Get.find(), Get.find(), Get.find()),
+            Get.find(), Get.find(), Get.find(), Get.find()),
         fenix: true);
     Get.lazyPut<SurveyParticipationService>(
         () => SurveyParticipationServiceImpl(Get.find()),

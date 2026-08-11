@@ -108,7 +108,13 @@ class SensorDataHistoryScreen extends GetView<SensorDataHistoryController> {
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: Obx(() => DataTable(
+                // Values lists can span several sensor parameters and wrap onto multiple
+                // lines, so rows need to grow past the default single-line height instead of
+                // clipping the text.
+                dataRowMinHeight: 56,
+                dataRowMaxHeight: 120,
                 columns: [
                   DataColumn(label: Text(getAppLocalizations().date)),
                   const DataColumn(label: Text('Source')),
@@ -120,11 +126,16 @@ class SensorDataHistoryScreen extends GetView<SensorDataHistoryController> {
                               child: Text(
                                   dateTimeShortFormat(e.dateTime.toLocal())))),
                           DataCell(Center(child: Text(e.source))),
-                          DataCell(Center(
-                              child: Text(e.values
+                          DataCell(ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 220),
+                            child: Text(
+                              e.values
                                   .map((value) =>
                                       '${value.parameterCode}: ${value.value}')
-                                  .join(', ')))),
+                                  .join(', '),
+                              softWrap: true,
+                            ),
+                          )),
                         ]))
                     .toList(),
               )),

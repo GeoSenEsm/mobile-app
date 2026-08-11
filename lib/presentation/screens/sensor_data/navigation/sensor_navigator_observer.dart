@@ -12,7 +12,7 @@ class SensorNavigatorObserver extends NavigatorObserver {
 
     if (previousRoute != null &&
         previousRoute.settings.name == Routes.sensorDataScreen) {
-      Get.find<SensorDataController>().startScanning();
+      Get.find<SensorDataController>().prepareSlots();
     }
     super.didPop(route, previousRoute);
   }
@@ -25,7 +25,7 @@ class SensorNavigatorObserver extends NavigatorObserver {
     }
 
     if (route.settings.name == Routes.sensorDataScreen) {
-      Get.find<SensorDataController>().startScanning();
+      Get.find<SensorDataController>().prepareSlots();
     }
     super.didPush(route, previousRoute);
   }

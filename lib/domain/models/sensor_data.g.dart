@@ -18,7 +18,7 @@ Map<String, dynamic> _$SensorDataToJson(SensorData instance) =>
     <String, dynamic>{
       'dateTime': instance.dateTime,
       'source': instance.source,
-      'values': instance.values.map((e) => e.toJson()).toList(),
+      'values': instance.values,
     };
 
 SensorDataValue _$SensorDataValueFromJson(Map<String, dynamic> json) =>

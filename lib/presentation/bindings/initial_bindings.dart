@@ -10,6 +10,7 @@ import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecas
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
+import 'package:survey_frontend/core/usecases/sensor_assignment_planner.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
@@ -95,6 +96,7 @@ class InitialBindings extends Bindings {
         Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put(DatabaseHelper());
+    Get.put<AppState>(AppState());
     Get.put<SurveyNotificationIdUsecase>(SurveyNotificationIdUsecaseImpl());
     Get.put<SurveyNotificationUseCase>(
         SurveyNotificationUseCaseImpl(Get.find(), Get.find()));
@@ -103,8 +105,9 @@ class InitialBindings extends Bindings {
     Get.put<SensorMacService>(
         SensorMacServiceImpl(Get.find(), tokenProvider: Get.find()));
     Get.put(SensorConnectionFactory(Get.find()));
-    Get.put<SendSensorsDataUsecase>(SendSensorsDataUsecaseImpl(
-        Get.find(), Get.find(), Get.find(), Get.find()));
+    Get.put(SensorAssignmentPlanner(Get.find()));
+    Get.put<SendSensorsDataUsecase>(SendSensorsDataUsecaseImpl(Get.find(),
+        Get.find(), Get.find(), Get.find(), Get.find(), Get.find()));
     Get.put<LocalizationService>(LocalizationServiceImpl(Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put<SurveyImagesUseCase>(SurveyImagesUseCaseImpl(Get.find()));
@@ -135,7 +138,6 @@ class InitialBindings extends Bindings {
         () => SurveySettingsServiceImpl(Get.find(), tokenProvider: Get.find()),
         fenix: true);
     Get.lazyPut(() => ContactController(Get.find()), fenix: true);
-    Get.put<AppState>(AppState());
   }
 
   Dio _getDio(GetStorage storage) {

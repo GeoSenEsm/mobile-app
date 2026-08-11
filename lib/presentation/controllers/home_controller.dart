@@ -7,10 +7,10 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
-import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/sensor_bind_key_store.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
@@ -51,13 +51,13 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final RxInt minutesLeft = 0.obs;
   bool _isBusy = false;
   final GetStorage _storage;
-  final SendSensorsDataUsecase _sendSensorsDataUsecase;
   final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final SensorMacService _sensorMacService;
   final SurveySettingsService _surveySettingsService;
   final SensorBindKeyStore _sensorBindKeyStore = const SensorBindKeyStore();
   final RxnString logoUrl = RxnString();
+  final AppState _appState;
 
   HomeController(
       this._homeService,
@@ -68,10 +68,10 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._surveyImagesUseCase,
       this._submitSurveyUsecase,
       this._storage,
-      this._sendSensorsDataUsecase,
       this._sendLocationDataUsecase,
       this._sensorMacService,
-      this._surveySettingsService);
+      this._surveySettingsService,
+      this._appState);
 
   @override
   void onInit() async {
@@ -333,7 +333,12 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       final questions = _getQuestionsFromSurvey(survey);
       final responseModel = _prepareResponseModel(questions, survey.id);
       final futureLocalizationData = _getCurrentLocation();
-      final futureSensorData = _sendSensorsDataUsecase.readSensorData();
+      // A dedicated read is no longer kicked off here: any reading the
+      // background task or manual Sensors screen already obtains while the
+      // survey is open gets attributed to it (see AppState.isSurveyActive).
+      // A fresh read is only made at submit time if none arrived meanwhile.
+      _appState.isSurveyActive = true;
+      _appState.currentSurveySensorData.clear();
       final triggerableSectionActivationsCounts =
           _getTriggerableSectionActivationsCounts(survey);
       await Get.toNamed("/surveystart", arguments: {
@@ -344,8 +349,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         "groups": respondentGroups,
         "triggerableSectionActivationsCounts":
             triggerableSectionActivationsCounts,
-        "localizationData": futureLocalizationData,
-        "futureSensorData": futureSensorData
+        "localizationData": futureLocalizationData
       });
     } catch (e) {
       await popup(AppLocalizations.of(Get.context!)!.error,

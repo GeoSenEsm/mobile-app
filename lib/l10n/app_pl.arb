@@ -42,14 +42,11 @@
     "errorRetry": "Błąd, spróbuj ponownie",
     "yes": "Tak",
     "no": "Nie",
-    "usedSensor": "Rodzaj czujnika temperatury",
     "save": "Zapisz",
-    "chooseATemperatureSensorYouReceived": "Wybierz otrzymany przez Ciebie czujnik temperatury",
-    "noSensor": "Brak czujnika",
     "manualSensor": "Odczyty ręczne",
-    "xiaomiSensor": "Czujnik Xiaomi",
+    "noSensorsAssigned": "Do Twojego konta nie przypisano jeszcze żadnych czujników.",
     "settings": "Ustawienia",
-    "editSensor": "Edytuj czujnik",
+    "editSensor": "Moje czujniki",
     "appSettings": "Ustawienia aplikacji",
     "surveyStartBody": "Możesz już rozpocząć ankiete. Jesteś gotów?",
     "surveyFinishBody": "Ankieta zaraz się skończy. Do dzieła!",
@@ -110,7 +107,30 @@
     "scanning": "Skanowanie",
     "bluetoothTurnedOff": "Bluetooth jest wyłączony",
     "sensorNotFound": "Nie znaleziono czujnika",
+    "sensorConnectionBusy": "Czujnik zajęty, spróbuj ponownie za chwilę",
+    "sensorConnectionLost": "Utracono połączenie podczas odczytu, dotknij aby powtórzyć",
+    "sensorProfileMismatch": "Niezgodność profilu czujnika, skontaktuj się z administratorem badania",
+    "sensorTapToConnect": "Dotknij, aby połączyć",
+    "startScanning": "Rozpocznij skanowanie",
     "sensorNotSpecified": "Nie wybrano czujnika",
+    "sensorSecondsRemaining": "Pozostało {seconds}s",
+    "@sensorSecondsRemaining": {
+        "placeholders": {
+            "seconds": {
+                "type": "int",
+                "example": "12"
+            }
+        }
+    },
+    "sensorReadsParameters": "Odczyt: {parameters}",
+    "@sensorReadsParameters": {
+        "placeholders": {
+            "parameters": {
+                "type": "String",
+                "example": "Temperatura, Wilgotność"
+            }
+        }
+    },
     "sensorData": "Dane z czujnika",
     "calendar": "Kalendarz",
     "day": "Dzień",
@@ -140,18 +160,13 @@
     "theLocationDataHasNotBeenSubmitedToServer": "Ta lokalizacja nie została jeszcze wysłana na serwer",
     "surveyHasBeenComplitedInThisLocation": "W tym miejscu wypełniono ankietę",
     "enterResponse": "Podaj odpowiedź",
-    "kestrelDrop2": "Czujnik Kestrel Drop 2",
-    "assignedByAdministrator": "Przypisany przez administratora",
-    "sensorId": "Id sensora",
     "serverNotResponding": "Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później.",
     "bluetoothRequired": "Włącz bluetooth, aby wypełnić ankietę.",
     "bluetooth": "Bluetooth",
     "surveyFinished": "Ankieta zakończyła się. Nie można jej już wypełnić.",
     "sensorMac": "Adres MAC czujnika",
-    "sensorIdServerNotFound": "Id czujnika nie zostało znalezione na serwerze",
     "noInternetConnection": "Brak połączenia z internetem",
     "betterExperienceTurnOnInternet": "Dla lepszego doświadczenia z użytkowania, proszę włączyć połączenie z internetem",
-    "loadingMacFailed": "Błąd ładowania adresu MAC",
     "sensorNotFoundDialogTitle": "Nie znaleziono czujnika",
     "sensorNotFoundDialogContent": "Nie znaleziono czujnika temparatury. Anketa zostanie wysłana bez danych o temperaturze. Upewnij się, że masz przy sobie czujnik, oraz że ma on nałądowaną baterię.",
     "thanksForCompletingTheSurvey": "Dziękujemy za wypełnienie ankiety.",

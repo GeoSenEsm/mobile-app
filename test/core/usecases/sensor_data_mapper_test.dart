@@ -5,7 +5,7 @@ import 'package:survey_frontend/domain/models/survey_settings.dart';
 
 void main() {
   group('SensorDataMapper', () {
-    test('maps only active configured parameters returned by the sensor', () {
+    test('maps every configured parameter matched by the responding source', () {
       final setup = MobileSensorSetup(
         mode: MobileSensorSetup.configuredSensors,
         sensorTypes: const [],
@@ -16,7 +16,6 @@ void main() {
             dataType: 'decimal',
             unit: 'C',
             required: true,
-            active: true,
             sources: [
               SensorParameterSource(
                   sensorTypeCode: 'xiaomi',
@@ -30,7 +29,6 @@ void main() {
             dataType: 'decimal',
             unit: '%',
             required: true,
-            active: false,
             sources: [
               SensorParameterSource(
                   sensorTypeCode: 'xiaomi',
@@ -47,9 +45,9 @@ void main() {
               source: 'xiaomi', values: {'temperature': 21.5, 'humidity': 48}),
           setup);
 
-      expect(values, hasLength(1));
-      expect(values.single.parameterCode, 'temperature');
-      expect(values.single.value, '21.5');
+      expect(values, hasLength(2));
+      expect(values.map((v) => v.parameterCode),
+          containsAll(['temperature', 'humidity']));
     });
 
     test('returns no values when configured parameters do not match response',
@@ -64,7 +62,6 @@ void main() {
             dataType: 'decimal',
             unit: 'hPa',
             required: true,
-            active: true,
             sources: [
               SensorParameterSource(
                   sensorTypeCode: 'xiaomi',
@@ -96,7 +93,6 @@ void main() {
             dataType: 'decimal',
             unit: 'C',
             required: true,
-            active: true,
             sources: [
               SensorParameterSource(
                   sensorTypeCode: 'kestrel',
@@ -127,7 +123,6 @@ void main() {
             dataType: 'decimal',
             unit: 'C',
             required: true,
-            active: true,
             sources: [
               SensorParameterSource(
                   sensorTypeCode: 'kestrel',

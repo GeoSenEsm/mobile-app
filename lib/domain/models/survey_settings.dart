@@ -121,7 +121,6 @@ class SensorParameterDefinition {
   final String dataType;
   final String? unit;
   final bool required;
-  final bool active;
   final List<SensorParameterSource> sources;
 
   const SensorParameterDefinition({
@@ -130,7 +129,6 @@ class SensorParameterDefinition {
     required this.dataType,
     required this.unit,
     required this.required,
-    required this.active,
     this.sources = const [],
   });
 
@@ -152,7 +150,6 @@ class SensorParameterDefinition {
       dataType: json['dataType'] as String? ?? 'text',
       unit: json['unit'] as String?,
       required: json['required'] as bool? ?? false,
-      active: json['active'] as bool? ?? true,
       sources: (json['sources'] as List<dynamic>? ?? [])
           .map((e) => SensorParameterSource.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -165,7 +162,6 @@ class SensorParameterDefinition {
         'dataType': dataType,
         'unit': unit,
         'required': required,
-        'active': active,
         'sources': sources.map((e) => e.toJson()).toList(),
       };
 }

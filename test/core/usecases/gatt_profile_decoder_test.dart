@@ -37,6 +37,13 @@ void main() {
       'i32': -300000,
       'f32': 6,
     });
+    // Dart's `==` treats 6 == 6.0 as true, so the map equality above would pass even if
+    // whole-number collapsing (_asIntegerIfWhole) were broken. Assert the runtime type
+    // directly so a regression there (e.g. serializing "6.0" instead of "6") fails this test.
+    for (final entry in reading.values.entries) {
+      expect(entry.value, isA<int>(),
+          reason: 'GATT field ${entry.key} is whole-valued and should decode to int, not double');
+    }
   });
 
   test('rejects short packets, failed assertions, and out-of-range values', () {
@@ -73,6 +80,26 @@ void main() {
               [11]
             ]),
         throwsA(isA<GattPacketException>()));
+  });
+
+  test('exactLength tolerates a trailing next frame batched into the same notification', () {
+    // Some devices (e.g. Contec-style pulse oximeters) pack more than one logical frame into a
+    // single BLE notification. A valid 12-byte frame followed by the start of the next one must
+    // still decode — exactLength means "at least this many bytes, only the first N matter".
+    final profile = _profile(
+      [
+        _field('spo2', 'uint8', 5),
+        _field('pulse_rate', 'uint8', 6),
+      ],
+      frame: const GattFrame(exactLength: 12, checksum: 'crc8_maxim'),
+    );
+    final frame = [0xaa, 0x55, 0x0f, 0x08, 0x01, 0x60, 0x39, 0x00, 0x8e, 0x00, 0xc0];
+    final withChecksum = [...frame, decoder.crc8Maxim(frame)];
+    final withTrailingNextFrame = [...withChecksum, 0xaa, 0x55, 0x0f, 0x07, 0x02, 0x7f];
+
+    final reading = decoder.decode(profile, [withTrailingNextFrame]);
+
+    expect(reading.values, {'spo2': 96, 'pulse_rate': 57});
   });
 
   test('rejects unknown schema and engine versions', () {
@@ -142,6 +169,7 @@ void main() {
 GattProfile _profile(
   List<GattField> fields, {
   List<GattByteAssertion> assertions = const [],
+  GattFrame frame = const GattFrame(),
 }) {
   return GattProfile(
     schemaVersion: 1,
@@ -154,6 +182,7 @@ GattProfile _profile(
         serviceUuid: '00000000-0000-0000-0000-000000000001',
         characteristicUuid: '00000000-0000-0000-0000-000000000002',
         assertions: assertions,
+        frame: frame,
         fields: fields,
       )
     ],

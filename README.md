@@ -8,7 +8,7 @@ rules synced from `/api/surveys/allwithtimeslots` (defaults: at start, and
 from `/api/surveysettings/sensordata/mobile`, including no-sensor mode,
 enabled sources, connection timeouts, parameter definitions, and ordered
 respondent assignments for backend-provided sensor type codes such as
-`xiaomi`, `kestrel`, `pc_60fw`, `bluetooth_sig_plx`, `flower_care`,
+`xiaomi`, `kestrel`, `pc_60fw`, `flower_care`,
 `xiaomi_door_sensor_2`, `inkbird_ibs_th1`, `manual`, or `none`. See
 `../docs/AddingSensor.md` for the sensor extension guide.
 

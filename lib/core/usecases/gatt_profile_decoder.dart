@@ -42,16 +42,28 @@ class GattProfileDecoder {
           (field.maximum != null && value > field.maximum!)) {
         throw GattPacketException('${field.parameterCode} is out of range');
       }
-      values[field.parameterCode] = value;
+      values[field.parameterCode] = _asIntegerIfWhole(value);
     }
   }
+
+  /// BLE-advertisement-derived readings carry native ints and serialize as e.g. "45";
+  /// GATT reads always compute through double arithmetic. Collapsing whole-number
+  /// results back to int keeps the wire format consistent between the two sources.
+  num _asIntegerIfWhole(double value) =>
+      value == value.truncateToDouble() ? value.truncate() : value;
 
   void validateFrame(GattRead read, List<int> packet) {
     if (packet.length > 512 || packet.any((byte) => byte < 0 || byte > 255)) {
       throw const GattPacketException('Invalid packet bytes');
     }
     final frame = read.frame;
-    if ((frame.exactLength != null && packet.length != frame.exactLength) ||
+    // Some devices batch more than one logical frame into a single BLE notification (this
+    // frame's bytes followed by the start of the next one), so `exactLength` means "this frame
+    // is exactly this many bytes at the start of the packet", not "the whole delivered array
+    // must be exactly this long" — trailing bytes beyond it belong to a different frame and are
+    // ignored here, not treated as corruption.
+    final frameWidth = frame.exactLength ?? packet.length;
+    if ((frame.exactLength != null && packet.length < frame.exactLength!) ||
         (frame.minimumLength != null && packet.length < frame.minimumLength!) ||
         packet.length < frame.prefix.length) {
       throw const GattPacketException('Packet length constraint failed');
@@ -62,13 +74,13 @@ class GattProfileDecoder {
       }
     }
     if (frame.checksum == 'crc8_maxim' &&
-        (packet.length < 2 ||
-            crc8Maxim(packet.sublist(0, packet.length - 1)) != packet.last)) {
+        (frameWidth < 2 ||
+            crc8Maxim(packet.sublist(0, frameWidth - 1)) != packet[frameWidth - 1])) {
       throw const GattPacketException('Packet checksum failed');
     }
     for (final assertion in read.assertions) {
       final end = assertion.byteOffset + assertion.equals.length;
-      if (end > packet.length) {
+      if (end > frameWidth) {
         throw const GattPacketException('Assertion exceeds packet length');
       }
       for (var index = 0; index < assertion.equals.length; index++) {

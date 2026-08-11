@@ -80,17 +80,28 @@ class ResolvedSensorIntegration {
       : this._(codedAdapter: codedAdapter);
 }
 
+/// Hardcoded fallback GATT profiles used when the backend hasn't published one for a built-in
+/// sensor type. These must be kept byte-for-byte consistent (offsets, scale, endianness) with
+/// survey-api's `sensor_gatt_profile` seed data/migrations by hand — there is no automated check
+/// across the two repos, so cross-check both when changing either one.
 class SeededGattProfiles {
   static final GattProfile xiaomi = GattProfile.fromJson({
     'schemaVersion': 1,
-    'revision': 1,
+    'revision': 3,
     'sensorTypeCode': 'xiaomi',
     'minEngineVersion': 1,
+    // Real LYWSD03MMC units in the field broadcast encrypted MiBeacon advertisements (bind key
+    // required, cryptographically unreadable without it) — the advertisement/MiBeacon decode path
+    // tried in revision 2 can never work for them. Reverted to the proven approach (v.2.0.1):
+    // connect directly to the device's own GATT service and read plaintext bytes — no encryption
+    // or bind key involved.
+    'transport': 'gatt_sequence',
     'discovery': {'exactName': 'LYWSD03MMC'},
     'reads': [
       {
         'serviceUuid': 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6',
         'characteristicUuid': 'ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6',
+        'frame': {'exactLength': 3},
         'assertions': [],
         'fields': [
           {
@@ -112,9 +123,9 @@ class SeededGattProfiles {
     'goldenVectors': [
       {
         'packets': [
-          [102, 8, 48]
+          [0x66, 0x08, 0x2D],
         ],
-        'expectedValues': {'temperature': 21.5, 'humidity': 48},
+        'expectedValues': {'temperature': 21.5, 'humidity': 45},
       },
     ],
   });
@@ -242,8 +253,12 @@ class SeededGattProfiles {
         'characteristicUuid': '6e400003-b5a3-f393-e0a9-e50e24dcca9e',
         'acquisition': {
           'mode': 'notification',
+          // This device streams a far more frequent waveform frame (different prefix) on the
+          // same characteristic in between the vitals frames this profile actually reads, so
+          // maxPackets needs enough headroom to outlast that noise within the timeout instead
+          // of giving up after only a handful of (correctly) rejected waveform packets.
           'timeoutMilliseconds': 10000,
-          'maxPackets': 30,
+          'maxPackets': 100,
         },
         'frame': {
           'exactLength': 12,
@@ -272,45 +287,6 @@ class SeededGattProfiles {
             'endian': 'little',
             'byteOffset': 8,
             'scale': 0.1,
-          },
-        ],
-      },
-    ],
-  });
-
-  static final GattProfile plxContinuous = GattProfile.fromJson({
-    'schemaVersion': 1,
-    'revision': 1,
-    'sensorTypeCode': 'bluetooth_sig_plx',
-    'minEngineVersion': 1,
-    'transport': 'gatt_sequence',
-    'discovery': {'advertisedServiceUuid': '1822'},
-    'reads': [
-      {
-        'serviceUuid': '1822',
-        'characteristicUuid': '2a5f',
-        'acquisition': {
-          'mode': 'notification',
-          'timeoutMilliseconds': 10000,
-          'maxPackets': 30,
-        },
-        'frame': {'minimumLength': 5},
-        'assertions': [],
-        'fields': [
-          {
-            'parameterCode': 'spo2',
-            'type': 'sfloat16',
-            'endian': 'little',
-            'byteOffset': 1,
-            'minimum': 0,
-            'maximum': 100,
-          },
-          {
-            'parameterCode': 'pulse_rate',
-            'type': 'sfloat16',
-            'endian': 'little',
-            'byteOffset': 3,
-            'minimum': 0,
           },
         ],
       },
@@ -410,7 +386,6 @@ class SeededGattProfiles {
         kestrel,
         inkbirdIbsTh1,
         pc60fw,
-        plxContinuous,
         flowerCare,
         doorSensor2,
       ];

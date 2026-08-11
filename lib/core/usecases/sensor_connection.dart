@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:survey_frontend/core/models/sensor_reading.dart';
 import 'package:survey_frontend/core/usecases/gatt_profile_decoder.dart';
@@ -65,7 +66,13 @@ class GattProfileSensorConnection implements SensorConnection {
         try {
           _decoder.validateFrame(read, packet);
           completer.complete(List<int>.unmodifiable(packet));
-        } on GattPacketException {
+        } on GattPacketException catch (e) {
+          // Surfaces the actual bytes a real device sent when they don't match this profile's
+          // hardcoded frame assumptions (prefix/length/checksum) — the fastest way to tell a
+          // wrong-profile mismatch from a genuinely flaky read.
+          debugPrint('GATT frame rejected (${e.message}) for '
+              '${read.characteristicUuid}: '
+              '${packet.map((b) => b.toRadixString(16).padLeft(2, '0')).join(' ')}');
           if (packetsSeen >= read.acquisition.maxPackets) {
             completer.completeError(
                 const GattPacketException('No valid packet within maxPackets'));

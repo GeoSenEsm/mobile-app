@@ -9,7 +9,7 @@ class CreateSurveyResponseDto {
   final String surveyId;
   final String startDate;
   late final String finishDate;
-  SensorData? sensorData;
+  List<SensorData>? sensorData;
   List<CreateQuestionAnswerDto> answers;
 
   CreateSurveyResponseDto(

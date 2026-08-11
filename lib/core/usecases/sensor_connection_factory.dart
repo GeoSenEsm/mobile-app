@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/models/sensor_reading.dart';
@@ -31,14 +32,43 @@ class SensorConnectionFactory {
         _bindKeyStore = bindKeyStore,
         _advertisementDecoder = advertisementDecoder;
 
+  /// Guards the scan → connect → in-use lifetime of a connection to one sensor *type*, not the
+  /// whole app: the background task, the manual sensor screen, and the survey-end fallback all
+  /// resolve this same singleton, so without this lock any two of them could independently
+  /// scan/connect to the *same* physical sensor at once and each submit their own copy of the
+  /// reading. It's keyed by sensor type rather than a single flag so unrelated sensor types can
+  /// still be connected to concurrently. Released when the returned [SensorConnection] is
+  /// disposed, not when this method returns.
+  static final Set<String> _sensorTypesInProgress = {};
+
   Future<SensorConnection> getSensorConnection(
-      Duration scanningDuration) async {
-    final sensorTypeCode = _storage.read<String>('selectedSensor');
+    Duration scanningDuration, {
+    required String sensorTypeCode,
+    String? sensorId,
+    String? sensorMac,
+  }) async {
+    if (!SensorKind.usesBluetooth(sensorTypeCode)) {
+      throw SensorNotSpecifiedException();
+    }
+    if (_sensorTypesInProgress.contains(sensorTypeCode)) {
+      throw const SensorConnectionBusyException();
+    }
+    _sensorTypesInProgress.add(sensorTypeCode);
+    try {
+      final connection = await _acquireSensorConnection(
+          scanningDuration, sensorTypeCode, sensorId, sensorMac);
+      return _GuardedSensorConnection(
+          connection, () => _sensorTypesInProgress.remove(sensorTypeCode));
+    } catch (_) {
+      _sensorTypesInProgress.remove(sensorTypeCode);
+      rethrow;
+    }
+  }
+
+  Future<SensorConnection> _acquireSensorConnection(Duration scanningDuration,
+      String sensorTypeCode, String? sensorId, String? sensorMac) async {
     if ((await _scanner.adapterState()) != BluetoothAdapterState.on) {
       throw BluetoothTurnedOffException();
-    }
-    if (sensorTypeCode == null || !SensorKind.usesBluetooth(sensorTypeCode)) {
-      throw SensorNotSpecifiedException();
     }
 
     final setup = _readSetupOrLegacy(sensorTypeCode);
@@ -48,22 +78,19 @@ class SensorConnectionFactory {
       return integration.codedAdapter!(scanningDuration);
     }
     if (profile!.transport == 'ble_advertisement') {
-      return AdvertisementSensorConnection(
-          await _readAdvertisement(profile, scanningDuration));
+      return AdvertisementSensorConnection(await _readAdvertisement(
+          profile, scanningDuration, sensorId, sensorMac));
     }
-    final device = await _findDevice(profile, scanningDuration);
+    final device =
+        await _findDevice(profile, scanningDuration, sensorId, sensorMac);
     await device.connect();
     return GattProfileSensorConnection(device, profile);
   }
 
-  Future<SensorReading> _readAdvertisement(
-      GattProfile profile, Duration requestedTimeout) async {
+  Future<SensorReading> _readAdvertisement(GattProfile profile,
+      Duration requestedTimeout, String? sensorId, String? sensorMac) async {
     final definition = profile.advertisement!;
-    final sensorId = _storage.read<Object>('selectedSensorId')?.toString();
     final bindKey = await _bindKeyStore.read(profile.sensorTypeCode, sensorId);
-    if (bindKey == null) {
-      throw const SensorBindKeyUnavailableException();
-    }
     final configuredTimeout =
         Duration(milliseconds: definition.timeoutMilliseconds);
     final timeout = requestedTimeout < configuredTimeout
@@ -78,15 +105,26 @@ class SensorConnectionFactory {
     Timer? timer;
     subscription = _scanner.scanResults.listen((results) {
       for (final result in results) {
+        if (sensorMac != null &&
+            result.device.remoteId.str.toLowerCase() != sensorMac.toLowerCase()) {
+          continue;
+        }
         final payload = definition.dataSource == 'manufacturer_data'
             ? result.advertisementData.manufacturerData[definition.manufacturerId]
             : result.advertisementData.serviceData[serviceUuid];
+        debugPrint('[advertisement:${profile.sensorTypeCode}] '
+            'mac=${result.device.remoteId.str} '
+            'serviceData=${result.advertisementData.serviceData.keys} '
+            'manufacturerData=${result.advertisementData.manufacturerData.keys} '
+            'wantServiceUuid=$serviceUuid payloadFound=${payload != null}');
         if (payload == null || completer.isCompleted) continue;
         packetsSeen++;
         try {
           completer.complete(
               _advertisementDecoder.decode(profile, payload, bindKey));
-        } on AdvertisementPacketException {
+        } on AdvertisementPacketException catch (e) {
+          debugPrint('[advertisement:${profile.sensorTypeCode}] '
+              'decode rejected payload=$payload bindKeySet=${bindKey != null}: ${e.message}');
           if (packetsSeen >= definition.maxPackets) {
             completer.completeError(const AdvertisementPacketException(
                 'No valid advertisement within maxPackets'));
@@ -94,6 +132,7 @@ class SensorConnectionFactory {
         }
       }
     });
+    await _acquireSharedScan();
     try {
       timer = Timer(timeout, () {
         if (!completer.isCompleted) {
@@ -101,24 +140,20 @@ class SensorConnectionFactory {
               const AdvertisementPacketException('Advertisement timed out'));
         }
       });
-      await _scanner.startScan(timeout);
       return await completer.future;
     } finally {
       timer?.cancel();
       await subscription.cancel();
-      await _scanner.stopScan();
+      await _releaseSharedScan();
     }
   }
 
-  Future<BluetoothDevice> _findDevice(
-      GattProfile? profile, Duration timeout) async {
+  Future<BluetoothDevice> _findDevice(GattProfile? profile, Duration timeout,
+      String? sensorId, String? sensorMac) async {
     if (profile == null) {
       throw const SensorDiscoveryUnavailableException();
     }
     final completer = Completer<BluetoothDevice>();
-    final sensorId = _storage.read<Object>('selectedSensorId')?.toString();
-    final sensorMac = _storage.read<String>('selectedSensorMac') ??
-        _storage.read<String>('xiaomiMac');
     late StreamSubscription<List<ScanResult>> subscription;
     Timer? timer;
     subscription = _scanner.scanResults.listen((results) {
@@ -135,23 +170,59 @@ class SensorConnectionFactory {
                   .toSet(),
               sensorId: sensorId,
             );
+        if (result.device.platformName.isNotEmpty ||
+            result.device.advName.isNotEmpty) {
+          debugPrint('[discovery:${profile.sensorTypeCode}] '
+              'mac=${result.device.remoteId.str} '
+              'platformName="${result.device.platformName}" '
+              'advName="${result.device.advName}" '
+              'services=${result.advertisementData.serviceUuids} '
+              'wantMac=$sensorMac wantExactName=${profile.discovery.exactName} '
+              'wantNamePrefix=${profile.discovery.namePrefix} '
+              'wantServiceUuid=${profile.discovery.advertisedServiceUuid} '
+              'matched=${isAssignedDevice || matchesProfile}');
+        }
         if ((isAssignedDevice || matchesProfile) && !completer.isCompleted) {
           completer.complete(result.device);
           break;
         }
       }
     });
+    await _acquireSharedScan();
     try {
       timer = Timer(timeout, () {
         if (!completer.isCompleted) {
           completer.completeError(SensorNotFoundException());
         }
       });
-      await _scanner.startScan(timeout);
       return await completer.future;
     } finally {
       timer?.cancel();
       await subscription.cancel();
+      await _releaseSharedScan();
+    }
+  }
+
+  /// [BluetoothScanGateway.startScan]/[stopScan] control a single BLE radio scan shared by the
+  /// whole app — there is no way to run two independent scan sessions with different durations
+  /// at once. When more than one sensor-type discovery is in flight concurrently, they share one
+  /// long-lived scan instead: the first caller starts it (with a ceiling far longer than any real
+  /// per-sensor timeout, since each caller's own [Timer] above already bounds its own wait), and
+  /// it only stops once every concurrent caller has finished with it.
+  static int _sharedScanClients = 0;
+  static const Duration _sharedScanCeiling = Duration(minutes: 10);
+
+  Future<void> _acquireSharedScan() async {
+    _sharedScanClients++;
+    if (_sharedScanClients == 1) {
+      await _scanner.startScan(_sharedScanCeiling);
+    }
+  }
+
+  Future<void> _releaseSharedScan() async {
+    _sharedScanClients--;
+    if (_sharedScanClients <= 0) {
+      _sharedScanClients = 0;
       await _scanner.stopScan();
     }
   }
@@ -189,20 +260,31 @@ class SensorConnectionFactory {
     required Set<String> advertisedServiceUuids,
     String? sensorId,
   }) {
-    final exactName =
-        discovery.exactName?.replaceAll('{sensorId}', sensorId ?? '');
-    final names = {platformName, advertisedName};
+    // Device-advertised names carry no meaningful case distinction, and firmware across
+    // batches/manufacturers is inconsistent about it (e.g. "Flower care" vs "Flower Care") — match
+    // case-insensitively so a harmless casing difference doesn't look like a missing sensor.
+    final exactName = discovery.exactName
+        ?.replaceAll('{sensorId}', sensorId ?? '')
+        .toLowerCase();
+    final namePrefix = discovery.namePrefix?.toLowerCase();
+    final names = {platformName.toLowerCase(), advertisedName.toLowerCase()};
     final nameMatches = exactName != null
         ? names.contains(exactName)
-        : discovery.namePrefix != null
-            ? names.any((name) => name.startsWith(discovery.namePrefix!))
+        : namePrefix != null
+            ? names.any((name) => name.startsWith(namePrefix))
             : true;
+    // [advertisedServiceUuids] entries are already Guid.str — the shortest representation the
+    // platform reports (a base 16-bit UUID like "fe95" comes back short, not as its full 128-bit
+    // string). A config value entered as the full 128-bit form for the same base UUID would never
+    // equal that, so normalize it through Guid the same way before comparing.
     final requiredService = discovery.advertisedServiceUuid;
+    final normalizedRequiredService =
+        requiredService == null ? null : Guid(requiredService).str.toLowerCase();
     return nameMatches &&
-        (requiredService == null ||
+        (normalizedRequiredService == null ||
             advertisedServiceUuids
                 .map((uuid) => uuid.toLowerCase())
-                .contains(requiredService));
+                .contains(normalizedRequiredService));
   }
 }
 
@@ -231,7 +313,41 @@ class FlutterBlueScanGateway implements BluetoothScanGateway {
   Future<void> stopScan() => FlutterBluePlus.stopScan();
 }
 
+/// Wraps a [SensorConnection] so this sensor type's lock is released exactly
+/// once, whenever the caller is actually done with it, rather than as soon
+/// as it is acquired.
+class _GuardedSensorConnection implements SensorConnection {
+  final SensorConnection _inner;
+  final void Function() _releaseLock;
+  bool _released = false;
+
+  _GuardedSensorConnection(this._inner, this._releaseLock);
+
+  @override
+  Future<SensorReading> getSensorData() => _inner.getSensorData();
+
+  @override
+  Future<void> dispose() async {
+    try {
+      await _inner.dispose();
+    } finally {
+      if (!_released) {
+        _released = true;
+        _releaseLock();
+      }
+    }
+  }
+}
+
 class GetSensorConnectionException implements Exception {}
+
+class SensorConnectionBusyException implements GetSensorConnectionException {
+  const SensorConnectionBusyException();
+
+  @override
+  String toString() =>
+      'Another sensor connection attempt is already in progress';
+}
 
 class SensorNotSpecifiedException implements GetSensorConnectionException {}
 
@@ -242,12 +358,4 @@ class BluetoothTurnedOffException implements GetSensorConnectionException {}
 class SensorDiscoveryUnavailableException
     implements GetSensorConnectionException {
   const SensorDiscoveryUnavailableException();
-}
-
-class SensorBindKeyUnavailableException
-    implements GetSensorConnectionException {
-  const SensorBindKeyUnavailableException();
-
-  @override
-  String toString() => 'Sensor bind key is unavailable';
 }

@@ -21,9 +21,6 @@ class SensorDataMapper {
 
     final values = <SensorDataValue>[];
     for (final parameter in parameters) {
-      if (!parameter.active) {
-        continue;
-      }
       final source = parameter.sourceFor(response.source);
       if (source == null || !rawValues.containsKey(source.rawParameterCode)) {
         continue;

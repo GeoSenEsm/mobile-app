@@ -7,12 +7,6 @@ class SensorMacServiceImpl extends APIServiceBase implements SensorMacService {
   SensorMacServiceImpl(super.dio, {required super.tokenProvider});
 
   @override
-  Future<APIResponse<String>> getMacAddress(String sensorId) {
-    return get("/api/sensormac?sensorId=$sensorId",
-        (dynamic json) => json["sensorMac"] as String);
-  }
-
-  @override
   Future<APIResponse<AssignedSensorMac>> getAssignedSensor() {
     return get(
       "/api/sensormac/assigned",

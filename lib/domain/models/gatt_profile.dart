@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 class GattProfile {
   static const int supportedSchemaVersion = 1;
   static const int engineVersion = 1;
@@ -250,14 +252,18 @@ class BleAdvertisementDefinition {
 }
 
 class BleAdvertisementObjectMapping {
+  static const supportedTypes = {'uint8', 'int8', 'uint16', 'int16', 'bool'};
+
   final int objectId;
   final String parameterCode;
   final String type;
+  final double scale;
 
   const BleAdvertisementObjectMapping({
     required this.objectId,
     required this.parameterCode,
     required this.type,
+    this.scale = 1,
   });
 
   factory BleAdvertisementObjectMapping.fromJson(Map<String, dynamic> json) {
@@ -269,6 +275,7 @@ class BleAdvertisementObjectMapping {
       parameterCode: json['parameterCode'] as String? ??
           _requiredString(json, 'parameter'),
       type: _requiredString(json, 'type'),
+      scale: (json['scale'] as num?)?.toDouble() ?? 1,
     );
   }
 
@@ -276,16 +283,37 @@ class BleAdvertisementObjectMapping {
     if (objectId < 0 ||
         objectId > 0xffff ||
         parameterCode.isEmpty ||
-        !const {'uint8', 'bool'}.contains(type)) {
+        !supportedTypes.contains(type) ||
+        !scale.isFinite) {
       throw const GattProfileFormatException(
           'Invalid advertisement object mapping');
     }
+  }
+
+  int get byteLength => type == 'uint16' || type == 'int16' ? 2 : 1;
+
+  num decode(Uint8List payload, int offset) {
+    final num raw;
+    switch (type) {
+      case 'bool':
+        raw = payload[offset] == 0 ? 0 : 1;
+      case 'int8':
+        raw = payload[offset].toSigned(8);
+      case 'uint16':
+        raw = payload[offset] | (payload[offset + 1] << 8);
+      case 'int16':
+        raw = (payload[offset] | (payload[offset + 1] << 8)).toSigned(16);
+      default:
+        raw = payload[offset];
+    }
+    return scale == 1 ? raw : raw * scale;
   }
 
   Map<String, dynamic> toJson() => {
         'objectId': objectId,
         'parameterCode': parameterCode,
         'type': type,
+        'scale': scale,
       };
 }
 

@@ -10,20 +10,21 @@ class BleAdvertisementDecoder {
   SensorReading decode(
     GattProfile profile,
     List<int> serviceData,
-    List<int> bindKey,
+    List<int>? bindKey,
   ) {
     final definition = profile.advertisement;
     if (definition == null || definition.decoderId != 'xiaomi_mibeacon_v4_v5') {
       throw const AdvertisementPacketException(
           'Unsupported advertisement decoder');
     }
-    if (bindKey.length != 16 || serviceData.length < 18) {
-      throw const AdvertisementPacketException('Invalid encrypted packet');
+    if (serviceData.length < 11) {
+      throw const AdvertisementPacketException(
+          'Advertisement frame is too short');
     }
     final data = Uint8List.fromList(serviceData);
     final frameControl = data[0] | (data[1] << 8);
     final version = frameControl >> 12;
-    if ((version != 4 && version != 5) || (frameControl & 0x0800) == 0) {
+    if (version != 4 && version != 5) {
       throw const AdvertisementPacketException(
           'Unsupported MiBeacon frame');
     }
@@ -32,11 +33,24 @@ class BleAdvertisementDecoder {
       throw const AdvertisementPacketException('Product mismatch');
     }
 
-    final payload = _decryptMiBeacon(data, Uint8List.fromList(bindKey));
+    // Stock firmware only encrypts advertisements once the sensor has been bound to a Mi Home
+    // account; unbound devices broadcast the object payload in the clear right after the header.
+    final isEncrypted = (frameControl & 0x0800) != 0;
+    final payload = isEncrypted
+        ? _decryptMiBeacon(data, _requireBindKey(bindKey))
+        : data.sublist(11);
     return SensorReading(
       source: profile.sensorTypeCode,
       values: _decodeMiBeaconObjects(payload, definition),
     );
+  }
+
+  Uint8List _requireBindKey(List<int>? bindKey) {
+    if (bindKey == null || bindKey.length != 16) {
+      throw const AdvertisementPacketException(
+          'Bind key required for encrypted advertisement');
+    }
+    return Uint8List.fromList(bindKey);
   }
 
   Uint8List _decryptMiBeacon(Uint8List frame, Uint8List bindKey) {
@@ -88,10 +102,8 @@ class BleAdvertisementDecoder {
         throw const AdvertisementPacketException('Malformed object payload');
       }
       final mapping = mappings[objectId];
-      if (mapping != null && length == 1) {
-        final value = payload[offset];
-        values[mapping.parameterCode] =
-            mapping.type == 'bool' ? (value == 0 ? 0 : 1) : value;
+      if (mapping != null && length == mapping.byteLength) {
+        values[mapping.parameterCode] = mapping.decode(payload, offset);
       }
       offset += length;
     }

@@ -63,7 +63,7 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
       CreateSurveyResponseDto dto) async {
     final apiResponse = await _surveyResponseService.submitResponse(dto);
     if (apiResponse.statusCode == 201) {
-      await _saveSensorDataLocally([dto.sensorData]);
+      await _saveSensorDataLocally(dto.sensorData ?? const []);
       return apiResponse.body;
     }
 
@@ -71,11 +71,10 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
     return null;
   }
 
-  Future<void> _saveSensorDataLocally(List<SensorData?> sensorData) async {
+  Future<void> _saveSensorDataLocally(List<SensorData> sensorData) async {
     final models = sensorData
-        .where((d) => d != null)
         .map((d) => SensorDataModel(
-            dateTime: DateTime.parse(d!.dateTime),
+            dateTime: DateTime.parse(d.dateTime),
             source: d.source,
             values: d.values,
             sentToServer: true))
@@ -101,8 +100,9 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
         await _surveyResponseService.submitResponses(currentlySaved);
     if (apiResponse.statusCode == 201) {
       await _storage.remove('savedResponses');
-      await _saveSensorDataLocally(
-          currentlySaved.map((e) => e.sensorData).toList());
+      await _saveSensorDataLocally(currentlySaved
+          .expand((e) => e.sensorData ?? const <SensorData>[])
+          .toList());
       await _updateLocations(apiResponse.body!);
       return true;
     }

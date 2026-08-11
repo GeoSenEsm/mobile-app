@@ -144,29 +144,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get no => 'No';
 
   @override
-  String get usedSensor => 'Temperature sensor kind';
-
-  @override
   String get save => 'Save';
-
-  @override
-  String get chooseATemperatureSensorYouReceived =>
-      'Choose a temperature sensor you\'ve received';
-
-  @override
-  String get noSensor => 'No sensor';
 
   @override
   String get manualSensor => 'Manual readings';
 
   @override
-  String get xiaomiSensor => 'Xiaomi sensor';
+  String get noSensorsAssigned =>
+      'No sensors are assigned to your account yet.';
 
   @override
   String get settings => 'Settings';
 
   @override
-  String get editSensor => 'Edit sensor';
+  String get editSensor => 'My sensors';
 
   @override
   String get appSettings => 'App settings';
@@ -363,7 +354,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorNotFound => 'Could not detect sensor';
 
   @override
+  String get sensorConnectionBusy => 'Sensor busy, retry shortly';
+
+  @override
+  String get sensorConnectionLost =>
+      'Lost connection while reading, tap to retry';
+
+  @override
+  String get sensorProfileMismatch =>
+      'Sensor profile mismatch, contact the study administrator';
+
+  @override
+  String get sensorTapToConnect => 'Tap to connect';
+
+  @override
+  String get startScanning => 'Start scanning';
+
+  @override
   String get sensorNotSpecified => 'Sensor not specified';
+
+  @override
+  String sensorSecondsRemaining(int seconds) {
+    return '${seconds}s left';
+  }
+
+  @override
+  String sensorReadsParameters(String parameters) {
+    return 'Reads: $parameters';
+  }
 
   @override
   String get sensorData => 'Sensor data';
@@ -453,15 +471,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterResponse => 'Enter response';
 
   @override
-  String get kestrelDrop2 => 'Kestrel Drop 2 sensor';
-
-  @override
-  String get assignedByAdministrator => 'Assigned by administrator';
-
-  @override
-  String get sensorId => 'Sensor id';
-
-  @override
   String get serverNotResponding =>
       'Server is not responding. Make sure, you have provided a correct API url. If so, try again later.';
 
@@ -479,17 +488,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorMac => 'Sensor\'s MAC adres';
 
   @override
-  String get sensorIdServerNotFound => 'Sensor id not found on the server';
-
-  @override
   String get noInternetConnection => 'No internet connection';
 
   @override
   String get betterExperienceTurnOnInternet =>
       'For better experience, turn on the internet connection';
-
-  @override
-  String get loadingMacFailed => 'Could not load MAC address';
 
   @override
   String get sensorNotFoundDialogTitle => 'Sensor not found';

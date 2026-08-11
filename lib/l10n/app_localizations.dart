@@ -352,29 +352,11 @@ abstract class AppLocalizations {
   /// **'No'**
   String get no;
 
-  /// No description provided for @usedSensor.
-  ///
-  /// In en, this message translates to:
-  /// **'Temperature sensor kind'**
-  String get usedSensor;
-
   /// No description provided for @save.
   ///
   /// In en, this message translates to:
   /// **'Save'**
   String get save;
-
-  /// No description provided for @chooseATemperatureSensorYouReceived.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a temperature sensor you\'ve received'**
-  String get chooseATemperatureSensorYouReceived;
-
-  /// No description provided for @noSensor.
-  ///
-  /// In en, this message translates to:
-  /// **'No sensor'**
-  String get noSensor;
 
   /// No description provided for @manualSensor.
   ///
@@ -382,11 +364,11 @@ abstract class AppLocalizations {
   /// **'Manual readings'**
   String get manualSensor;
 
-  /// No description provided for @xiaomiSensor.
+  /// No description provided for @noSensorsAssigned.
   ///
   /// In en, this message translates to:
-  /// **'Xiaomi sensor'**
-  String get xiaomiSensor;
+  /// **'No sensors are assigned to your account yet.'**
+  String get noSensorsAssigned;
 
   /// No description provided for @settings.
   ///
@@ -397,7 +379,7 @@ abstract class AppLocalizations {
   /// No description provided for @editSensor.
   ///
   /// In en, this message translates to:
-  /// **'Edit sensor'**
+  /// **'My sensors'**
   String get editSensor;
 
   /// No description provided for @appSettings.
@@ -760,11 +742,53 @@ abstract class AppLocalizations {
   /// **'Could not detect sensor'**
   String get sensorNotFound;
 
+  /// No description provided for @sensorConnectionBusy.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor busy, retry shortly'**
+  String get sensorConnectionBusy;
+
+  /// No description provided for @sensorConnectionLost.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost connection while reading, tap to retry'**
+  String get sensorConnectionLost;
+
+  /// No description provided for @sensorProfileMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sensor profile mismatch, contact the study administrator'**
+  String get sensorProfileMismatch;
+
+  /// No description provided for @sensorTapToConnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to connect'**
+  String get sensorTapToConnect;
+
+  /// No description provided for @startScanning.
+  ///
+  /// In en, this message translates to:
+  /// **'Start scanning'**
+  String get startScanning;
+
   /// No description provided for @sensorNotSpecified.
   ///
   /// In en, this message translates to:
   /// **'Sensor not specified'**
   String get sensorNotSpecified;
+
+  /// No description provided for @sensorSecondsRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{seconds}s left'**
+  String sensorSecondsRemaining(int seconds);
+
+  /// No description provided for @sensorReadsParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Reads: {parameters}'**
+  String sensorReadsParameters(String parameters);
 
   /// No description provided for @sensorData.
   ///
@@ -934,24 +958,6 @@ abstract class AppLocalizations {
   /// **'Enter response'**
   String get enterResponse;
 
-  /// No description provided for @kestrelDrop2.
-  ///
-  /// In en, this message translates to:
-  /// **'Kestrel Drop 2 sensor'**
-  String get kestrelDrop2;
-
-  /// No description provided for @assignedByAdministrator.
-  ///
-  /// In en, this message translates to:
-  /// **'Assigned by administrator'**
-  String get assignedByAdministrator;
-
-  /// No description provided for @sensorId.
-  ///
-  /// In en, this message translates to:
-  /// **'Sensor id'**
-  String get sensorId;
-
   /// No description provided for @serverNotResponding.
   ///
   /// In en, this message translates to:
@@ -982,12 +988,6 @@ abstract class AppLocalizations {
   /// **'Sensor\'s MAC adres'**
   String get sensorMac;
 
-  /// No description provided for @sensorIdServerNotFound.
-  ///
-  /// In en, this message translates to:
-  /// **'Sensor id not found on the server'**
-  String get sensorIdServerNotFound;
-
   /// No description provided for @noInternetConnection.
   ///
   /// In en, this message translates to:
@@ -999,12 +999,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'For better experience, turn on the internet connection'**
   String get betterExperienceTurnOnInternet;
-
-  /// No description provided for @loadingMacFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Could not load MAC address'**
-  String get loadingMacFailed;
 
   /// No description provided for @sensorNotFoundDialogTitle.
   ///

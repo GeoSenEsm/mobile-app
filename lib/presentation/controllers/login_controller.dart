@@ -15,6 +15,7 @@ import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/functions/handle_need_insert_respondent_data.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/utils/study_time_zone.dart';
 import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
@@ -242,6 +243,10 @@ class LoginController extends ControllerBase {
     handle(needInsertRespondentDataRes);
   }
 
+  /// If the device refuses to report its timezone (a known failure on some OEM ROMs/emulators),
+  /// we must not send a synthetic value: the backend would treat it as a real detected timezone
+  /// and, if it differs from what's stored, trigger a full resync. Leaving [model.value.timeZone]
+  /// unset instead makes the login request omit it, so the server keeps whatever was last stored.
   Future<void> _attachDeviceTimeZone() async {
     try {
       tzdata.initializeTimeZones();
@@ -250,11 +255,9 @@ class LoginController extends ControllerBase {
       model.value.timeZone = timeZone;
       _timeZoneChangedForLogin =
           previousTimeZone == null || previousTimeZone != timeZone;
-    } catch (_) {
-      final previousTimeZone = _storage.read<String>(StudyTimeZone.storageKey);
-      model.value.timeZone = StudyTimeZone.defaultId;
-      _timeZoneChangedForLogin = previousTimeZone == null ||
-          previousTimeZone != StudyTimeZone.defaultId;
+    } catch (e) {
+      Sentry.captureException(e);
+      _timeZoneChangedForLogin = false;
     }
   }
 

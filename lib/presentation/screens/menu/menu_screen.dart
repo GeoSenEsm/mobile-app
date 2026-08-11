@@ -13,6 +13,7 @@ class MenuScreen extends GetView<ManuController> {
   @override
   Widget build(BuildContext context) {
     controller.syncCalendarVisibilityFromStorage();
+    controller.syncSensorVisibilityFromStorage();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
