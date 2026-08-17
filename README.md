@@ -9,8 +9,14 @@ from `/api/surveysettings/sensordata/mobile`, including no-sensor mode,
 enabled sources, connection timeouts, parameter definitions, and ordered
 respondent assignments for backend-provided sensor type codes such as
 `xiaomi`, `kestrel`, `pc_60fw`, `flower_care`,
-`inkbird_ibs_th1`, `manual`, or `none`. See
-`../docs/AddingSensor.md` for the sensor extension guide.
+`inkbird_ibs_th1`, `ruuvi`, `manual`, or `none`. Sensor types are resolved
+through a generic, backend-configurable GATT profile engine
+(`lib/core/usecases/sensor_profile_resolver.dart`,
+`lib/core/usecases/sensor_connection_factory.dart`) supporting both
+connect-and-read (`gatt_sequence`) and passive-scan (`ble_advertisement`,
+e.g. Xiaomi MiBeacon, Ruuvi Data Format 5) transports, so study
+administrators can add new sensor types from the admin panel without an
+app rebuild. See `../docs/AddingSensor.md` for the sensor extension guide.
 
 
 |                      |                                                                                                                                       |
