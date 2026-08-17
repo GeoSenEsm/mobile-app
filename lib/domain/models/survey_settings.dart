@@ -33,7 +33,6 @@ class MobileSensorSetup {
   final List<SensorParameterDefinition> parameters;
   final List<RespondentSensorAssignment> assignments;
   final List<GattProfile> gattProfiles;
-  final List<SensorDeviceSecrets> deviceSecrets;
 
   const MobileSensorSetup({
     required this.mode,
@@ -41,7 +40,6 @@ class MobileSensorSetup {
     required this.parameters,
     required this.assignments,
     this.gattProfiles = const [],
-    this.deviceSecrets = const [],
   });
 
   factory MobileSensorSetup.fromJson(Map<String, dynamic> json) {
@@ -61,9 +59,6 @@ class MobileSensorSetup {
       gattProfiles: (json['gattProfiles'] as List<dynamic>? ?? [])
           .map((e) => GattProfile.fromJson(e as Map<String, dynamic>))
           .toList(),
-      deviceSecrets: (json['deviceSecrets'] as List<dynamic>? ?? [])
-          .map((e) => SensorDeviceSecrets.fromJson(e as Map<String, dynamic>))
-          .toList(),
     );
   }
 
@@ -73,7 +68,6 @@ class MobileSensorSetup {
         'parameters': parameters.map((e) => e.toJson()).toList(),
         'assignments': assignments.map((e) => e.toJson()).toList(),
         'gattProfiles': gattProfiles.map((e) => e.toJson()).toList(),
-        'deviceSecrets': deviceSecrets.map((e) => e.toJson()).toList(),
       };
 }
 
@@ -120,7 +114,6 @@ class SensorParameterDefinition {
   final String name;
   final String dataType;
   final String? unit;
-  final bool required;
   final List<SensorParameterSource> sources;
 
   const SensorParameterDefinition({
@@ -128,7 +121,6 @@ class SensorParameterDefinition {
     required this.name,
     required this.dataType,
     required this.unit,
-    required this.required,
     this.sources = const [],
   });
 
@@ -149,7 +141,6 @@ class SensorParameterDefinition {
       name: json['name'] as String,
       dataType: json['dataType'] as String? ?? 'text',
       unit: json['unit'] as String?,
-      required: json['required'] as bool? ?? false,
       sources: (json['sources'] as List<dynamic>? ?? [])
           .map((e) => SensorParameterSource.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -161,39 +152,33 @@ class SensorParameterDefinition {
         'name': name,
         'dataType': dataType,
         'unit': unit,
-        'required': required,
         'sources': sources.map((e) => e.toJson()).toList(),
       };
 }
 
 /// One configured source feeding a [SensorParameterDefinition]: a specific sensor type's raw
-/// field (`rawParameterCode`, which may differ from the parameter's own `code`), ordered by
-/// [priorityOrder] when more than one sensor type can supply the same parameter. `manual` is a
-/// real, selectable `sensorTypeCode` here too — it's a formal, admin-configured fallback source
-/// like any physical sensor, not a separate always-on mechanism.
+/// field (`rawParameterCode`, which may differ from the parameter's own `code`). `manual` is a
+/// real, selectable `sensorTypeCode` here too — every parameter is guaranteed to have it wired
+/// as a fallback source, not just physical sensors.
 class SensorParameterSource {
   final String sensorTypeCode;
   final String rawParameterCode;
-  final int priorityOrder;
 
   const SensorParameterSource({
     required this.sensorTypeCode,
     required this.rawParameterCode,
-    required this.priorityOrder,
   });
 
   factory SensorParameterSource.fromJson(Map<String, dynamic> json) {
     return SensorParameterSource(
       sensorTypeCode: json['sensorTypeCode'] as String,
       rawParameterCode: json['rawParameterCode'] as String,
-      priorityOrder: json['priorityOrder'] as int? ?? 0,
     );
   }
 
   Map<String, dynamic> toJson() => {
         'sensorTypeCode': sensorTypeCode,
         'rawParameterCode': rawParameterCode,
-        'priorityOrder': priorityOrder,
       };
 }
 
@@ -202,16 +187,12 @@ class RespondentSensorAssignment {
   final String? sensorId;
   final String? sensorMac;
   final String? sensorMacId;
-  final bool enabled;
-  final int priorityOrder;
 
   const RespondentSensorAssignment({
     required this.sensorTypeCode,
     required this.sensorId,
     required this.sensorMac,
     this.sensorMacId,
-    required this.enabled,
-    required this.priorityOrder,
   });
 
   factory RespondentSensorAssignment.fromJson(Map<String, dynamic> json) {
@@ -220,8 +201,6 @@ class RespondentSensorAssignment {
       sensorId: json['sensorId'] as String?,
       sensorMac: json['sensorMac'] as String?,
       sensorMacId: json['sensorMacId'] as String?,
-      enabled: json['enabled'] as bool? ?? true,
-      priorityOrder: json['priorityOrder'] as int? ?? 0,
     );
   }
 
@@ -230,29 +209,5 @@ class RespondentSensorAssignment {
         'sensorId': sensorId,
         'sensorMac': sensorMac,
         if (sensorMacId != null) 'sensorMacId': sensorMacId,
-        'enabled': enabled,
-        'priorityOrder': priorityOrder,
-      };
-}
-
-class SensorDeviceSecrets {
-  final String sensorMacId;
-  final Map<String, String> secrets;
-
-  const SensorDeviceSecrets({
-    required this.sensorMacId,
-    required this.secrets,
-  });
-
-  factory SensorDeviceSecrets.fromJson(Map<String, dynamic> json) =>
-      SensorDeviceSecrets(
-        sensorMacId: json['sensorMacId'] as String,
-        secrets: Map<String, String>.from(
-            (json['secrets'] as Map<dynamic, dynamic>? ?? {})),
-      );
-
-  Map<String, dynamic> toJson() => {
-        'sensorMacId': sensorMacId,
-        'secrets': secrets,
       };
 }

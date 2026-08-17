@@ -35,7 +35,7 @@ class SensorDataController extends ControllerBase {
       this._sendSensorsDataUsecase, this._sendLocationDataUsecase,
       this._planner);
 
-  /// Populates the slot list (one per enabled Bluetooth-using assignment) in the idle state,
+  /// Populates the slot list (one per Bluetooth-using assignment) in the idle state,
   /// without touching Bluetooth at all — called when the screen opens so the user sees what's
   /// assigned and can choose to connect, rather than the app connecting on their behalf.
   void prepareSlots() {
@@ -44,7 +44,7 @@ class SensorDataController extends ControllerBase {
 
     final setup = _planner.readSetup();
     final assignments = _planner
-        .orderedAssignments(setup)
+        .assignedSensors(setup)
         .where((assignment) => SensorKind.usesBluetooth(assignment.sensorTypeCode))
         .toList();
 
@@ -70,7 +70,7 @@ class SensorDataController extends ControllerBase {
     try {
       final setup = _planner.readSetup();
       final assignments = _planner
-          .orderedAssignments(setup)
+          .assignedSensors(setup)
           .where((assignment) => SensorKind.usesBluetooth(assignment.sensorTypeCode))
           .toList();
       if (assignments.length != slots.length) {
@@ -102,7 +102,7 @@ class SensorDataController extends ControllerBase {
     }
     final setup = _planner.readSetup();
     final assignment = _planner
-        .orderedAssignments(setup)
+        .assignedSensors(setup)
         .where((candidate) => candidate.sensorTypeCode == slot.sensorTypeCode)
         .firstOrNull;
     if (assignment == null) {

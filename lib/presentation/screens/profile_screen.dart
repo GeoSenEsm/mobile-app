@@ -49,7 +49,7 @@ class ProfileScreen extends GetView<ProfileController> {
             child: Container(
               color: AppStyles.backgroundSecondary,
               child: ListView.builder(
-                itemCount: controller.respondentData.length,
+                itemCount: controller.itemCount,
                 itemBuilder: (context, index) => Padding(
                   padding: const EdgeInsets.all(10),
                   child: TextFormField(
@@ -66,8 +66,7 @@ class ProfileScreen extends GetView<ProfileController> {
                         borderSide: BorderSide(color: Colors.black),
                       ),
                     ),
-                    initialValue: controller
-                        .getValueForIndex(controller.getLabelFormIndex(index)),
+                    initialValue: controller.getValueForIndex(index),
                   ),
                 ),
               ),

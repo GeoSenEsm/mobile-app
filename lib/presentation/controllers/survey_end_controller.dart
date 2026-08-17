@@ -90,18 +90,27 @@ class SurveyEndController extends ControllerBase {
     return await _submitSurveyUsecase.submitSurvey(dto);
   }
 
-  /// Prefers whatever readings were already attributed to this survey while it was open — one
-  /// per sensor source (see [AppState.currentSurveySensorData]) — and only falls back to a fresh
-  /// read here if none arrived during the survey. The fallback attempts every assigned sensor
-  /// concurrently (see [SendSensorsDataUsecase.readSensorData]) and returns one row per source
-  /// that actually answered, so [_collectManualSensorDataIfNeeded] below only prompts for
-  /// parameters no connected sensor could supply, not ones a slower sensor simply didn't get a
-  /// turn to answer.
+  /// Always attempts a fresh, authoritative read of every assigned sensor (see
+  /// [SendSensorsDataUsecase.readSensorData]) right before deciding whether manual entry is
+  /// needed, rather than trusting readings attributed to this survey earlier while it was open
+  /// (see [AppState.currentSurveySensorData]) at face value: a sensor that reported once early
+  /// in the survey and then disconnected would otherwise look "covered" forever, silently
+  /// suppressing the manual-entry prompt for the rest of the session. The fresh attempt's result
+  /// wins for any parameter it covers; session data only fills in parameters the fresh attempt
+  /// didn't answer for, so a sensor that already went quiet doesn't lose its last known reading
+  /// for a parameter no other attempt could supply.
   Future<List<SensorData>> _resolveSensorData() async {
-    if (!_appState.currentSurveySensorData.isEmpty) {
-      return _appState.currentSurveySensorData.toList();
-    }
-    return await _sendSensorsDataUsecase.readSensorData();
+    final freshData = await _sendSensorsDataUsecase.readSensorData();
+    final coveredByFreshData = freshData
+        .expand((data) => data.values)
+        .map((value) => value.parameterCode)
+        .toSet();
+    final sessionDataForUncoveredParameters = _appState.currentSurveySensorData
+        .toList()
+        .where((data) => data.values
+            .any((value) => !coveredByFreshData.contains(value.parameterCode)))
+        .toList();
+    return [...freshData, ...sessionDataForUncoveredParameters];
   }
 
   Future<void> _checkSensorDataRead(List<SensorData> sensorDataList) async {
@@ -119,11 +128,10 @@ class SurveyEndController extends ControllerBase {
         });
   }
 
-  /// `manual` is a formal, admin-configured fallback source like any physical sensor type (see
-  /// [SensorParameterSource]) rather than an all-or-nothing mechanism: this only prompts for the
-  /// parameters the automatic reading didn't already cover, and only those that actually list
-  /// `manual` among their configured sources. Parameters an admin never wired to manual are left
-  /// uncollected when a sensor fails, instead of being blanket-prompted regardless of intent.
+  /// Every used parameter is guaranteed a `manual` fallback source (wired automatically by the
+  /// backend whenever the parameter is created), so this prompts for every parameter the
+  /// automatic reading didn't already cover — including a respondent with no matching physical
+  /// sensor assigned at all, since such a parameter is never covered in the first place.
   Future<List<SensorData>> _collectManualSensorDataIfNeeded(
       List<SensorData> sensorDataList) async {
     final setup = _readSensorSetup();
@@ -136,9 +144,7 @@ class SurveyEndController extends ControllerBase {
         .map((value) => value.parameterCode)
         .toSet();
     final parameters = setup.parameters
-        .where((parameter) =>
-            !coveredCodes.contains(parameter.code) &&
-            parameter.sourceFor('manual') != null)
+        .where((parameter) => !coveredCodes.contains(parameter.code))
         .toList();
     if (parameters.isEmpty) {
       return sensorDataList;
@@ -205,18 +211,15 @@ class SurveyEndController extends ControllerBase {
       return sensorDataList;
     }
 
+    // Every field was validated non-blank before the dialog could close (see _manualValueError),
+    // so every parameter here always yields a value.
     final manualValues = parameters
         .map((parameter) => SensorDataValue(
               parameterCode: parameter.code,
               value: _normalizedManualValue(
                   parameter, controllers[parameter.code]!.text),
             ))
-        .where((value) => value.value.isNotEmpty)
         .toList();
-
-    if (manualValues.isEmpty) {
-      return sensorDataList;
-    }
 
     // Its own entry, source 'manual' — never merged into an automatic reading's values, so a
     // manually-typed value is never misattributed to whichever sensor happened to report first.
@@ -233,7 +236,7 @@ class SurveyEndController extends ControllerBase {
     final name = parameter.unit == null
         ? parameter.name
         : '${parameter.name} (${parameter.unit})';
-    return parameter.required ? '$name *' : name;
+    return '$name *';
   }
 
   TextInputType _keyboardTypeFor(SensorParameterDefinition parameter) {
@@ -251,7 +254,7 @@ class SurveyEndController extends ControllerBase {
       SensorParameterDefinition parameter, String rawValue) {
     final value = rawValue.trim();
     if (value.isEmpty) {
-      return parameter.required ? getAppLocalizations().valueNotEmpty : null;
+      return getAppLocalizations().valueNotEmpty;
     }
 
     switch (parameter.dataType) {

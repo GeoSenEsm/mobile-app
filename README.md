@@ -9,7 +9,7 @@ from `/api/surveysettings/sensordata/mobile`, including no-sensor mode,
 enabled sources, connection timeouts, parameter definitions, and ordered
 respondent assignments for backend-provided sensor type codes such as
 `xiaomi`, `kestrel`, `pc_60fw`, `flower_care`,
-`xiaomi_door_sensor_2`, `inkbird_ibs_th1`, `manual`, or `none`. See
+`inkbird_ibs_th1`, `manual`, or `none`. See
 `../docs/AddingSensor.md` for the sensor extension guide.
 
 

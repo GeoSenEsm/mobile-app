@@ -27,8 +27,24 @@ class SensorDataMapper {
       }
       values.add(SensorDataValue(
           parameterCode: parameter.code,
-          value: rawValues[source.rawParameterCode]!.toString()));
+          value: _formatValue(
+              rawValues[source.rawParameterCode]!, parameter.dataType)));
     }
     return values;
+  }
+
+  /// Formats an automatically-read value according to its parameter's declared `dataType`,
+  /// rather than the raw Dart runtime type (`int` vs `double`) the decoder happened to produce.
+  /// Without this, a `decimal` parameter whose value is currently a whole number (e.g. Ruuvi's
+  /// hPa pressure reading) would print with zero or one decimal instead of a consistent two.
+  static String _formatValue(num value, String dataType) {
+    switch (dataType) {
+      case 'decimal':
+        return value.toStringAsFixed(2);
+      case 'integer':
+        return value.round().toString();
+      default:
+        return value.toString();
+    }
   }
 }

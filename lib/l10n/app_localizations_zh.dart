@@ -521,11 +521,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get couldNotMakeCall => '拨打电话失败。';
 
   @override
-  String get warning => '警告';
+  String get surveyStartDate => '调查开始日期';
 
   @override
-  String get noSensorSelected => '未选择温度传感器。完成问卷后，传感器数据将不会被保存。建议前往设置选择传感器。';
+  String get surveyEndDate => '调查结束日期';
 
   @override
-  String get continueWithoutSensor => '继续而不使用传感器';
+  String get timeZone => '时区';
+
+  @override
+  String get pullToRefreshHint => '下拉以与服务器同步数据';
 }

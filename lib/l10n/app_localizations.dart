@@ -775,7 +775,7 @@ abstract class AppLocalizations {
   /// No description provided for @sensorNotSpecified.
   ///
   /// In en, this message translates to:
-  /// **'Sensor not specified'**
+  /// **'No sensor is assigned to this account.'**
   String get sensorNotSpecified;
 
   /// No description provided for @sensorSecondsRemaining.
@@ -1090,23 +1090,29 @@ abstract class AppLocalizations {
   /// **'The call could not be completed.'**
   String get couldNotMakeCall;
 
-  /// No description provided for @warning.
+  /// No description provided for @surveyStartDate.
   ///
   /// In en, this message translates to:
-  /// **'Warning'**
-  String get warning;
+  /// **'Survey start date'**
+  String get surveyStartDate;
 
-  /// No description provided for @noSensorSelected.
+  /// No description provided for @surveyEndDate.
   ///
   /// In en, this message translates to:
-  /// **'No temperature sensor selected. Sensor data will not be saved after completing the survey. We suggest going to settings to select a sensor.'**
-  String get noSensorSelected;
+  /// **'Survey end date'**
+  String get surveyEndDate;
 
-  /// No description provided for @continueWithoutSensor.
+  /// No description provided for @timeZone.
   ///
   /// In en, this message translates to:
-  /// **'Continue without sensor'**
-  String get continueWithoutSensor;
+  /// **'Time zone'**
+  String get timeZone;
+
+  /// No description provided for @pullToRefreshHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Pull down to refresh data with the server'**
+  String get pullToRefreshHint;
 }
 
 class _AppLocalizationsDelegate

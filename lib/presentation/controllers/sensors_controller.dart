@@ -44,7 +44,6 @@ class SensorsController extends ControllerBase {
         type.sensorTypeCode: type.sensorTypeName ?? type.sensorTypeCode,
     };
     assignedSensors.value = setup.assignments
-        .where((assignment) => assignment.enabled)
         .map((assignment) => AssignedSensorView(
               name: assignment.sensorTypeCode == SensorKind.manual
                   ? getAppLocalizations().manualSensor

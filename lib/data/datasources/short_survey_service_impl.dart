@@ -14,7 +14,7 @@ class ShortSurveyServiceImpl extends APIServiceBase
   Future<
       APIResponse<List<SurveyWithTimeSlots>>> getSurveysWithTimeSlots() => get<
           List<SurveyWithTimeSlots>>(
-      '/api/surveys/allwithtimeslots?maxRowVersoin=${_storage.read<int>('surveysRowVersion') ?? 0}',
+      '/api/surveys/allwithtimeslots?maxRowVersion=${_storage.read<int>('surveysRowVersion') ?? 0}',
       (dynamic items) => items
           .map<SurveyWithTimeSlots>((e) => SurveyWithTimeSlots.fromJson(e))
           .toList());

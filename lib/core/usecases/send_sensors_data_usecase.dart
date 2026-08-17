@@ -45,12 +45,12 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
         return true;
       }
       final setup = _planner.readSetup();
-      final assignments = _planner.orderedAssignments(setup);
+      final assignments = _planner.assignedSensors(setup);
       if (assignments.isEmpty) {
         return await sendSensorData(null);
       }
 
-      // Every enabled sensor is attempted, not just the first one that connects, so each
+      // Every assigned sensor is attempted, not just the first one that connects, so each
       // reports its own independent SensorData row (see SensorData.source's single-sensor-type
       // foreign key on the backend — there is no combined-sensor row to merge into).
       var anySent = false;
@@ -161,7 +161,7 @@ class SendSensorsDataUsecaseImpl extends SendSensorsDataUsecase {
       }
       final setup = _planner.readSetup();
       final assignments = _planner
-          .orderedAssignments(setup)
+          .assignedSensors(setup)
           .where((assignment) => assignment.sensorTypeCode != 'manual')
           .toList();
       if (assignments.isEmpty) {

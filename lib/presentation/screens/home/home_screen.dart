@@ -57,7 +57,7 @@ class HomeScreen extends GetView<HomeController> {
                     padding: const EdgeInsets.only(bottom: 16),
                     child: Image.network(
                       controller.logoUrl.value!,
-                      height: 60,
+                      height: 110,
                       errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                     ),
                   )),
@@ -81,7 +81,13 @@ class HomeScreen extends GetView<HomeController> {
                     timeUnit: 60)),
               ],
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 12),
+            Text(
+              AppLocalizations.of(context)!.pullToRefreshHint,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
             Expanded(child: _buildSurveyList(context)),
           ],
         ),

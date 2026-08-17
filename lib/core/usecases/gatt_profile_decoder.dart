@@ -29,8 +29,17 @@ class GattProfileDecoder {
 
   void _decodeRead(GattRead read, List<int> packet, Map<String, num> values) {
     validateFrame(read, packet);
+    decodeFields(read.fields, packet, values);
+  }
+
+  /// Shared by [_decodeRead] (a gatt_sequence read's fixed frame) and
+  /// [BleAdvertisementDecoder]'s fixed-offset advertisement decoders (e.g. Ruuvi's Data Format 5)
+  /// — both are just "primitives at declared byte offsets", independent of how the bytes were
+  /// captured or what framing (if any) surrounds them.
+  void decodeFields(
+      List<GattField> fields, List<int> packet, Map<String, num> values) {
     final data = ByteData.sublistView(Uint8List.fromList(packet));
-    for (final field in read.fields) {
+    for (final field in fields) {
       if (field.byteOffset + field.byteLength > packet.length) {
         throw GattPacketException(
             '${field.parameterCode} exceeds packet length');

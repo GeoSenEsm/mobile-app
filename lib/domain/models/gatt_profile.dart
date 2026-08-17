@@ -71,7 +71,14 @@ class GattProfile {
         !const {'gatt_sequence', 'ble_advertisement'}.contains(transport)) {
       throw const GattProfileFormatException('Invalid profile identity');
     }
-    discovery.validate();
+    // Discovery only gates the GATT-connect path (SensorConnectionFactory._findDevice); an
+    // advertisement decoder identifies its device purely from the advertisement payload itself
+    // (service UUID or manufacturer ID already on BleAdvertisementDefinition), so a profile with
+    // no advertised name/service of its own to require (e.g. a manufacturer-data-only beacon) is
+    // still valid.
+    if (transport == 'gatt_sequence') {
+      discovery.validate();
+    }
     if (actions.length > 16 ||
         reads.length > maxReads ||
         (transport == 'gatt_sequence' && reads.isEmpty) ||
@@ -177,26 +184,37 @@ class GattAction {
 }
 
 class BleAdvertisementDefinition {
-  static const decoderWhitelist = {'xiaomi_mibeacon_v4_v5'};
+  static const decoderWhitelist = {
+    'xiaomi_mibeacon_v4_v5',
+    'ruuvi_data_format_5',
+  };
+  // ruuvi_data_format_5 is a fixed 24-byte struct (no per-field TLV framing at all), described via
+  // `fields` — the same GattField shape a gatt_sequence read uses — instead of MiBeacon's
+  // `objects` (TLV mappings keyed by a 2-byte objectId) and has no notion of a Xiaomi productId.
+  static const fixedOffsetDecoders = {'ruuvi_data_format_5'};
 
   final String decoderId;
   final String dataSource;
   final String? serviceUuid;
   final int? manufacturerId;
-  final int productId;
+  final int? productId;
   final int timeoutMilliseconds;
   final int maxPackets;
   final List<BleAdvertisementObjectMapping> objects;
+  final List<GattField> fields;
+
+  bool get usesFixedOffsetFields => fixedOffsetDecoders.contains(decoderId);
 
   const BleAdvertisementDefinition({
     required this.decoderId,
     this.dataSource = 'service_data',
     this.serviceUuid,
     this.manufacturerId,
-    required this.productId,
+    this.productId,
     this.timeoutMilliseconds = 10000,
     this.maxPackets = 50,
     this.objects = const [],
+    this.fields = const [],
   });
 
   factory BleAdvertisementDefinition.fromJson(Map<String, dynamic> json) =>
@@ -207,12 +225,15 @@ class BleAdvertisementDefinition {
             ? null
             : _requiredUuid(json, 'serviceUuid'),
         manufacturerId: json['manufacturerId'] as int?,
-        productId: _requiredInt(json, 'productId'),
+        productId: json['productId'] as int?,
         timeoutMilliseconds: json['timeoutMilliseconds'] as int? ?? 10000,
         maxPackets: json['maxPackets'] as int? ?? 50,
         objects: (json['objects'] as List<dynamic>? ?? const [])
             .map((value) =>
                 BleAdvertisementObjectMapping.fromJson(_asMap(value, 'objects')))
+            .toList(growable: false),
+        fields: (json['fields'] as List<dynamic>? ?? const [])
+            .map((value) => GattField.fromJson(_asMap(value, 'fields')))
             .toList(growable: false),
       );
 
@@ -224,18 +245,23 @@ class BleAdvertisementDefinition {
             (manufacturerId == null ||
                 manufacturerId! < 0 ||
                 manufacturerId! > 0xffff)) ||
-        productId < 0 ||
-        productId > 0xffff ||
+        (productId != null && (productId! < 0 || productId! > 0xffff)) ||
         timeoutMilliseconds < 100 ||
         timeoutMilliseconds > 120000 ||
         maxPackets < 1 ||
         maxPackets > 500 ||
-        objects.length > 32) {
+        objects.length > 32 ||
+        fields.length > 32 ||
+        (usesFixedOffsetFields ? fields.isEmpty || objects.isNotEmpty
+                               : objects.isEmpty || fields.isNotEmpty)) {
       throw const GattProfileFormatException(
           'Invalid advertisement definition');
     }
     for (final object in objects) {
       object.validate();
+    }
+    for (final field in fields) {
+      field.validate();
     }
   }
 
@@ -244,10 +270,11 @@ class BleAdvertisementDefinition {
         'dataSource': dataSource,
         if (serviceUuid != null) 'serviceUuid': serviceUuid,
         if (manufacturerId != null) 'manufacturerId': manufacturerId,
-        'productId': productId,
+        if (productId != null) 'productId': productId,
         'timeoutMilliseconds': timeoutMilliseconds,
         'maxPackets': maxPackets,
-        'objects': objects.map((object) => object.toJson()).toList(),
+        if (objects.isNotEmpty) 'objects': objects.map((object) => object.toJson()).toList(),
+        if (fields.isNotEmpty) 'fields': fields.map((field) => field.toJson()).toList(),
       };
 }
 

@@ -371,7 +371,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get startScanning => 'Start scanning';
 
   @override
-  String get sensorNotSpecified => 'Sensor not specified';
+  String get sensorNotSpecified => 'No sensor is assigned to this account.';
 
   @override
   String sensorSecondsRemaining(int seconds) {
@@ -551,12 +551,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldNotMakeCall => 'The call could not be completed.';
 
   @override
-  String get warning => 'Warning';
+  String get surveyStartDate => 'Survey start date';
 
   @override
-  String get noSensorSelected =>
-      'No temperature sensor selected. Sensor data will not be saved after completing the survey. We suggest going to settings to select a sensor.';
+  String get surveyEndDate => 'Survey end date';
 
   @override
-  String get continueWithoutSensor => 'Continue without sensor';
+  String get timeZone => 'Time zone';
+
+  @override
+  String get pullToRefreshHint => 'Pull down to refresh data with the server';
 }

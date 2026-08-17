@@ -8,7 +8,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/models/sensor_reading.dart';
 import 'package:survey_frontend/core/usecases/ble_advertisement_decoder.dart';
 import 'package:survey_frontend/core/usecases/gatt_profile_decoder.dart';
-import 'package:survey_frontend/core/usecases/sensor_bind_key_store.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
 import 'package:survey_frontend/core/usecases/sensor_profile_resolver.dart';
@@ -43,9 +42,9 @@ void main() {
   test('Xiaomi LYWSD03MMC reads temperature and humidity from its own GATT service',
       () {
     final profile = SeededGattProfiles.xiaomi;
-    // Real stock-firmware LYWSD03MMC units broadcast encrypted MiBeacon advertisements (no usable
-    // bind key), so this profile connects directly instead: temperature=2150 (*0.01=21.5),
-    // humidity=45, matching the proven v.2.0.1 byte layout.
+    // Real units broadcast encrypted MiBeacon which this app cannot decode, so this profile uses
+    // GATT transport instead: temperature=2150 (*0.01=21.5), humidity=45, matching the proven
+    // v.2.0.1 byte layout.
     final packet = [0x66, 0x08, 0x2D];
 
     final reading = const GattProfileDecoder().decode(profile, [packet]);
@@ -92,19 +91,36 @@ void main() {
     );
   });
 
-  test('Door Sensor 2 is advertisement-driven and rejects a wrong key', () {
-    final profile = SeededGattProfiles.doorSensor2;
-    final packet = List<int>.filled(24, 0);
-    packet[0] = 0x00;
-    packet[1] = 0x48;
-    packet[2] = 0x8b;
-    packet[3] = 0x09;
+  test('RuuviTag decodes its fixed-offset Data Format 5 (RAWv2) payload', () {
+    final profile = SeededGattProfiles.ruuvi;
+    // Official test vector from ruuvi/ruuvi-sensor-protocols' Data Format 5 spec: manufacturer
+    // data payload only (no company-id bytes), matching what flutter_blue_plus hands the decoder
+    // via AdvertisementData.manufacturerData[0x0499].
+    final payload = [
+      0x05, 0x12, 0xFC, 0x53, 0x94, 0xC3, 0x7C, 0x00, //
+      0x04, 0xFF, 0xFC, 0x04, 0x0C, 0xAC, 0x36, 0x42, //
+      0x00, 0xCD, 0xCB, 0xB8, 0x33, 0x4C, 0x88, 0x4F, //
+    ];
 
     expect(profile.transport, 'ble_advertisement');
-    expect(profile.advertisement!.decoderId, 'xiaomi_mibeacon_v4_v5');
+    expect(profile.advertisement!.decoderId, 'ruuvi_data_format_5');
+    expect(profile.advertisement!.usesFixedOffsetFields, isTrue);
+    final reading = const BleAdvertisementDecoder().decode(profile, payload);
+
+    expect(reading.values, {
+      'temperature': 24.3,
+      'humidity': 53.49,
+      'pressure': 1000.44,
+      'movement': 66,
+    });
+  });
+
+  test('RuuviTag decoder rejects a payload too short for its declared fields', () {
+    final profile = SeededGattProfiles.ruuvi;
+    final tooShort = List<int>.filled(10, 0);
+
     expect(
-      () => const BleAdvertisementDecoder()
-          .decode(profile, packet, List<int>.filled(16, 1)),
+      () => const BleAdvertisementDecoder().decode(profile, tooShort),
       throwsA(isA<AdvertisementPacketException>()),
     );
   });
@@ -201,31 +217,31 @@ void main() {
     await storage.erase();
 
     final scanner = _FixedResultsScanner([
-      _doorSensorScanResult('AA:AA:AA:AA:AA:AA', opening: 0), // open
-      _doorSensorScanResult('BB:BB:BB:BB:BB:BB', opening: 1), // closed
+      _ruuviScanResult('AA:AA:AA:AA:AA:AA', movement: 10),
+      _ruuviScanResult('BB:BB:BB:BB:BB:BB', movement: 20),
     ]);
-    final factory = SensorConnectionFactory(storage,
-        scanner: scanner, bindKeyStore: const _NoBindKeyStore());
+    final factory = SensorConnectionFactory(storage, scanner: scanner);
 
     final connection = await factory.getSensorConnection(
         const Duration(seconds: 1),
-        sensorTypeCode: 'xiaomi_door_sensor_2',
+        sensorTypeCode: 'ruuvi',
         sensorMac: 'BB:BB:BB:BB:BB:BB');
     final reading = await connection.getSensorData();
 
-    expect(reading.values['opening'], 1);
+    expect(reading.values['movement'], 20);
   });
 }
 
-final _fe95 = Guid('0000fe95-0000-1000-8000-00805f9b34fb');
+const _ruuviManufacturerId = 0x0499;
 
-/// Builds an unencrypted MiBeacon advertisement for the seeded `xiaomi_door_sensor_2` profile
-/// (product id 2443), with a caller-chosen `opening` value so tests can tell which of several
-/// matching devices' data actually made it through.
-ScanResult _doorSensorScanResult(String mac, {required int opening}) {
-  final packet = <int>[
-    0x00, 0x50, 0x8B, 0x09, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, //
-    0x19, 0x10, 0x01, opening,
+/// Builds a RuuviTag Data Format 5 (RAWv2) manufacturer-data advertisement, with a caller-chosen
+/// `movement` value so tests can tell which of several matching devices' data actually made it
+/// through.
+ScanResult _ruuviScanResult(String mac, {required int movement}) {
+  final payload = <int>[
+    0x05, 0x12, 0xFC, 0x53, 0x94, 0xC3, 0x7C, 0x00, //
+    0x04, 0xFF, 0xFC, 0x04, 0x0C, 0xAC, 0x36, movement, //
+    0x00, 0xCD, 0xCB, 0xB8, 0x33, 0x4C, 0x88, 0x4F, //
   ];
   return ScanResult(
     device: BluetoothDevice.fromId(mac),
@@ -234,9 +250,9 @@ ScanResult _doorSensorScanResult(String mac, {required int opening}) {
       txPowerLevel: null,
       appearance: null,
       connectable: true,
-      manufacturerData: const {},
-      serviceData: {_fe95: packet},
-      serviceUuids: [_fe95],
+      manufacturerData: {_ruuviManufacturerId: payload},
+      serviceData: const {},
+      serviceUuids: const [],
     ),
     rssi: -60,
     timeStamp: DateTime.fromMillisecondsSinceEpoch(0),
@@ -317,14 +333,4 @@ class _FixedResultsScanner implements BluetoothScanGateway {
   Future<void> stopScan() async {
     await _controller.close();
   }
-}
-
-/// Avoids the unencrypted advertisement path touching the real
-/// flutter_secure_storage platform channel (unavailable in plain unit tests).
-class _NoBindKeyStore extends SensorBindKeyStore {
-  const _NoBindKeyStore();
-
-  @override
-  Future<List<int>?> read(String sensorTypeCode, String? sensorId) async =>
-      null;
 }

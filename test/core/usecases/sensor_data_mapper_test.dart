@@ -15,12 +15,9 @@ void main() {
             name: 'Temperature',
             dataType: 'decimal',
             unit: 'C',
-            required: true,
             sources: [
               SensorParameterSource(
-                  sensorTypeCode: 'xiaomi',
-                  rawParameterCode: 'temperature',
-                  priorityOrder: 0),
+                  sensorTypeCode: 'xiaomi', rawParameterCode: 'temperature'),
             ],
           ),
           SensorParameterDefinition(
@@ -28,12 +25,9 @@ void main() {
             name: 'Humidity',
             dataType: 'decimal',
             unit: '%',
-            required: true,
             sources: [
               SensorParameterSource(
-                  sensorTypeCode: 'xiaomi',
-                  rawParameterCode: 'humidity',
-                  priorityOrder: 0),
+                  sensorTypeCode: 'xiaomi', rawParameterCode: 'humidity'),
             ],
           ),
         ],
@@ -61,12 +55,9 @@ void main() {
             name: 'Air pressure',
             dataType: 'decimal',
             unit: 'hPa',
-            required: true,
             sources: [
               SensorParameterSource(
-                  sensorTypeCode: 'xiaomi',
-                  rawParameterCode: 'air_pressure',
-                  priorityOrder: 0),
+                  sensorTypeCode: 'xiaomi', rawParameterCode: 'air_pressure'),
             ],
           ),
         ],
@@ -92,12 +83,9 @@ void main() {
             name: 'Temperature',
             dataType: 'decimal',
             unit: 'C',
-            required: true,
             sources: [
               SensorParameterSource(
-                  sensorTypeCode: 'kestrel',
-                  rawParameterCode: 'temperature',
-                  priorityOrder: 0),
+                  sensorTypeCode: 'kestrel', rawParameterCode: 'temperature'),
             ],
           ),
         ],
@@ -122,12 +110,9 @@ void main() {
             name: 'Ambient Temperature',
             dataType: 'decimal',
             unit: 'C',
-            required: true,
             sources: [
               SensorParameterSource(
-                  sensorTypeCode: 'kestrel',
-                  rawParameterCode: 'temp',
-                  priorityOrder: 0),
+                  sensorTypeCode: 'kestrel', rawParameterCode: 'temp'),
             ],
           ),
         ],
@@ -140,7 +125,63 @@ void main() {
 
       expect(values, hasLength(1));
       expect(values.single.parameterCode, 'ambient_temperature');
-      expect(values.single.value, '19.0');
+      // `decimal`-typed parameters always format with exactly 2 decimals, even a value that is
+      // itself a whole number -- this is what makes Ruuvi's hPa pressure (see
+      // sensor_profile_resolver_test.dart) show up consistently everywhere it's read back.
+      expect(values.single.value, '19.00');
+    });
+
+    test('formats a decimal parameter with exactly 2 decimals regardless of its raw precision',
+        () {
+      final setup = MobileSensorSetup(
+        mode: MobileSensorSetup.configuredSensors,
+        sensorTypes: const [],
+        parameters: const [
+          SensorParameterDefinition(
+            code: 'pressure',
+            name: 'Pressure',
+            dataType: 'decimal',
+            unit: 'hPa',
+            sources: [
+              SensorParameterSource(
+                  sensorTypeCode: 'ruuvi', rawParameterCode: 'pressure'),
+            ],
+          ),
+        ],
+        assignments: const [],
+      );
+
+      final values = SensorDataMapper.fromResponse(
+          const SensorReading(source: 'ruuvi', values: {'pressure': 1000.4}),
+          setup);
+
+      expect(values.single.value, '1000.40');
+    });
+
+    test('formats an integer parameter with no decimals', () {
+      final setup = MobileSensorSetup(
+        mode: MobileSensorSetup.configuredSensors,
+        sensorTypes: const [],
+        parameters: const [
+          SensorParameterDefinition(
+            code: 'movement',
+            name: 'Movement',
+            dataType: 'integer',
+            unit: null,
+            sources: [
+              SensorParameterSource(
+                  sensorTypeCode: 'ruuvi', rawParameterCode: 'movement'),
+            ],
+          ),
+        ],
+        assignments: const [],
+      );
+
+      final values = SensorDataMapper.fromResponse(
+          const SensorReading(source: 'ruuvi', values: {'movement': 66}),
+          setup);
+
+      expect(values.single.value, '66');
     });
   });
 }

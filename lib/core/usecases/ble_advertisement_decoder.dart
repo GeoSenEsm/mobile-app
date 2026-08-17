@@ -1,22 +1,48 @@
 import 'dart:typed_data';
 
-import 'package:pointycastle/export.dart';
 import 'package:survey_frontend/core/models/sensor_reading.dart';
+import 'package:survey_frontend/core/usecases/gatt_profile_decoder.dart';
 import 'package:survey_frontend/domain/models/gatt_profile.dart';
 
 class BleAdvertisementDecoder {
-  const BleAdvertisementDecoder();
+  const BleAdvertisementDecoder({this.fieldDecoder = const GattProfileDecoder()});
+
+  final GattProfileDecoder fieldDecoder;
 
   SensorReading decode(
     GattProfile profile,
     List<int> serviceData,
-    List<int>? bindKey,
   ) {
     final definition = profile.advertisement;
-    if (definition == null || definition.decoderId != 'xiaomi_mibeacon_v4_v5') {
+    if (definition == null || !BleAdvertisementDefinition.decoderWhitelist.contains(definition.decoderId)) {
       throw const AdvertisementPacketException(
           'Unsupported advertisement decoder');
     }
+    if (definition.usesFixedOffsetFields) {
+      return _decodeFixedOffset(profile, definition, serviceData);
+    }
+    return _decodeMiBeacon(profile, definition, serviceData);
+  }
+
+  /// Ruuvi's Data Format 5 (and any future fixed-offset decoder) is a plain struct with no TLV
+  /// framing, no product-id header, and no encryption — the raw bytes handed in are exactly the
+  /// manufacturer-specific-data payload, ready to decode at the declared offsets.
+  SensorReading _decodeFixedOffset(GattProfile profile,
+      BleAdvertisementDefinition definition, List<int> payload) {
+    final values = <String, num>{};
+    try {
+      fieldDecoder.decodeFields(definition.fields, payload, values);
+    } on GattPacketException catch (exception) {
+      throw AdvertisementPacketException(exception.message);
+    }
+    return SensorReading(source: profile.sensorTypeCode, values: values);
+  }
+
+  SensorReading _decodeMiBeacon(
+    GattProfile profile,
+    BleAdvertisementDefinition definition,
+    List<int> serviceData,
+  ) {
     if (serviceData.length < 11) {
       throw const AdvertisementPacketException(
           'Advertisement frame is too short');
@@ -36,55 +62,15 @@ class BleAdvertisementDecoder {
     // Stock firmware only encrypts advertisements once the sensor has been bound to a Mi Home
     // account; unbound devices broadcast the object payload in the clear right after the header.
     final isEncrypted = (frameControl & 0x0800) != 0;
-    final payload = isEncrypted
-        ? _decryptMiBeacon(data, _requireBindKey(bindKey))
-        : data.sublist(11);
+    if (isEncrypted) {
+      throw const AdvertisementPacketException(
+          'Encrypted advertisement not supported');
+    }
+    final payload = data.sublist(11);
     return SensorReading(
       source: profile.sensorTypeCode,
       values: _decodeMiBeaconObjects(payload, definition),
     );
-  }
-
-  Uint8List _requireBindKey(List<int>? bindKey) {
-    if (bindKey == null || bindKey.length != 16) {
-      throw const AdvertisementPacketException(
-          'Bind key required for encrypted advertisement');
-    }
-    return Uint8List.fromList(bindKey);
-  }
-
-  Uint8List _decryptMiBeacon(Uint8List frame, Uint8List bindKey) {
-    final encryptedPayloadEnd = frame.length - 7;
-    if (encryptedPayloadEnd <= 11) {
-      throw const AdvertisementPacketException('Encrypted frame is too short');
-    }
-    final extendedCounter = frame.sublist(frame.length - 7, frame.length - 4);
-    final mic = frame.sublist(frame.length - 4);
-    final nonce = Uint8List.fromList([
-      ...frame.sublist(5, 11),
-      ...frame.sublist(2, 5),
-      ...extendedCounter,
-    ]);
-    final cipherTextAndTag = Uint8List.fromList([
-      ...frame.sublist(11, encryptedPayloadEnd),
-      ...mic,
-    ]);
-    try {
-      final cipher = CCMBlockCipher(AESEngine())
-        ..init(
-          false,
-          AEADParameters(
-            KeyParameter(bindKey),
-            32,
-            nonce,
-            Uint8List.fromList(const [0x11]),
-          ),
-        );
-      return cipher.process(cipherTextAndTag);
-    } on Object {
-      throw const AdvertisementPacketException(
-          'Advertisement authentication failed');
-    }
   }
 
   Map<String, num> _decodeMiBeaconObjects(

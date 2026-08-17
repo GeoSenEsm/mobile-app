@@ -554,12 +554,15 @@ class AppLocalizationsPl extends AppLocalizations {
   String get couldNotMakeCall => 'Nie udało się wykonać połączenia.';
 
   @override
-  String get warning => 'Ostrzeżenie';
+  String get surveyStartDate => 'Data rozpoczęcia ankiety';
 
   @override
-  String get noSensorSelected =>
-      'Nie wybrano czujnika temperatury. Dane sensoryczne nie zostaną zapisane po wypełnieniu ankiety. Sugerujemy przejście do ustawień, aby wybrać czujnik.';
+  String get surveyEndDate => 'Data zakończenia ankiety';
 
   @override
-  String get continueWithoutSensor => 'Kontunuuj bez czujnika';
+  String get timeZone => 'Strefa czasowa';
+
+  @override
+  String get pullToRefreshHint =>
+      'Przesuń w dół, aby zsynchronizować dane z serwerem';
 }

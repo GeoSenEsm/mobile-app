@@ -6,7 +6,6 @@ import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:survey_frontend/core/models/sensor_reading.dart';
 import 'package:survey_frontend/core/usecases/ble_advertisement_decoder.dart';
-import 'package:survey_frontend/core/usecases/sensor_bind_key_store.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection.dart';
 import 'package:survey_frontend/core/usecases/sensor_profile_resolver.dart';
 import 'package:survey_frontend/data/models/sensor_kind.dart';
@@ -17,19 +16,16 @@ class SensorConnectionFactory {
   final GetStorage _storage;
   final SensorProfileResolver _resolver;
   final BluetoothScanGateway _scanner;
-  final SensorBindKeyStore _bindKeyStore;
   final BleAdvertisementDecoder _advertisementDecoder;
 
   SensorConnectionFactory(
     this._storage, {
     SensorProfileResolver resolver = const SensorProfileResolver(),
     BluetoothScanGateway scanner = const FlutterBlueScanGateway(),
-    SensorBindKeyStore bindKeyStore = const SensorBindKeyStore(),
     BleAdvertisementDecoder advertisementDecoder =
         const BleAdvertisementDecoder(),
   })  : _resolver = resolver,
         _scanner = scanner,
-        _bindKeyStore = bindKeyStore,
         _advertisementDecoder = advertisementDecoder;
 
   /// Guards the scan → connect → in-use lifetime of a connection to one sensor *type*, not the
@@ -90,7 +86,6 @@ class SensorConnectionFactory {
   Future<SensorReading> _readAdvertisement(GattProfile profile,
       Duration requestedTimeout, String? sensorId, String? sensorMac) async {
     final definition = profile.advertisement!;
-    final bindKey = await _bindKeyStore.read(profile.sensorTypeCode, sensorId);
     final configuredTimeout =
         Duration(milliseconds: definition.timeoutMilliseconds);
     final timeout = requestedTimeout < configuredTimeout
@@ -121,10 +116,10 @@ class SensorConnectionFactory {
         packetsSeen++;
         try {
           completer.complete(
-              _advertisementDecoder.decode(profile, payload, bindKey));
+              _advertisementDecoder.decode(profile, payload));
         } on AdvertisementPacketException catch (e) {
           debugPrint('[advertisement:${profile.sensorTypeCode}] '
-              'decode rejected payload=$payload bindKeySet=${bindKey != null}: ${e.message}');
+              'decode rejected payload=$payload: ${e.message}');
           if (packetsSeen >= definition.maxPackets) {
             completer.completeError(const AdvertisementPacketException(
                 'No valid advertisement within maxPackets'));

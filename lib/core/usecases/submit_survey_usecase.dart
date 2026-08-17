@@ -98,16 +98,30 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
 
     final apiResponse =
         await _surveyResponseService.submitResponses(currentlySaved);
-    if (apiResponse.statusCode == 201) {
-      await _storage.remove('savedResponses');
-      await _saveSensorDataLocally(currentlySaved
-          .expand((e) => e.sensorData ?? const <SensorData>[])
-          .toList());
-      await _updateLocations(apiResponse.body!);
-      return true;
+    if (apiResponse.statusCode != 201 || apiResponse.body == null) {
+      return false;
     }
 
-    return false;
+    // The /offline endpoint always returns 201 even when some responses were
+    // silently rejected by server-side validation, so we must check the
+    // returned body to see which ones actually got saved before discarding
+    // anything from local storage.
+    final savedParticipations = apiResponse.body!;
+    final saved = <CreateSurveyResponseDto>[];
+    final notSaved = <CreateSurveyResponseDto>[];
+
+    for (final dto in currentlySaved) {
+      final wasSaved = savedParticipations.any((p) =>
+          p.surveyId == dto.surveyId && p.surveyStartDate == dto.startDate);
+      (wasSaved ? saved : notSaved).add(dto);
+    }
+
+    await _storage.write('savedResponses', notSaved);
+    await _saveSensorDataLocally(
+        saved.expand((e) => e.sensorData ?? const <SensorData>[]).toList());
+    await _updateLocations(savedParticipations);
+
+    return notSaved.isEmpty;
   }
 
   Future<void> _updateLocations(

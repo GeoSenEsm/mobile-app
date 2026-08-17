@@ -9,9 +9,9 @@ import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
+import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
-import 'package:survey_frontend/core/usecases/sensor_bind_key_store.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
@@ -55,9 +55,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final SensorMacService _sensorMacService;
   final SurveySettingsService _surveySettingsService;
-  final SensorBindKeyStore _sensorBindKeyStore = const SensorBindKeyStore();
   final RxnString logoUrl = RxnString();
   final AppState _appState;
+  final NeedInsertRespondentDataUseCase _needInsertRespondentDataUseCase;
 
   HomeController(
       this._homeService,
@@ -71,7 +71,8 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._sendLocationDataUsecase,
       this._sensorMacService,
       this._surveySettingsService,
-      this._appState);
+      this._appState,
+      this._needInsertRespondentDataUseCase);
 
   @override
   void onInit() async {
@@ -132,6 +133,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     }
 
     await _sendLocationDataUsecase.sendLocationData(null);
+    await _syncRespondentData();
+    await _syncMobileSensorSetup();
+    await _syncSurveySettings();
 
     if (!await _submitSurveyUsecase.submitAllLocallySaved()) {
       //we can go further only if the submition of old resopnses is succeded, otherwise, there may be
@@ -152,9 +156,19 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       await _databaseHelper.upsertSurveys(response.body!);
       await _surveyNotificationUseCase.scheduleSurveysNotifications();
     }
+  }
 
-    await _syncMobileSensorSetup();
-    await _syncSurveySettings();
+  Future<void> _syncRespondentData() async {
+    try {
+      final respondentId = _storage
+          .read<Map<String, dynamic>>('respondentData')?['id'] as String?;
+      if (respondentId == null) {
+        return;
+      }
+      await _needInsertRespondentDataUseCase.update(respondentId);
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
   }
 
   Future<void> _syncSurveySettings() async {
@@ -220,21 +234,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       }
 
       final setup = response.body!;
-      final secretsByMacId = {
-        for (final s in setup.deviceSecrets) s.sensorMacId: s.secrets,
-      };
-      for (final assignment in setup.assignments) {
-        final macId = assignment.sensorMacId;
-        if (macId == null) continue;
-        final bindKey = secretsByMacId[macId]?['bind_key'];
-        if (bindKey != null) {
-          await _sensorBindKeyStore.write(
-              assignment.sensorTypeCode, assignment.sensorId, bindKey);
-        } else {
-          await _sensorBindKeyStore.delete(
-              assignment.sensorTypeCode, assignment.sensorId);
-        }
-      }
       _storage.write(MobileSensorSetup.sensorModeKey, setup.mode);
       _storage.write(MobileSensorSetup.storageKey, jsonEncode(setup.toJson()));
       if (Get.isRegistered<ManuController>()) {
@@ -256,11 +255,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
           .toSet();
       final assignment = setup.assignments
           .where((assignment) =>
-              assignment.enabled &&
-              (assignment.sensorTypeCode == SensorKind.manual ||
-                  enabledTypeCodes.contains(assignment.sensorTypeCode)))
-          .toList()
-        ..sort((a, b) => a.priorityOrder.compareTo(b.priorityOrder));
+              assignment.sensorTypeCode == SensorKind.manual ||
+              enabledTypeCodes.contains(assignment.sensorTypeCode))
+          .toList();
       if (assignment.isEmpty) {
         _storage.write('selectedSensor', SensorKind.none);
         return;
@@ -292,10 +289,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
     try {
       // TODO check if survey still active
-
-      if (!await _ensureSensorSelected()) {
-        return;
-      }
 
       final shortSurveyInfo =
           pendingSurveys.firstWhereOrNull((element) => element.id == surveyId);
@@ -488,44 +481,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         latitude: double.parse(currentLocation.latitude.toStringAsFixed(6)),
         longitude: double.parse(currentLocation.longitude.toStringAsFixed(6)),
         accuracyMeters: accuracy);
-  }
-
-  Future<bool> _ensureSensorSelected() async {
-    if (_storage.read<String>(MobileSensorSetup.sensorModeKey) ==
-        MobileSensorSetup.noSensorData) {
-      return true;
-    }
-    final selectedSensor = _storage.read<String>('selectedSensor');
-
-    if (selectedSensor == null || selectedSensor == SensorKind.none) {
-      final result = await showDialog<bool>(
-        context: Get.context!,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(getAppLocalizations().warning),
-            content: Text(getAppLocalizations().noSensorSelected),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: Text(getAppLocalizations().continueWithoutSensor),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: Text(getAppLocalizations().ok),
-              ),
-            ],
-          );
-        },
-      );
-
-      return result ?? false;
-    }
-
-    return true;
   }
 }
 

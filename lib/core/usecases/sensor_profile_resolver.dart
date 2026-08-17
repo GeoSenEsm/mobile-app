@@ -359,26 +359,82 @@ class SeededGattProfiles {
     ],
   });
 
-  static final GattProfile doorSensor2 = GattProfile.fromJson({
+  static final GattProfile ruuvi = GattProfile.fromJson({
     'schemaVersion': 1,
     'revision': 1,
-    'sensorTypeCode': 'xiaomi_door_sensor_2',
+    'sensorTypeCode': 'ruuvi',
     'minEngineVersion': 1,
     'transport': 'ble_advertisement',
-    'discovery': {'advertisedServiceUuid': 'fe95'},
+    // RuuviTag broadcasts a fixed 24-byte struct as manufacturer-specific data (company id 0x0499)
+    // rather than advertising a scannable service — there is no name/service for `discovery` to
+    // require, which is why ble_advertisement profiles no longer need one (see GattProfile.validate).
+    'discovery': <String, dynamic>{},
     'reads': [],
     'advertisement': {
-      'decoderId': 'xiaomi_mibeacon_v4_v5',
-      'serviceUuid': 'fe95',
-      'productId': 2443,
+      'decoderId': 'ruuvi_data_format_5',
+      'dataSource': 'manufacturer_data',
+      'manufacturerId': 0x0499,
       'timeoutMilliseconds': 10000,
       'maxPackets': 100,
-      'objects': [
-        {'objectId': '0x1019', 'parameterCode': 'opening', 'type': 'uint8'},
-        {'objectId': '0x1018', 'parameterCode': 'light_detected', 'type': 'bool'},
-        {'objectId': '0x100A', 'parameterCode': 'battery', 'type': 'uint8'},
+      'fields': [
+        {
+          'parameterCode': 'temperature',
+          'type': 'int16',
+          'endian': 'big',
+          'byteOffset': 1,
+          'scale': 0.005,
+          'minimum': -163.835,
+          'maximum': 163.835,
+        },
+        {
+          'parameterCode': 'humidity',
+          'type': 'uint16',
+          'endian': 'big',
+          'byteOffset': 3,
+          'scale': 0.0025,
+          'minimum': 0,
+          'maximum': 163.835,
+        },
+        {
+          // Decoded directly to hPa (Ruuvi's 1 Pa native resolution maps exactly to 2 decimal
+          // digits in hPa), not the raw whole-Pascal value Data Format 5 itself uses.
+          'parameterCode': 'pressure',
+          'type': 'uint16',
+          'endian': 'big',
+          'byteOffset': 5,
+          'scale': 0.01,
+          'valueOffset': 500,
+          'minimum': 500,
+          'maximum': 1155.35,
+        },
+        {
+          'parameterCode': 'movement',
+          'type': 'uint8',
+          'endian': 'big',
+          'byteOffset': 15,
+          'minimum': 0,
+          'maximum': 254,
+        },
       ],
     },
+    'goldenVectors': [
+      {
+        'packets': [
+          // Official test vector from ruuvi/ruuvi-sensor-protocols' Data Format 5 (RAWv2) spec.
+          [
+            0x05, 0x12, 0xFC, 0x53, 0x94, 0xC3, 0x7C, 0x00, //
+            0x04, 0xFF, 0xFC, 0x04, 0x0C, 0xAC, 0x36, 0x42, //
+            0x00, 0xCD, 0xCB, 0xB8, 0x33, 0x4C, 0x88, 0x4F, //
+          ],
+        ],
+        'expectedValues': {
+          'temperature': 24.3,
+          'humidity': 53.49,
+          'pressure': 1000.44,
+          'movement': 66,
+        },
+      },
+    ],
   });
 
   static List<GattProfile> get all => [
@@ -387,7 +443,7 @@ class SeededGattProfiles {
         inkbirdIbsTh1,
         pc60fw,
         flowerCare,
-        doorSensor2,
+        ruuvi,
       ];
 }
 
