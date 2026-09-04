@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -15,8 +16,11 @@ import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/data/models/survey_calendar_event.dart';
 import 'package:survey_frontend/data/models/upadte_location_participation.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
+import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
+import 'package:survey_frontend/core/utils/study_time_zone.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -37,7 +41,7 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'survey_database.db');
     return await openDatabase(path,
-        version: 5, onCreate: _onCreate, onUpgrade: _onUpgrade);
+        version: 7, onCreate: _onCreate, onUpgrade: _onUpgrade);
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -121,8 +125,8 @@ class DatabaseHelper {
       CREATE TABLE sensor_data (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         "dateTime" DATETIME,
-        temperature REAL,
-        humidity REAL,
+        source TEXT,
+        valuesJson TEXT,
         sentToServer BIT
       )
       ''');
@@ -155,6 +159,40 @@ class DatabaseHelper {
       ALTER TABLE locations ADD COLUMN accuracyMeters REAL;
       ''');
     }
+
+    if (oldVersion < 6) {
+      await db.execute('''
+      CREATE TABLE survey_notifications (
+        id TEXT PRIMARY KEY,
+        surveyId TEXT NOT NULL,
+        "order" INTEGER NOT NULL,
+        relativeTo TEXT NOT NULL,
+        minutesBefore INTEGER NOT NULL,
+        FOREIGN KEY (surveyId) REFERENCES surveys (id) ON DELETE CASCADE
+      )
+      ''');
+      await db.execute('''
+      INSERT INTO survey_notifications (id, surveyId, "order", relativeTo, minutesBefore)
+      SELECT id || '_0', id, 0, 'beginning', 0 FROM surveys
+      ''');
+      await db.execute('''
+      INSERT INTO survey_notifications (id, surveyId, "order", relativeTo, minutesBefore)
+      SELECT id || '_1', id, 1, 'end', 15 FROM surveys
+      ''');
+    }
+
+    if (oldVersion < 7) {
+      await db.execute('DROP TABLE IF EXISTS sensor_data');
+      await db.execute('''
+      CREATE TABLE sensor_data (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        "dateTime" DATETIME,
+        source TEXT,
+        valuesJson TEXT,
+        sentToServer BIT
+      )
+      ''');
+    }
   }
 
   Future<void> upsertSurveys(
@@ -175,14 +213,40 @@ class DatabaseHelper {
         maxRowVersion =
             max(maxRowVersion, surveyWithTimeSlots.survey.rowVersion);
 
+        await txn.delete('survey_notifications',
+            where: 'surveyId = ?', whereArgs: [surveyWithTimeSlots.survey.id]);
+
+        final notifications = surveyWithTimeSlots.survey.notifications;
+        for (var i = 0; i < notifications.length; i++) {
+          final notification = notifications[i];
+          await txn.insert(
+            'survey_notifications',
+            {
+              'id': notification.id ?? '${surveyWithTimeSlots.survey.id}_$i',
+              'surveyId': surveyWithTimeSlots.survey.id,
+              'order': notification.order,
+              'relativeTo': notification.relativeTo,
+              'minutesBefore': notification.minutesBefore,
+            },
+            conflictAlgorithm: ConflictAlgorithm.replace,
+          );
+        }
+
+        final timeZoneId = _storage.read<String>(StudyTimeZone.storageKey) ??
+            StudyTimeZone.defaultId;
+        tzdata.initializeTimeZones();
         for (var timeSlot in surveyWithTimeSlots.surveySendingPolicyTimes) {
+          final startUtc =
+              StudyTimeZone.wallClockToUtc(timeSlot.start, timeZoneId);
+          final finishUtc =
+              StudyTimeZone.wallClockToUtc(timeSlot.finish, timeZoneId);
           await txn.insert(
               'timeSlots',
               {
                 'id': timeSlot.id,
                 'surveyId': surveyWithTimeSlots.survey.id,
-                'start': timeSlot.start.toIso8601String(),
-                'finish': timeSlot.finish.toIso8601String(),
+                'start': startUtc.toIso8601String(),
+                'finish': finishUtc.toIso8601String(),
                 'rowVersion': timeSlot.rowVersion,
                 'surveyName': surveyWithTimeSlots.survey.name
               },
@@ -328,6 +392,34 @@ class DatabaseHelper {
     }).toList();
   }
 
+  Future<List<SurveyNotificationDto>> getSurveyNotifications(
+      String surveyId) async {
+    final db = await database;
+    final rows = await db.query(
+      'survey_notifications',
+      where: 'surveyId = ?',
+      whereArgs: [surveyId],
+      orderBy: '"order" ASC',
+    );
+    return rows
+        .map((row) => SurveyNotificationDto(
+              id: row['id'] as String?,
+              order: row['order'] as int,
+              relativeTo: row['relativeTo'] as String,
+              minutesBefore: row['minutesBefore'] as int,
+            ))
+        .toList();
+  }
+
+  Future<int> getSurveyNotificationCount(String surveyId) async {
+    final db = await database;
+    final result = await db.rawQuery(
+      'SELECT COUNT(*) AS c FROM survey_notifications WHERE surveyId = ?',
+      [surveyId],
+    );
+    return Sqflite.firstIntValue(result) ?? 0;
+  }
+
   Future markAsSubmited(String id) async {
     final db = await database;
     final String currentDate = DateTime.now().toUtc().toIso8601String();
@@ -339,7 +431,10 @@ class DatabaseHelper {
   Future<void> clearAllSurveysRelatedTables() async {
     final db = await database;
     final now = DateTime.now().toUtc().toIso8601String();
-    await db.delete('timeSlots', where: 'finish >= ? AND (submited = 0 OR submited IS NULL)', whereArgs: [now]);
+    await db.delete('timeSlots',
+        where: 'finish >= ? AND (submited = 0 OR submited IS NULL)',
+        whereArgs: [now]);
+    await db.delete('survey_notifications');
     await db.delete('surveys');
     await db.delete('sections');
     await db.delete('questions');
@@ -469,7 +564,10 @@ class DatabaseHelper {
 
     return result
         .map((e) => SurveyCalendarEvent(
-            surveyName: e['name'] == null ? '' : e['name'] as String, //TODO: on one of the phones, there was a bug here because the name was null. This should fix the problem, but I have no idea in what way did the survey name be null
+            surveyName: e['name'] == null
+                ? ''
+                : e['name']
+                    as String, //TODO: on one of the phones, there was a bug here because the name was null. This should fix the problem, but I have no idea in what way did the survey name be null
             timeSlotId: e['timeSlotId'] as String,
             from: DateTime.parse(e['from'] as String),
             to: DateTime.parse(e['to'] as String),
@@ -481,8 +579,9 @@ class DatabaseHelper {
     final db = await database;
     await db.insert('sensor_data', {
       'dateTime': sensorData.dateTime.toIso8601String(),
-      'temperature': sensorData.temperature,
-      'humidity': sensorData.humidity,
+      'source': sensorData.source,
+      'valuesJson':
+          jsonEncode(sensorData.values.map((value) => value.toJson()).toList()),
       'sentToServer': sensorData.sentToServer ? 1 : 0
     });
   }
@@ -491,7 +590,7 @@ class DatabaseHelper {
       DateTime from, DateTime to) async {
     final db = await database;
     final results = await db.rawQuery('''
-    SELECT "dateTime", temperature, humidity, sentToServer
+    SELECT "dateTime", source, valuesJson, sentToServer
     FROM sensor_data 
     WHERE "dateTime" >= ? AND "dateTime" <= ?
     ''', [from.toIso8601String(), to.toIso8601String()]);
@@ -504,8 +603,11 @@ class DatabaseHelper {
     return items
         .map((e) => SensorDataModel(
             dateTime: DateTime.parse(e['dateTime'] as String),
-            temperature: e['temperature'] as double,
-            humidity: e['humidity'] as double,
+            source: e['source'] as String,
+            values: (jsonDecode(e['valuesJson'] as String) as List<dynamic>)
+                .map((value) =>
+                    SensorDataValue.fromJson(value as Map<String, dynamic>))
+                .toList(),
             sentToServer: e['sentToServer'] == 1))
         .toList();
   }
@@ -513,7 +615,7 @@ class DatabaseHelper {
   Future<List<SensorDataModel>> getAlSensorDataNotSentToServer() async {
     final db = await database;
     final results = await db.rawQuery('''
-    SELECT "dateTime", temperature, humidity, sentToServer
+    SELECT "dateTime", source, valuesJson, sentToServer
     FROM sensor_data 
     WHERE sentToServer = 0
     ''');
@@ -624,8 +726,8 @@ class DatabaseHelper {
   Future<Duration?> getTimeToNextSurvey() async {
     final db = await database;
     final now = DateTime.now().toUtc();
-    final results = await db
-        .rawQuery('SELECT "start" FROM timeSlots WHERE (submited = 0 OR submited IS NULL) and "finish" > ? ORDER BY "start" ASC LIMIT 1;',
+    final results = await db.rawQuery(
+        'SELECT "start" FROM timeSlots WHERE (submited = 0 OR submited IS NULL) and "finish" > ? ORDER BY "start" ASC LIMIT 1;',
         [now.toIso8601String()]);
     if (results.isEmpty) return null;
     return DateTime.parse(results.first['start'] as String).difference(now);

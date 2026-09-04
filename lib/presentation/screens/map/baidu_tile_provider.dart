@@ -57,4 +57,3 @@ class BaiduTileProvider extends NetworkTileProvider {
         .replaceAll('{z}', zoom.toString());
   }
 }
-

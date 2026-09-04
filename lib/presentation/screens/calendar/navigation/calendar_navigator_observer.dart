@@ -11,4 +11,4 @@ class CalendarNavigatorObserver extends NavigatorObserver {
     }
     super.didPush(route, previousRoute);
   }
-}
+}

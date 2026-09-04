@@ -19,7 +19,8 @@ class NotificationService {
     final String localTimeZone = await FlutterTimezone.getLocalTimezone();
     tz.setLocalLocation(tz.getLocation(localTimeZone));
 
-    const androidInit = AndroidInitializationSettings('@drawable/logo4_$appType');
+    const androidInit =
+        AndroidInitializationSettings('@drawable/logo4_$appType');
     const iOSInize = DarwinInitializationSettings();
     const initializationSettings =
         InitializationSettings(android: androidInit, iOS: iOSInize);

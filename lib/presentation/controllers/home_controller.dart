@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:geolocator/geolocator.dart';
@@ -5,10 +7,11 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:location/location.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:survey_frontend/core/models/app_state.dart';
 import 'package:survey_frontend/core/usecases/create_question_answer_dto_factory.dart';
+import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
-import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_notification_usecase.dart';
@@ -16,19 +19,24 @@ import 'package:survey_frontend/data/datasources/local/database_service.dart';
 import 'package:survey_frontend/data/models/sensor_kind.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/external_services/api_response.dart';
+import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
 import 'package:survey_frontend/domain/external_services/short_survey_service.dart';
+import 'package:survey_frontend/domain/external_services/survey_settings_service.dart';
 import 'package:survey_frontend/domain/local_services/notification_service.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
+import 'package:survey_frontend/domain/models/survey_settings.dart';
 import 'package:survey_frontend/domain/models/survey_with_time_slots.dart';
 import 'package:survey_frontend/domain/models/visibility_type.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
+import 'package:survey_frontend/presentation/controllers/menu_controller.dart';
 import 'package:survey_frontend/presentation/functions/ask_for_permissions.dart';
 import 'package:survey_frontend/presentation/screens/home/widgets/request.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
+import 'package:survey_frontend/core/utils/study_time_zone.dart';
 
 class HomeController extends ControllerBase with WidgetsBindingObserver {
   final ShortSurveyService _homeService;
@@ -43,9 +51,13 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   final RxInt minutesLeft = 0.obs;
   bool _isBusy = false;
   final GetStorage _storage;
-  final SendSensorsDataUsecase _sendSensorsDataUsecase;
   final refreshIndicatorKey = GlobalKey<RefreshIndicatorState>();
   final SendLocationDataUsecase _sendLocationDataUsecase;
+  final SensorMacService _sensorMacService;
+  final SurveySettingsService _surveySettingsService;
+  final RxnString logoUrl = RxnString();
+  final AppState _appState;
+  final NeedInsertRespondentDataUseCase _needInsertRespondentDataUseCase;
 
   HomeController(
       this._homeService,
@@ -56,8 +68,11 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       this._surveyImagesUseCase,
       this._submitSurveyUsecase,
       this._storage,
-      this._sendSensorsDataUsecase,
-      this._sendLocationDataUsecase);
+      this._sendLocationDataUsecase,
+      this._sensorMacService,
+      this._surveySettingsService,
+      this._appState,
+      this._needInsertRespondentDataUseCase);
 
   @override
   void onInit() async {
@@ -65,6 +80,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     askForPermissions();
     listenToNotifications();
     _storage.write("loggedBefore", true);
+    logoUrl.value = _buildLogoUrl(
+      _storage.read<String>(SurveySettings.logoPathStorageKey),
+    );
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -115,6 +133,9 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     }
 
     await _sendLocationDataUsecase.sendLocationData(null);
+    await _syncRespondentData();
+    await _syncMobileSensorSetup();
+    await _syncSurveySettings();
 
     if (!await _submitSurveyUsecase.submitAllLocallySaved()) {
       //we can go further only if the submition of old resopnses is succeded, otherwise, there may be
@@ -137,6 +158,122 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
     }
   }
 
+  Future<void> _syncRespondentData() async {
+    try {
+      final respondentId = _storage
+          .read<Map<String, dynamic>>('respondentData')?['id'] as String?;
+      if (respondentId == null) {
+        return;
+      }
+      await _needInsertRespondentDataUseCase.update(respondentId);
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
+  }
+
+  Future<void> _syncSurveySettings() async {
+    try {
+      final response = await _surveySettingsService.getSettings();
+      if (response.statusCode != 200 || response.body == null) {
+        return;
+      }
+      final settings = response.body!;
+      _storage.write(
+        SurveySettings.showSendingPolicyCalendarStorageKey,
+        settings.showSendingPolicyCalendar,
+      );
+      if (Get.isRegistered<ManuController>()) {
+        Get.find<ManuController>().applySendingPolicyCalendarVisibility(
+          settings.showSendingPolicyCalendar,
+        );
+      }
+      if (settings.logoPath == null) {
+        _storage.remove(SurveySettings.logoPathStorageKey);
+      } else {
+        _storage.write(
+          SurveySettings.logoPathStorageKey,
+          settings.logoPath,
+        );
+      }
+      logoUrl.value = _buildLogoUrl(settings.logoPath);
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
+  }
+
+  String? _buildLogoUrl(String? logoPath) {
+    if (logoPath == null || logoPath.isEmpty) {
+      return null;
+    }
+    return (_storage.read<String>('apiUrl') ?? '') + logoPath;
+  }
+
+  Future<void> _syncAssignedSensor() async {
+    try {
+      final assigned = await _sensorMacService.getAssignedSensor();
+      if (assigned.statusCode != 200 || assigned.body == null) {
+        return;
+      }
+      final body = assigned.body!;
+      final kind = SensorKind.fromTypeCode(body.sensorTypeCode);
+      _storage.write('selectedSensor', kind);
+      _storage.write('selectedSensorId', body.sensorId);
+      _storage.write('selectedSensorMac', body.sensorMac);
+      _storage.remove('xiaomiMac');
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
+  }
+
+  Future<void> _syncMobileSensorSetup() async {
+    try {
+      final response = await _surveySettingsService.getMobileSensorSetup();
+      if (response.statusCode != 200 || response.body == null) {
+        await _syncAssignedSensor();
+        return;
+      }
+
+      final setup = response.body!;
+      _storage.write(MobileSensorSetup.sensorModeKey, setup.mode);
+      _storage.write(MobileSensorSetup.storageKey, jsonEncode(setup.toJson()));
+      if (Get.isRegistered<ManuController>()) {
+        Get.find<ManuController>().syncSensorVisibilityFromStorage();
+      }
+
+      if (setup.mode == MobileSensorSetup.noSensorData ||
+          setup.assignments.isEmpty) {
+        _storage.write('selectedSensor', SensorKind.none);
+        _storage.remove('selectedSensorId');
+        _storage.remove('selectedSensorMac');
+        _storage.remove('xiaomiMac');
+        return;
+      }
+
+      final enabledTypeCodes = setup.sensorTypes
+          .where((type) => type.enabled)
+          .map((type) => type.sensorTypeCode)
+          .toSet();
+      final assignment = setup.assignments
+          .where((assignment) =>
+              assignment.sensorTypeCode == SensorKind.manual ||
+              enabledTypeCodes.contains(assignment.sensorTypeCode))
+          .toList();
+      if (assignment.isEmpty) {
+        _storage.write('selectedSensor', SensorKind.none);
+        return;
+      }
+
+      final first = assignment.first;
+      final kind = SensorKind.fromTypeCode(first.sensorTypeCode);
+      _storage.write('selectedSensor', kind);
+      _storage.write('selectedSensorId', first.sensorId);
+      _storage.write('selectedSensorMac', first.sensorMac);
+      _storage.remove('xiaomiMac');
+    } on Exception catch (e) {
+      Sentry.captureException(e);
+    }
+  }
+
   bool hasTimeSlotForToday(SurveyWithTimeSlots survey) {
     final today = DateTime.now();
     return survey.surveySendingPolicyTimes.any((element) =>
@@ -152,10 +289,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
     try {
       // TODO check if survey still active
-
-      if (!await _ensureSensorSelected()) {
-        return;
-      }
 
       final shortSurveyInfo =
           pendingSurveys.firstWhereOrNull((element) => element.id == surveyId);
@@ -193,7 +326,12 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
       final questions = _getQuestionsFromSurvey(survey);
       final responseModel = _prepareResponseModel(questions, survey.id);
       final futureLocalizationData = _getCurrentLocation();
-      final futureSensorData = _sendSensorsDataUsecase.readSensorData();
+      // A dedicated read is no longer kicked off here: any reading the
+      // background task or manual Sensors screen already obtains while the
+      // survey is open gets attributed to it (see AppState.isSurveyActive).
+      // A fresh read is only made at submit time if none arrived meanwhile.
+      _appState.isSurveyActive = true;
+      _appState.currentSurveySensorData.clear();
       final triggerableSectionActivationsCounts =
           _getTriggerableSectionActivationsCounts(survey);
       await Get.toNamed("/surveystart", arguments: {
@@ -204,8 +342,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         "groups": respondentGroups,
         "triggerableSectionActivationsCounts":
             triggerableSectionActivationsCounts,
-        "localizationData": futureLocalizationData,
-        "futureSensorData": futureSensorData
+        "localizationData": futureLocalizationData
       });
     } catch (e) {
       await popup(AppLocalizations.of(Get.context!)!.error,
@@ -239,8 +376,12 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
   }
 
   Future<bool> isBluetoothWorking() async {
+    if (_storage.read<String>(MobileSensorSetup.sensorModeKey) ==
+        MobileSensorSetup.noSensorData) {
+      return true;
+    }
     final selectedSensor = _storage.read('selectedSensor');
-    if (selectedSensor == null || selectedSensor == SensorKind.none) {
+    if (selectedSensor == null || !SensorKind.usesBluetooth(selectedSensor)) {
       return true;
     }
     final state = await FlutterBluePlus.adapterState.first;
@@ -274,7 +415,7 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
 
     return CreateSurveyResponseDto(
         surveyId: surveyId,
-        startDate: DateTime.now().toUtc().toIso8601String(),
+        startDate: StudyTimeZone.nowWithLocalOffsetIso8601(),
         answers: questionAnswerDtos,
         sensorData: null);
   }
@@ -340,40 +481,6 @@ class HomeController extends ControllerBase with WidgetsBindingObserver {
         latitude: double.parse(currentLocation.latitude.toStringAsFixed(6)),
         longitude: double.parse(currentLocation.longitude.toStringAsFixed(6)),
         accuracyMeters: accuracy);
-  }
-
-  Future<bool> _ensureSensorSelected() async {
-    final selectedSensor = _storage.read<String>('selectedSensor');
-
-    if (selectedSensor == null || selectedSensor == SensorKind.none) {
-      final result = await showDialog<bool>(
-        context: Get.context!,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(getAppLocalizations().warning),
-            content: Text(getAppLocalizations().noSensorSelected),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                child: Text(getAppLocalizations().continueWithoutSensor),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                child: Text(getAppLocalizations().ok),
-              ),
-            ],
-          );
-        },
-      );
-
-      return result ?? false;
-    }
-
-    return true;
   }
 }
 

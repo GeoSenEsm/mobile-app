@@ -139,25 +139,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String get no => '否';
 
   @override
-  String get usedSensor => '温度传感器类型';
-
-  @override
   String get save => '保存';
 
   @override
-  String get chooseATemperatureSensorYouReceived => '选择您已接收的温度传感器';
+  String get manualSensor => '手动读数';
 
   @override
-  String get noSensor => '无传感器';
-
-  @override
-  String get xiaomiSensor => '小米传感器';
+  String get noSensorsAssigned => '您的账户尚未分配任何传感器。';
 
   @override
   String get settings => '设置';
 
   @override
-  String get editSensor => '编辑传感器';
+  String get editSensor => '我的传感器';
 
   @override
   String get appSettings => '应用设置';
@@ -285,6 +279,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get ok => '确定';
 
   @override
+  String get cancel => '取消';
+
+  @override
   String get currentPasswordMustNotBeEmpty => '当前密码不能为空';
 
   @override
@@ -321,6 +318,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get saveReading => '保存读数';
 
   @override
+  String get sensorReadingCannotBeStored => '此传感器读数与当前启用的传感器数据设置不匹配。请联系研究管理员。';
+
+  @override
+  String get enterSensorDataManually => '手动输入传感器数据';
+
+  @override
+  String get pleaseEnterTrueOrFalse => '请输入 true 或 false';
+
+  @override
   String get scanning => '正在扫描';
 
   @override
@@ -330,7 +336,32 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sensorNotFound => '无法检测到传感器';
 
   @override
+  String get sensorConnectionBusy => '传感器繁忙，请稍后重试';
+
+  @override
+  String get sensorConnectionLost => '读取时连接丢失，点击重试';
+
+  @override
+  String get sensorProfileMismatch => '传感器配置不匹配，请联系研究管理员';
+
+  @override
+  String get sensorTapToConnect => '点击连接';
+
+  @override
+  String get startScanning => '开始扫描';
+
+  @override
   String get sensorNotSpecified => '未指定传感器';
+
+  @override
+  String sensorSecondsRemaining(int seconds) {
+    return '剩余 $seconds 秒';
+  }
+
+  @override
+  String sensorReadsParameters(String parameters) {
+    return '读取: $parameters';
+  }
 
   @override
   String get sensorData => '传感器数据';
@@ -417,12 +448,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enterResponse => '输入回答';
 
   @override
-  String get kestrelDrop2 => 'Kestrel Drop 2 传感器';
-
-  @override
-  String get sensorId => '传感器ID';
-
-  @override
   String get serverNotResponding => '服务器无响应。请确保提供了正确的API地址，如无误，请稍后重试。';
 
   @override
@@ -438,16 +463,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sensorMac => '传感器MAC地址';
 
   @override
-  String get sensorIdServerNotFound => '服务器上未找到传感器ID';
-
-  @override
   String get noInternetConnection => '无网络连接';
 
   @override
   String get betterExperienceTurnOnInternet => '为了更好的体验，请开启网络连接';
-
-  @override
-  String get loadingMacFailed => '无法加载MAC地址';
 
   @override
   String get sensorNotFoundDialogTitle => '未找到传感器';
@@ -502,11 +521,14 @@ class AppLocalizationsZh extends AppLocalizations {
   String get couldNotMakeCall => '拨打电话失败。';
 
   @override
-  String get warning => '警告';
+  String get surveyStartDate => '调查开始日期';
 
   @override
-  String get noSensorSelected => '未选择温度传感器。完成问卷后，传感器数据将不会被保存。建议前往设置选择传感器。';
+  String get surveyEndDate => '调查结束日期';
 
   @override
-  String get continueWithoutSensor => '继续而不使用传感器';
+  String get timeZone => '时区';
+
+  @override
+  String get pullToRefreshHint => '下拉以与服务器同步数据';
 }

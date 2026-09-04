@@ -11,32 +11,34 @@ class NotificationsSettingsController extends ControllerBase {
   bool _originalNotifyAboutSurveys = true;
   bool _busy = false;
 
-  NotificationsSettingsController(this._storage, this._surveyNotificationUseCase);
+  NotificationsSettingsController(
+      this._storage, this._surveyNotificationUseCase);
 
-  void loadSettings(){
-    notifyAboutSurveys.value = _originalNotifyAboutSurveys = _storage.read<bool>('notifyAboutSurveys') ?? true;
+  void loadSettings() {
+    notifyAboutSurveys.value = _originalNotifyAboutSurveys =
+        _storage.read<bool>('notifyAboutSurveys') ?? true;
   }
 
-  void save() async{
-    if (_busy){
+  void save() async {
+    if (_busy) {
       return;
     }
 
-    try{
+    try {
       _busy = true;
-      if (notifyAboutSurveys.value != _originalNotifyAboutSurveys){
+      if (notifyAboutSurveys.value != _originalNotifyAboutSurveys) {
         await saveNewValue();
       }
       Get.back();
-    } catch(e) {
+    } catch (e) {
       handleSomethingWentWrong(e);
-    } finally{
+    } finally {
       _busy = false;
     }
   }
 
-  Future<void> saveNewValue() async{
-    if (notifyAboutSurveys.value){
+  Future<void> saveNewValue() async {
+    if (notifyAboutSurveys.value) {
       await _surveyNotificationUseCase.scheduleSurveysNotifications();
     } else {
       await NotificationService.cancelAllNotifications();

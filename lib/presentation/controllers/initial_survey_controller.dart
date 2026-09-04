@@ -52,7 +52,10 @@ class InitialSurveyController extends ControllerBase {
         _needInsertRespondentDataUseCase.needInsertRespondentData();
         _storage.write(
             'initialSurvey', questions.map((e) => e.toJson()).toList());
-        await Get.offAllNamed(Routes.sensors);
+        // Sensor setup is entirely backend-driven (see
+        // HomeController._syncMobileSensorSetup), so there's nothing to
+        // configure manually here anymore.
+        await Get.offAllNamed(Routes.home);
       } else {
         handleSomethingWentWrong(result.error);
       }

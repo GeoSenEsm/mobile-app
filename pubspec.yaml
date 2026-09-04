@@ -110,7 +110,6 @@ flutter:
   generate: true
   assets:
     - assets/
-    - assets/mocked/
     - assets/geosenesm/
     - assets/urbeat/
     - .env

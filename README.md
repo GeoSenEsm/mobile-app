@@ -2,7 +2,21 @@
 
 Flutter respondent client for GeoSenEsm. Respondents log in, complete
 scheduled surveys (online and offline), and sync location / sensor data to
-`survey-api`.
+`survey-api`. Local notifications for each time slot follow the per-survey
+rules synced from `/api/surveys/allwithtimeslots` (defaults: at start, and
+15 minutes before end). On home refresh the app also pulls sensor data setup
+from `/api/surveysettings/sensordata/mobile`, including no-sensor mode,
+enabled sources, connection timeouts, parameter definitions, and ordered
+respondent assignments for backend-provided sensor type codes such as
+`xiaomi`, `kestrel`, `pc_60fw`, `flower_care`,
+`inkbird_ibs_th1`, `ruuvi`, `manual`, or `none`. Sensor types are resolved
+through a generic, backend-configurable GATT profile engine
+(`lib/core/usecases/sensor_profile_resolver.dart`,
+`lib/core/usecases/sensor_connection_factory.dart`) supporting both
+connect-and-read (`gatt_sequence`) and passive-scan (`ble_advertisement`,
+e.g. Xiaomi MiBeacon, Ruuvi Data Format 5) transports, so study
+administrators can add new sensor types from the admin panel without an
+app rebuild. See `../docs/AddingSensor.md` for the sensor extension guide.
 
 
 |                      |                                                                                                                                       |
@@ -80,9 +94,13 @@ Use the scripts under `scripts/` for release builds — do not run bare
 
 - Flutter SDK 3.16+ on `PATH`
 - Android SDK and/or Xcode
+- **JDK 17** for Android builds (e.g. Amazon Corretto 17). Android Studio's
+  bundled JBR may be Java 25, which breaks Gradle 8.11 with a cryptic
+  `Error resolving plugin ... > 25.0.2`. Pin with
+  `flutter config --jdk-dir="<path-to-jdk17>"` and/or `$env:JAVA_HOME`.
 - Running `survey-api` reachable from the device / emulator
-- Optional `mobile-app/.env` if the project loads dotenv assets (add a
-placeholder file if required by `pubspec.yaml`)
+- `mobile-app/.env` if listed as a dotenv asset in `pubspec.yaml` (placeholder
+  is enough when unused)
 
 
 
@@ -90,10 +108,14 @@ placeholder file if required by `pubspec.yaml`)
 
 ```bash
 flutter pub get
+flutter emulators --launch Pixel_API_35   # if needed
 flutter run
-flutter run --dart-define=APP_TYPE=geosenesm
+flutter run --dart-define=APP_TYPE=geosenesm -d emulator-5554
 flutter run --dart-define=APP_TYPE=urbeat
 ```
+
+For the full demo stack (API + admin + seed data), see workspace
+`scripts/dev-up.ps1 -Seed` and skill `geosenesm-run-locally`.
 
 
 

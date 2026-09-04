@@ -29,7 +29,6 @@ class AppStyles {
       textTheme: const TextTheme(bodyLarge: TextStyle(fontSize: 20)),
       radioTheme: const RadioThemeData(
           fillColor: WidgetStatePropertyAll(_appNameColor)),
-
       dialogTheme: DialogThemeData(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
@@ -43,9 +42,8 @@ class AppStyles {
 
         return Colors.transparent;
       })),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
-        color: _appNameColor
-      ),
+      progressIndicatorTheme:
+          const ProgressIndicatorThemeData(color: _appNameColor),
       datePickerTheme: DatePickerThemeData(
           backgroundColor: onBackgroundSecondary,
           todayForegroundColor: WidgetStateProperty.resolveWith((states) {

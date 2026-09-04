@@ -13,6 +13,11 @@ SurveyDto _$SurveyDtoFromJson(Map<String, dynamic> json) => SurveyDto(
       sections: (json['sections'] as List<dynamic>)
           .map((e) => Section.fromJson(e as Map<String, dynamic>))
           .toList(),
+      notifications: (json['notifications'] as List<dynamic>?)
+              ?.map((e) =>
+                  SurveyNotificationDto.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$SurveyDtoToJson(SurveyDto instance) => <String, dynamic>{
@@ -20,6 +25,25 @@ Map<String, dynamic> _$SurveyDtoToJson(SurveyDto instance) => <String, dynamic>{
       'name': instance.name,
       'rowVersion': instance.rowVersion,
       'sections': instance.sections,
+      'notifications': instance.notifications,
+    };
+
+SurveyNotificationDto _$SurveyNotificationDtoFromJson(
+        Map<String, dynamic> json) =>
+    SurveyNotificationDto(
+      id: json['id'] as String?,
+      order: (json['order'] as num).toInt(),
+      relativeTo: json['relativeTo'] as String,
+      minutesBefore: (json['minutesBefore'] as num).toInt(),
+    );
+
+Map<String, dynamic> _$SurveyNotificationDtoToJson(
+        SurveyNotificationDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'order': instance.order,
+      'relativeTo': instance.relativeTo,
+      'minutesBefore': instance.minutesBefore,
     };
 
 Section _$SectionFromJson(Map<String, dynamic> json) => Section(

@@ -12,6 +12,8 @@ class MenuScreen extends GetView<ManuController> {
 
   @override
   Widget build(BuildContext context) {
+    controller.syncCalendarVisibilityFromStorage();
+    controller.syncSensorVisibilityFromStorage();
     return Scaffold(
       backgroundColor: Colors.white,
       body: Column(
@@ -52,18 +54,26 @@ class MenuScreen extends GetView<ManuController> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
-                    NavItem(
-                        icon: Icons.calendar_month_outlined,
-                        label: getAppLocalizations().calendar,
-                        onTap: controller.calendar),
-                    NavItem(
-                        icon: Icons.wb_sunny_outlined,
-                        label: getAppLocalizations().sensorData,
-                        onTap: controller.sensorData),
-                    NavItem(
-                        icon: Icons.manage_search,
-                        label: getAppLocalizations().sensorHistory,
-                        onTap: controller.sensorHistory),
+                    Obx(() => controller.showSendingPolicyCalendar.value
+                        ? NavItem(
+                            icon: Icons.calendar_month_outlined,
+                            label: getAppLocalizations().calendar,
+                            onTap: controller.calendar)
+                        : const SizedBox.shrink()),
+                    Obx(() => controller.showSensorScreens.value
+                        ? Column(
+                            children: [
+                              NavItem(
+                                  icon: Icons.wb_sunny_outlined,
+                                  label: getAppLocalizations().sensorData,
+                                  onTap: controller.sensorData),
+                              NavItem(
+                                  icon: Icons.manage_search,
+                                  label: getAppLocalizations().sensorHistory,
+                                  onTap: controller.sensorHistory),
+                            ],
+                          )
+                        : const SizedBox.shrink()),
                     NavItem(
                         icon: Icons.location_on_outlined,
                         label: getAppLocalizations().map,
@@ -105,12 +115,14 @@ class MenuScreen extends GetView<ManuController> {
                       onTap: controller.notifications,
                       iconColor: Colors.black,
                     ),
-                    NavItem(
-                      icon: Icons.thermostat,
-                      label: AppLocalizations.of(context)!.editSensor,
-                      onTap: controller.editSensor,
-                      iconColor: Colors.black,
-                    ),
+                    Obx(() => controller.showSensorScreens.value
+                        ? NavItem(
+                            icon: Icons.thermostat,
+                            label: AppLocalizations.of(context)!.editSensor,
+                            onTap: controller.editSensor,
+                            iconColor: Colors.black,
+                          )
+                        : const SizedBox.shrink()),
                     NavItem(
                       icon: Icons.key,
                       label: AppLocalizations.of(context)!.changePassword,

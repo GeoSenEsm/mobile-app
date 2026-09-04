@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
-import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_dto.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/controllers/home_controller.dart';
@@ -18,7 +17,6 @@ class QuestionNavigableController extends ControllerBase {
   late List<String?> groupsIds;
   late Map<int, int> triggerableSectionActivationsCounts;
   late Future<LocalizationData> localizationData;
-  late Future<SensorData?> futureSensorData;
   late SurveyShortInfo surveyShortInfo;
 
   void navigateToNextQuestion(QuestionNavigationMode mode) async {
@@ -39,8 +37,7 @@ class QuestionNavigableController extends ControllerBase {
         await Get.toNamed('/submitSurvey', arguments: {
           "shortSurveyInfo": surveyShortInfo,
           'responseModel': responseModel,
-          "localizationData": localizationData,
-          "futureSensorData": futureSensorData
+          "localizationData": localizationData
         });
         return;
       }
@@ -58,8 +55,7 @@ class QuestionNavigableController extends ControllerBase {
         "groups": groupsIds,
         "triggerableSectionActivationsCounts":
             triggerableSectionActivationsCounts,
-        "localizationData": localizationData,
-        "futureSensorData": futureSensorData
+        "localizationData": localizationData
       };
 
       if (mode == QuestionNavigationMode.top) {
@@ -75,8 +71,9 @@ class QuestionNavigableController extends ControllerBase {
   }
 
   int _getNextValidQuestionIndex() {
-    if (questionIndex == -1){
-      final question = questions.firstWhereOrNull((element) => element.canQuestionBeShown(groupsIds, triggerableSectionActivationsCounts));
+    if (questionIndex == -1) {
+      final question = questions.firstWhereOrNull((element) => element
+          .canQuestionBeShown(groupsIds, triggerableSectionActivationsCounts));
       if (question == null) {
         return -1;
       }
@@ -96,7 +93,7 @@ class QuestionNavigableController extends ControllerBase {
       responseModel.answers[i].numericAnswer = null;
       responseModel.answers[i].textAnswer = null;
       if (responseModel.answers[i].selectedOptions != null) {
-        for (final option in responseModel.answers[i].selectedOptions!){
+        for (final option in responseModel.answers[i].selectedOptions!) {
           option.optionId = null;
         }
       }
@@ -109,7 +106,7 @@ class QuestionNavigableController extends ControllerBase {
   int _getNextQestionsCount(int nextQuestionIndex) {
     final firstQuestion = questions[nextQuestionIndex];
 
-    if (!firstQuestion.section.displayOnOneScreen){
+    if (!firstQuestion.section.displayOnOneScreen) {
       return 1;
     }
 
@@ -129,7 +126,6 @@ class QuestionNavigableController extends ControllerBase {
     triggerableSectionActivationsCounts =
         Get.arguments['triggerableSectionActivationsCounts'];
     localizationData = Get.arguments['localizationData'];
-    futureSensorData = Get.arguments['futureSensorData'];
   }
 }
 

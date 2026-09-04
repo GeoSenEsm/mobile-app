@@ -24,19 +24,23 @@ class EventDetails extends StatelessWidget {
                 decoration: InputDecoration(
                     label: Text(getAppLocalizations().surveyName)),
               ),
-              const SizedBox(height: 20,),
+              const SizedBox(
+                height: 20,
+              ),
               TextFormField(
                 readOnly: true,
                 initialValue: dateTimeShortFormat(event.from.toLocal()),
-                decoration: InputDecoration(
-                    label: Text(getAppLocalizations().start)),
+                decoration:
+                    InputDecoration(label: Text(getAppLocalizations().start)),
               ),
-              const SizedBox(height: 20,),
+              const SizedBox(
+                height: 20,
+              ),
               TextFormField(
                 readOnly: true,
                 initialValue: dateTimeShortFormat(event.to.toLocal()),
-                decoration: InputDecoration(
-                    label: Text(getAppLocalizations().end)),
+                decoration:
+                    InputDecoration(label: Text(getAppLocalizations().end)),
               )
             ],
           ),

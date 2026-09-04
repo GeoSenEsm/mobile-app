@@ -1,4 +1,3 @@
-
 class SurveyCalendarEvent {
   final String surveyName;
   final String timeSlotId;

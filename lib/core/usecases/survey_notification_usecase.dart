@@ -14,7 +14,8 @@ class SurveyNotificationUseCaseImpl implements SurveyNotificationUseCase {
   final DatabaseHelper _databaseHelper;
   final SurveyNotificationIdUsecase _surveyNotificationIdUsecase;
 
-  SurveyNotificationUseCaseImpl(this._databaseHelper, this._surveyNotificationIdUsecase);
+  SurveyNotificationUseCaseImpl(
+      this._databaseHelper, this._surveyNotificationIdUsecase);
 
   @override
   Future<void> scheduleSurveysNotifications() async {
@@ -31,34 +32,31 @@ class SurveyNotificationUseCaseImpl implements SurveyNotificationUseCase {
 
   Future<void> _setSurveyNotifications(SurveyShortInfo survey) async {
     try {
-      const timeBeforeFinish = 15;
       final now = DateTime.now();
       final startTimeLocal = survey.startTime.toLocal();
+      final finishTimeLocal = survey.finishTime.toLocal();
+      final notifications =
+          await _databaseHelper.getSurveyNotifications(survey.id);
+      final l10n = getAppLocalizations();
 
-      final startId = _surveyNotificationIdUsecase.getStartNotificationId(survey);
+      for (var i = 0; i < notifications.length; i++) {
+        final rule = notifications[i];
+        final isEnd = rule.relativeTo == 'end';
+        final anchor = isEnd ? finishTimeLocal : startTimeLocal;
+        final fireTime = anchor.subtract(Duration(minutes: rule.minutesBefore));
 
-      if (startTimeLocal.isAfter(now)) {
+        if (!fireTime.isAfter(now)) {
+          continue;
+        }
+        if (isEnd && !fireTime.isAfter(startTimeLocal)) {
+          continue;
+        }
+
         await NotificationService.scheduleNotification(
-            startTimeLocal,
-            startId,
-            getAppLocalizations().surveyStartTitle,
-            getAppLocalizations().surveyStartBody,
-            survey.id);
-      }
-
-      final finishNotificationTimeLocal = survey.finishTime
-          .toLocal()
-          .subtract(const Duration(minutes: timeBeforeFinish));
-
-      final finishId = _surveyNotificationIdUsecase.getFinishNotificationId(survey);
-
-      if (finishNotificationTimeLocal.isAfter(survey.startTime) &&
-          finishNotificationTimeLocal.isAfter(now)) {
-        await NotificationService.scheduleNotification(
-            finishNotificationTimeLocal,
-            finishId,
-            getAppLocalizations().surveyFinishTitle,
-            getAppLocalizations().surveyFinishBody,
+            fireTime,
+            _surveyNotificationIdUsecase.getNotificationId(survey, i),
+            isEnd ? l10n.surveyFinishTitle : l10n.surveyStartTitle,
+            isEnd ? l10n.surveyFinishBody : l10n.surveyStartBody,
             survey.id);
       }
     } catch (e) {

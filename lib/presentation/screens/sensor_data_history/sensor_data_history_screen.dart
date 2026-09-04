@@ -108,19 +108,34 @@ class SensorDataHistoryScreen extends GetView<SensorDataHistoryController> {
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
         child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: Obx(() => DataTable(
+                // Values lists can span several sensor parameters and wrap onto multiple
+                // lines, so rows need to grow past the default single-line height instead of
+                // clipping the text.
+                dataRowMinHeight: 56,
+                dataRowMaxHeight: 120,
                 columns: [
                   DataColumn(label: Text(getAppLocalizations().date)),
-                  DataColumn(label: Text(getAppLocalizations().temperature)),
-                  DataColumn(label: Text(getAppLocalizations().humidity)),
+                  const DataColumn(label: Text('Source')),
+                  const DataColumn(label: Text('Values')),
                 ],
                 rows: controller.entries
                     .map((e) => DataRow(cells: [
                           DataCell(Center(
                               child: Text(
                                   dateTimeShortFormat(e.dateTime.toLocal())))),
-                          DataCell(Center(child: Text('${e.temperature} °C'))),
-                          DataCell(Center(child: Text('${e.humidity}%'))),
+                          DataCell(Center(child: Text(e.source))),
+                          DataCell(ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 220),
+                            child: Text(
+                              e.values
+                                  .map((value) =>
+                                      '${value.parameterCode}: ${value.value}')
+                                  .join(', '),
+                              softWrap: true,
+                            ),
+                          )),
                         ]))
                     .toList(),
               )),

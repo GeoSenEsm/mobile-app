@@ -28,4 +28,4 @@ class AcceptPrivacyPolicyController extends ControllerBase{
   void readGetArguments(){
     nextPage = Get.arguments['nextPage'];
   }
-}
+}

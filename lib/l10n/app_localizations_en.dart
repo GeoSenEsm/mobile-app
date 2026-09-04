@@ -144,26 +144,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get no => 'No';
 
   @override
-  String get usedSensor => 'Temperature sensor kind';
-
-  @override
   String get save => 'Save';
 
   @override
-  String get chooseATemperatureSensorYouReceived =>
-      'Choose a temperature sensor you\'ve received';
+  String get manualSensor => 'Manual readings';
 
   @override
-  String get noSensor => 'No sensor';
-
-  @override
-  String get xiaomiSensor => 'Xiaomi sensor';
+  String get noSensorsAssigned =>
+      'No sensors are assigned to your account yet.';
 
   @override
   String get settings => 'Settings';
 
   @override
-  String get editSensor => 'Edit sensor';
+  String get editSensor => 'My sensors';
 
   @override
   String get appSettings => 'App settings';
@@ -299,6 +293,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ok => 'Ok';
 
   @override
+  String get cancel => 'Cancel';
+
+  @override
   String get currentPasswordMustNotBeEmpty =>
       'Current password must not be empty';
 
@@ -338,6 +335,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveReading => 'Save reading';
 
   @override
+  String get sensorReadingCannotBeStored =>
+      'This sensor reading does not match the active sensor data setup. Contact the study administrator.';
+
+  @override
+  String get enterSensorDataManually => 'Enter sensor data manually';
+
+  @override
+  String get pleaseEnterTrueOrFalse => 'Please enter true or false';
+
+  @override
   String get scanning => 'Scanning';
 
   @override
@@ -347,7 +354,34 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorNotFound => 'Could not detect sensor';
 
   @override
-  String get sensorNotSpecified => 'Sensor not specified';
+  String get sensorConnectionBusy => 'Sensor busy, retry shortly';
+
+  @override
+  String get sensorConnectionLost =>
+      'Lost connection while reading, tap to retry';
+
+  @override
+  String get sensorProfileMismatch =>
+      'Sensor profile mismatch, contact the study administrator';
+
+  @override
+  String get sensorTapToConnect => 'Tap to connect';
+
+  @override
+  String get startScanning => 'Start scanning';
+
+  @override
+  String get sensorNotSpecified => 'No sensor is assigned to this account.';
+
+  @override
+  String sensorSecondsRemaining(int seconds) {
+    return '${seconds}s left';
+  }
+
+  @override
+  String sensorReadsParameters(String parameters) {
+    return 'Reads: $parameters';
+  }
 
   @override
   String get sensorData => 'Sensor data';
@@ -437,12 +471,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterResponse => 'Enter response';
 
   @override
-  String get kestrelDrop2 => 'Kestrel Drop 2 sensor';
-
-  @override
-  String get sensorId => 'Sensor id';
-
-  @override
   String get serverNotResponding =>
       'Server is not responding. Make sure, you have provided a correct API url. If so, try again later.';
 
@@ -460,17 +488,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get sensorMac => 'Sensor\'s MAC adres';
 
   @override
-  String get sensorIdServerNotFound => 'Sensor id not found on the server';
-
-  @override
   String get noInternetConnection => 'No internet connection';
 
   @override
   String get betterExperienceTurnOnInternet =>
       'For better experience, turn on the internet connection';
-
-  @override
-  String get loadingMacFailed => 'Could not load MAC address';
 
   @override
   String get sensorNotFoundDialogTitle => 'Sensor not found';
@@ -529,12 +551,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get couldNotMakeCall => 'The call could not be completed.';
 
   @override
-  String get warning => 'Warning';
+  String get surveyStartDate => 'Survey start date';
 
   @override
-  String get noSensorSelected =>
-      'No temperature sensor selected. Sensor data will not be saved after completing the survey. We suggest going to settings to select a sensor.';
+  String get surveyEndDate => 'Survey end date';
 
   @override
-  String get continueWithoutSensor => 'Continue without sensor';
+  String get timeZone => 'Time zone';
+
+  @override
+  String get pullToRefreshHint => 'Pull down to refresh data with the server';
 }

@@ -98,7 +98,8 @@ abstract class APIServiceBase {
       Options? options = _getOptionsWithAuthorization();
       Response response = await _dio.post(url, options: options, data: body);
       List<T> deserialized = deserialize(response.data);
-      return APIResponse<List<T>>(statusCode: response.statusCode!, body: deserialized);
+      return APIResponse<List<T>>(
+          statusCode: response.statusCode!, body: deserialized);
     } catch (error) {
       if (error is DioException) {
         return _fromDioException(error);

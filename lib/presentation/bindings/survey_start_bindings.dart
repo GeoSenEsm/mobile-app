@@ -6,4 +6,4 @@ class SurveyStartBindings extends Bindings {
   void dependencies() {
     Get.create(() => QuestionNavigableController());
   }
-}
+}

@@ -6,4 +6,4 @@ class WelcomeScreenBindings extends Bindings {
   void dependencies() {
     Get.lazyPut(() => WelcomeScreenController(Get.find()));
   }
-}
+}

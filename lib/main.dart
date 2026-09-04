@@ -77,12 +77,12 @@ void main() async {
   runApp(GetMaterialApp(
     title: 'UrbEaT',
     builder: (context, child) {
-    if (child == null) return const SizedBox();
-    return SafeArea(
-      top: false,
-      bottom: true,
-      child: child,
-    );
+      if (child == null) return const SizedBox();
+      return SafeArea(
+        top: false,
+        bottom: true,
+        child: child,
+      );
     },
     navigatorObservers: [
       routeObserver,
@@ -205,9 +205,9 @@ Future<String> _getCurrentLocale() {
 }
 
 Future<void> prepareWorkManager() async {
-  try{
+  try {
     await BackgroundFetch.configure(
-      BackgroundFetchConfig(
+        BackgroundFetchConfig(
           minimumFetchInterval: 20,
           stopOnTerminate: false,
           startOnBoot: true,
@@ -215,15 +215,16 @@ Future<void> prepareWorkManager() async {
           requiresBatteryNotLow: false,
           requiresCharging: false,
           requiresStorageNotLow: false,
-          requiresDeviceIdle: false,),
-      backgroundTask);
-      await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
-  } catch (e){}
+          requiresDeviceIdle: false,
+        ),
+        backgroundTask);
+    await BackgroundFetch.registerHeadlessTask(backgroundHeadlessTask);
+  } catch (e) {}
 }
 
 @pragma('vm:entry-point')
 void backgroundHeadlessTask(HeadlessTask task) async {
-  if (task.timeout){
+  if (task.timeout) {
     BackgroundFetch.finish(task.taskId);
   }
   backgroundTask(task.taskId);

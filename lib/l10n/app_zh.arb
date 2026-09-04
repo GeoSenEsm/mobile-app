@@ -58,13 +58,11 @@
     "errorRetry": "错误，请重试",
     "yes": "是",
     "no": "否",
-    "usedSensor": "温度传感器类型",
     "save": "保存",
-    "chooseATemperatureSensorYouReceived": "选择您已接收的温度传感器",
-    "noSensor": "无传感器",
-    "xiaomiSensor": "小米传感器",
+    "manualSensor": "手动读数",
+    "noSensorsAssigned": "您的账户尚未分配任何传感器。",
     "settings": "设置",
-    "editSensor": "编辑传感器",
+    "editSensor": "我的传感器",
     "appSettings": "应用设置",
     "surveyStartBody": "您可以现在开始调查。准备好了吗？",
     "surveyFinishBody": "调查即将结束。我们来做吧！",
@@ -106,6 +104,7 @@
     "retypePassword": "重复输入密码",
     "passwordChangedSuccessfully": "您的密码已修改成功",
     "ok": "确定",
+    "cancel": "取消",
     "currentPasswordMustNotBeEmpty": "当前密码不能为空",
     "minNewPasswordLenError": "最小长度为8个字符",
     "retypePasswordMustBeEqualToNewPassword": "输入的值必须与新密码相同",
@@ -118,10 +117,36 @@
     "surveyStartTitle": "新调查",
     "sensorDataHistory": "历史读数",
     "saveReading": "保存读数",
+    "sensorReadingCannotBeStored": "此传感器读数与当前启用的传感器数据设置不匹配。请联系研究管理员。",
+    "enterSensorDataManually": "手动输入传感器数据",
+    "pleaseEnterTrueOrFalse": "请输入 true 或 false",
     "scanning": "正在扫描",
     "bluetoothTurnedOff": "蓝牙已关闭",
     "sensorNotFound": "无法检测到传感器",
+    "sensorConnectionBusy": "传感器繁忙，请稍后重试",
+    "sensorConnectionLost": "读取时连接丢失，点击重试",
+    "sensorProfileMismatch": "传感器配置不匹配，请联系研究管理员",
+    "sensorTapToConnect": "点击连接",
+    "startScanning": "开始扫描",
     "sensorNotSpecified": "未指定传感器",
+    "sensorSecondsRemaining": "剩余 {seconds} 秒",
+    "@sensorSecondsRemaining": {
+        "placeholders": {
+            "seconds": {
+                "type": "int",
+                "example": "12"
+            }
+        }
+    },
+    "sensorReadsParameters": "读取: {parameters}",
+    "@sensorReadsParameters": {
+        "placeholders": {
+            "parameters": {
+                "type": "String",
+                "example": "温度, 湿度"
+            }
+        }
+    },
     "sensorData": "传感器数据",
     "calendar": "日历",
     "day": "天",
@@ -150,17 +175,13 @@
     "theLocationDataHasNotBeenSubmitedToServer": "该位置尚未提交到服务器",
     "surveyHasBeenComplitedInThisLocation": "该位置已完成问卷",
     "enterResponse": "输入回答",
-    "kestrelDrop2": "Kestrel Drop 2 传感器",
-    "sensorId": "传感器ID",
     "serverNotResponding": "服务器无响应。请确保提供了正确的API地址，如无误，请稍后重试。",
     "bluetoothRequired": "请打开蓝牙以完成问卷。",
     "bluetooth": "蓝牙",
     "surveyFinished": "问卷已结束，无法再完成。",
     "sensorMac": "传感器MAC地址",
-    "sensorIdServerNotFound": "服务器上未找到传感器ID",
     "noInternetConnection": "无网络连接",
     "betterExperienceTurnOnInternet": "为了更好的体验，请开启网络连接",
-    "loadingMacFailed": "无法加载MAC地址",
     "sensorNotFoundDialogTitle": "未找到传感器",
     "sensorNotFoundDialogContent": "未找到温度传感器。问卷将不包含温度数据。请确保您携带了传感器并且电池有电。",
     "thanksForCompletingTheSurvey": "感谢您完成问卷。",
@@ -192,7 +213,8 @@
     "noContacts": "研究管理员尚未定义任何联系电话号码。",
     "call": "拨打",
     "couldNotMakeCall": "拨打电话失败。",
-    "warning": "警告",
-    "noSensorSelected": "未选择温度传感器。完成问卷后，传感器数据将不会被保存。建议前往设置选择传感器。",
-    "continueWithoutSensor": "继续而不使用传感器"
+    "surveyStartDate": "调查开始日期",
+    "surveyEndDate": "调查结束日期",
+    "timeZone": "时区",
+    "pullToRefreshHint": "下拉以与服务器同步数据"
 }

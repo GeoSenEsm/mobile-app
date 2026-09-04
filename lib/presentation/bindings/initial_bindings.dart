@@ -10,6 +10,7 @@ import 'package:survey_frontend/core/usecases/need_insert_respondent_data_usecas
 import 'package:survey_frontend/core/usecases/read_respondent_groups_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_location_data_usecase.dart';
 import 'package:survey_frontend/core/usecases/send_sensors_data_usecase.dart';
+import 'package:survey_frontend/core/usecases/sensor_assignment_planner.dart';
 import 'package:survey_frontend/core/usecases/sensor_connection_factory.dart';
 import 'package:survey_frontend/core/usecases/submit_survey_usecase.dart';
 import 'package:survey_frontend/core/usecases/survey_images_usecase.dart';
@@ -25,18 +26,22 @@ import 'package:survey_frontend/data/datasources/local/survey_participation_serv
 import 'package:survey_frontend/data/datasources/location_service_impl.dart';
 import 'package:survey_frontend/data/datasources/login_service_impl.dart';
 import 'package:survey_frontend/data/datasources/phone_contact_service_impl.dart';
+import 'package:survey_frontend/data/datasources/survey_settings_service_impl.dart';
 import 'package:survey_frontend/data/datasources/respondent_data_service_impl.dart';
 import 'package:survey_frontend/data/datasources/respondent_group_service_impl.dart';
 import 'package:survey_frontend/data/datasources/sensors_data_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_response_service_impl.dart';
 import 'package:survey_frontend/data/datasources/survey_service_impl.dart';
+import 'package:survey_frontend/data/datasources/sensor_mac_service_impl.dart';
 import 'package:survey_frontend/domain/external_services/initial_survey_service.dart';
 import 'package:survey_frontend/domain/external_services/ip_localization_country_code_service.dart';
 import 'package:survey_frontend/domain/external_services/location_service.dart';
 import 'package:survey_frontend/domain/external_services/login_service.dart';
 import 'package:survey_frontend/domain/external_services/phone_contact_service.dart';
+import 'package:survey_frontend/domain/external_services/survey_settings_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_date_service.dart';
 import 'package:survey_frontend/domain/external_services/respondent_group_service.dart';
+import 'package:survey_frontend/domain/external_services/sensor_mac_service.dart';
 import 'package:survey_frontend/domain/external_services/sensors_data_service.dart';
 import 'package:survey_frontend/domain/external_services/survey_response_service.dart';
 import 'package:survey_frontend/domain/external_services/survey_service.dart';
@@ -91,14 +96,18 @@ class InitialBindings extends Bindings {
         Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put(DatabaseHelper());
+    Get.put<AppState>(AppState());
     Get.put<SurveyNotificationIdUsecase>(SurveyNotificationIdUsecaseImpl());
     Get.put<SurveyNotificationUseCase>(
         SurveyNotificationUseCaseImpl(Get.find(), Get.find()));
     Get.put<SensorsDataService>(
         SensorsDataServiceImpl(Get.find(), tokenProvider: Get.find()));
+    Get.put<SensorMacService>(
+        SensorMacServiceImpl(Get.find(), tokenProvider: Get.find()));
     Get.put(SensorConnectionFactory(Get.find()));
-    Get.put<SendSensorsDataUsecase>(
-        SendSensorsDataUsecaseImpl(Get.find(), Get.find(), Get.find()));
+    Get.put(SensorAssignmentPlanner(Get.find()));
+    Get.put<SendSensorsDataUsecase>(SendSensorsDataUsecaseImpl(Get.find(),
+        Get.find(), Get.find(), Get.find(), Get.find(), Get.find()));
     Get.put<LocalizationService>(LocalizationServiceImpl(Get.find(),
         tokenProvider: Get.find<TokenProvider>()));
     Get.put<SurveyImagesUseCase>(SurveyImagesUseCaseImpl(Get.find()));
@@ -112,7 +121,7 @@ class InitialBindings extends Bindings {
     Get.lazyPut<CalendarEventUsecase>(
         () => CalendarEventUsecaseImpl(Get.find()),
         fenix: true);
-    Get.lazyPut(() => CalendarController(Get.find()), fenix: true);
+    Get.lazyPut(() => CalendarController(Get.find(), Get.find()), fenix: true);
     Get.lazyPut<SendLocationDataUsecase>(
         () => SendLocationDataUsecaseImpl(Get.find(), Get.find(), Get.find()),
         fenix: true);
@@ -125,8 +134,10 @@ class InitialBindings extends Bindings {
     Get.lazyPut<PhoneContactService>(
         () => PhoneContactServiceImpl(Get.find(), tokenProvider: Get.find()),
         fenix: true);
+    Get.lazyPut<SurveySettingsService>(
+        () => SurveySettingsServiceImpl(Get.find(), tokenProvider: Get.find()),
+        fenix: true);
     Get.lazyPut(() => ContactController(Get.find()), fenix: true);
-    Get.put<AppState>(AppState());
   }
 
   Dio _getDio(GetStorage storage) {

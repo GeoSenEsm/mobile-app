@@ -6,4 +6,4 @@ class AcceptPrivacyPolicyBindings extends Bindings{
   void dependencies() {
     Get.lazyPut(() => AcceptPrivacyPolicyController(Get.find()));
   }
-}
+}

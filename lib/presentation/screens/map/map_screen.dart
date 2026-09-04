@@ -113,8 +113,9 @@ class MapScreen extends GetView<MapScreenController> {
                     urlTemplate: controller.tileUrlTemplate,
                     subdomains: controller.tileSubdomains,
                     userAgentPackageName: 'urbeat.site.app',
-                    tileProvider:
-                        provider == MapProvider.baidu ? BaiduTileProvider() : null,
+                    tileProvider: provider == MapProvider.baidu
+                        ? BaiduTileProvider()
+                        : null,
                   ),
                   MarkerLayer(
                     markers: controller.locations
@@ -153,8 +154,8 @@ class MapScreen extends GetView<MapScreenController> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.map, size: 18,
-                    color: isBaidu ? Colors.red : Colors.green),
+                Icon(Icons.map,
+                    size: 18, color: isBaidu ? Colors.red : Colors.green),
                 const SizedBox(width: 4),
                 Text(
                   isBaidu ? 'Baidu' : 'OSM',
@@ -228,7 +229,8 @@ class MapScreen extends GetView<MapScreenController> {
             color: isSelected ? color : Colors.grey.shade300,
             width: isSelected ? 2 : 1,
           ),
-          color: isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
+          color:
+              isSelected ? color.withValues(alpha: 0.08) : Colors.transparent,
         ),
         child: Row(
           children: [
@@ -240,8 +242,7 @@ class MapScreen extends GetView<MapScreenController> {
                         isSelected ? FontWeight.bold : FontWeight.normal,
                     color: isSelected ? color : null)),
             const Spacer(),
-            if (isSelected)
-              Icon(Icons.check_circle, color: color, size: 20),
+            if (isSelected) Icon(Icons.check_circle, color: color, size: 20),
           ],
         ),
       ),

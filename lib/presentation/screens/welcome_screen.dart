@@ -6,7 +6,7 @@ import 'package:survey_frontend/presentation/widgets/app_logo.dart';
 
 class WelcomeScreen extends GetView<WelcomeScreenController> {
   const WelcomeScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -16,18 +16,24 @@ class WelcomeScreen extends GetView<WelcomeScreenController> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-          const AppLogo(),
-          const SizedBox(height: 10,),
+            const AppLogo(),
+            const SizedBox(
+              height: 10,
+            ),
             Text(
               AppLocalizations.of(context)!.weNeedInformation,
-          style: const TextStyle(fontSize: 25),
-          textAlign: TextAlign.center,),
-          const SizedBox(height: 10,),
-          ElevatedButton(
-            onPressed: controller.letsGo, 
+              style: const TextStyle(fontSize: 25),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            ElevatedButton(
+              onPressed: controller.letsGo,
               child: Text(AppLocalizations.of(context)!.letsStart),
             )
-        ],),
+          ],
+        ),
       ),
     );
   }

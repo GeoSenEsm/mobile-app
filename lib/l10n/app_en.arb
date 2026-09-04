@@ -58,13 +58,11 @@
     "errorRetry": "Error, retry",
     "yes": "Yes",
     "no": "No",
-    "usedSensor": "Temperature sensor kind",
     "save": "Save",
-    "chooseATemperatureSensorYouReceived": "Choose a temperature sensor you've received",
-    "noSensor": "No sensor",
-    "xiaomiSensor": "Xiaomi sensor",
+    "manualSensor": "Manual readings",
+    "noSensorsAssigned": "No sensors are assigned to your account yet.",
     "settings": "Settings",
-    "editSensor": "Edit sensor",
+    "editSensor": "My sensors",
     "appSettings": "App settings",
     "surveyStartBody": "You can start the survey now. Are you ready?",
     "surveyFinishBody": "Survey is about to end. Let's do it!",
@@ -106,6 +104,7 @@
     "retypePassword": "Retype password",
     "passwordChangedSuccessfully": "Your password has been successfully changed!",
     "ok": "Ok",
+    "cancel": "Cancel",
     "currentPasswordMustNotBeEmpty": "Current password must not be empty",
     "minNewPasswordLenError": "The minimum length is 8 characters",
     "retypePasswordMustBeEqualToNewPassword": "New password does not match",
@@ -118,10 +117,36 @@
     "surveyStartTitle": "New Survey",
     "sensorDataHistory": "Historical readings",
     "saveReading": "Save reading",
+    "sensorReadingCannotBeStored": "This sensor reading does not match the active sensor data setup. Contact the study administrator.",
+    "enterSensorDataManually": "Enter sensor data manually",
+    "pleaseEnterTrueOrFalse": "Please enter true or false",
     "scanning": "Scanning",
     "bluetoothTurnedOff": "Bluetooth is turned off",
     "sensorNotFound": "Could not detect sensor",
-    "sensorNotSpecified": "Sensor not specified",
+    "sensorConnectionBusy": "Sensor busy, retry shortly",
+    "sensorConnectionLost": "Lost connection while reading, tap to retry",
+    "sensorProfileMismatch": "Sensor profile mismatch, contact the study administrator",
+    "sensorTapToConnect": "Tap to connect",
+    "startScanning": "Start scanning",
+    "sensorNotSpecified": "No sensor is assigned to this account.",
+    "sensorSecondsRemaining": "{seconds}s left",
+    "@sensorSecondsRemaining": {
+        "placeholders": {
+            "seconds": {
+                "type": "int",
+                "example": "12"
+            }
+        }
+    },
+    "sensorReadsParameters": "Reads: {parameters}",
+    "@sensorReadsParameters": {
+        "placeholders": {
+            "parameters": {
+                "type": "String",
+                "example": "Temperature, Humidity"
+            }
+        }
+    },
     "sensorData": "Sensor data",
     "calendar": "Calendar",
     "day": "Day",
@@ -151,17 +176,13 @@
     "theLocationDataHasNotBeenSubmitedToServer": "This location has not been submitted to the server yet",
     "surveyHasBeenComplitedInThisLocation": "There was a survey filled in this location",
     "enterResponse": "Enter response",
-    "kestrelDrop2": "Kestrel Drop 2 sensor",
-    "sensorId": "Sensor id",
     "serverNotResponding": "Server is not responding. Make sure, you have provided a correct API url. If so, try again later.",
     "bluetoothRequired": "Turn on bluetooth, to complete the survey.",
     "bluetooth": "Bluetooth",
     "surveyFinished": "The survey has finished. You can't complete it anymore.",
     "sensorMac": "Sensor's MAC adres",
-    "sensorIdServerNotFound": "Sensor id not found on the server",
     "noInternetConnection": "No internet connection",
     "betterExperienceTurnOnInternet": "For better experience, turn on the internet connection",
-    "loadingMacFailed": "Could not load MAC address",
     "sensorNotFoundDialogTitle": "Sensor not found",
     "sensorNotFoundDialogContent": "Temperature sensor not found. The survey will be sent without temperature data. Please make sure you have the sensor with you and that it has a charged battery.",
     "thanksForCompletingTheSurvey": "Thank you for completing the survey.",
@@ -193,7 +214,8 @@
     "noContacts": "The study administrator has not defined any contact phone numbers.",
     "call": "Call",
     "couldNotMakeCall": "The call could not be completed.",
-    "warning": "Warning",
-    "noSensorSelected": "No temperature sensor selected. Sensor data will not be saved after completing the survey. We suggest going to settings to select a sensor.",
-    "continueWithoutSensor": "Continue without sensor"
+    "surveyStartDate": "Survey start date",
+    "surveyEndDate": "Survey end date",
+    "timeZone": "Time zone",
+    "pullToRefreshHint": "Pull down to refresh data with the server"
 }

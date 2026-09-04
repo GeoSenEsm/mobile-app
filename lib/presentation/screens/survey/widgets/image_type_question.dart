@@ -47,8 +47,7 @@ class _ImageWidget extends StatefulWidget {
   final Option option;
   final SurveyImagesUseCase surveyImagesUseCase;
 
-  const _ImageWidget(
-      {required this.option, required this.surveyImagesUseCase});
+  const _ImageWidget({required this.option, required this.surveyImagesUseCase});
 
   @override
   State<StatefulWidget> createState() {
@@ -67,7 +66,9 @@ class _ImageWidgetState extends State<_ImageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _actualImage == null ? _buildLoadingIndicator(context) : _actualImage!;
+    return _actualImage == null
+        ? _buildLoadingIndicator(context)
+        : _actualImage!;
   }
 
   Widget _buildLoadingIndicator(BuildContext context) {
@@ -101,9 +102,9 @@ class _ImageWidgetState extends State<_ImageWidget> {
     final storage = GetStorage();
     setState(() {
       _actualImage = Image.network(
-      storage.read<String>('apiUrl')! + widget.option.imagePath!,
-      errorBuilder: (ctx, obj, st) => buildErrorWidget(),
-    );
+        storage.read<String>('apiUrl')! + widget.option.imagePath!,
+        errorBuilder: (ctx, obj, st) => buildErrorWidget(),
+      );
     });
   }
 }

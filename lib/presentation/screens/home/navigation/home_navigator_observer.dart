@@ -12,8 +12,13 @@ class HomeNavigatorObserver extends NavigatorObserver {
   void didPop(Route route, Route? previousRoute) {
     if (isHome(previousRoute)) {
       Get.find<HomeController>().triggerPullToRefresh();
+      // Returning to home always ends the survey session, whether it was
+      // submitted or the respondent backed out of it.
+      final appState = Get.find<AppState>();
+      appState.isSurveyActive = false;
+      appState.currentSurveySensorData.clear();
       if (isSubmitSurvey()) {
-        Get.find<AppState>().justSubmitedSurvey = false;
+        appState.justSubmitedSurvey = false;
         displayThanks();
       }
     }

@@ -11,8 +11,7 @@ class SurveyQuestionScreen extends GetView<SurveyQuestionController> {
   final SurveyQuestionController _controller;
   static const appType =
       String.fromEnvironment('APP_TYPE', defaultValue: 'geosenesm');
-  static const appTitle =
-      appType == 'urbeat' ? 'UrbEaT' : 'GeoSenEsm';
+  static const appTitle = appType == 'urbeat' ? 'UrbEaT' : 'GeoSenEsm';
 
   SurveyQuestionScreen({super.key}) : _controller = Get.find();
 

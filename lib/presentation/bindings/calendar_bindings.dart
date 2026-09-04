@@ -1,8 +1,6 @@
 import 'package:get/get.dart';
 
-class CalendarBindings extends Bindings{
+class CalendarBindings extends Bindings {
   @override
-  void dependencies() {
-    
-  }
+  void dependencies() {}
 }

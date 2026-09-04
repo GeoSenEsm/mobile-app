@@ -9,21 +9,20 @@ class WelcomeScreenController extends ControllerBase {
 
   WelcomeScreenController(this._initialSurveyService);
 
-
-  void letsGo() async{
+  void letsGo() async {
     final apiResult = await _initialSurveyService.getInitialSurvey();
 
-    if (apiResult.statusCode == 404){
+    if (apiResult.statusCode == 404) {
       await Get.offAllNamed('/home');
       return;
     }
 
-    if (apiResult.error != null || apiResult.statusCode != 200){
+    if (apiResult.error != null || apiResult.statusCode != 200) {
       handleSomethingWentWrong(apiResult.error);
       return;
     }
 
-    if (apiResult.body!.isEmpty){
+    if (apiResult.body!.isEmpty) {
       await Get.offAllNamed('/home');
       return;
     }
@@ -31,7 +30,8 @@ class WelcomeScreenController extends ControllerBase {
     final questions = apiResult.body!;
     final responses = {
       for (var question in questions)
-      question.id: InitialSurveyQuestionResponse(questionId: question.id, optionId: null),
+        question.id: InitialSurveyQuestionResponse(
+            questionId: question.id, optionId: null),
     };
 
     Get.offAllNamed(Routes.initialSurveyQuestions, arguments: {

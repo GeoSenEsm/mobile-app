@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 
-class SensorDataBindings implements Bindings{
+class SensorDataBindings implements Bindings {
   @override
-  void dependencies() {
-  }
+  void dependencies() {}
 }

@@ -14,7 +14,9 @@ import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/functions/handle_need_insert_respondent_data.dart';
-import 'package:http/http.dart' as http;
+import 'package:survey_frontend/core/utils/study_time_zone.dart';
+import 'package:survey_frontend/data/datasources/local/database_service.dart';
+import 'package:timezone/data/latest.dart' as tzdata;
 
 class LoginController extends ControllerBase {
   final Rx<LoginDto> model = LoginDto().obs;
@@ -27,13 +29,17 @@ class LoginController extends ControllerBase {
       r'(https:\/\/)?(www\\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)(:\d+)?');
   bool isBusy = false;
   bool _alwaysValidateInvalidCredentials = false;
+  bool _timeZoneChangedForLogin = false;
   final Dio _dio;
   final IpLocalizationCountryCodeService _ipLocalizationCountryCodeService;
   static const alwaysAllowUri =
       String.fromEnvironment('ALWAYS_ALLOW_URI', defaultValue: 'false');
 
-  LoginController(this._loginService, this._storage,
-      this._needInsertRespondentDataUseCase, this._dio,
+  LoginController(
+      this._loginService,
+      this._storage,
+      this._needInsertRespondentDataUseCase,
+      this._dio,
       this._ipLocalizationCountryCodeService) {
     if (kDebugMode) {
       apiUrlRegex = RegExp(
@@ -61,11 +67,12 @@ class LoginController extends ControllerBase {
         return;
       }
 
-      if (!await _isUrlAllowed()){
+      if (!await _isUrlAllowed()) {
         return;
       }
 
       _saveUrl();
+      await _attachDeviceTimeZone();
       var apiResponse = await _loginService.login(model.value);
       await handleAPIResponse(apiResponse);
     } catch (e) {
@@ -80,36 +87,45 @@ class LoginController extends ControllerBase {
     if (kDebugMode || alwaysAllowUri == "true") {
       return true;
     }
-    final myLocalizationResponse = await _ipLocalizationCountryCodeService.getIpLoclization(null);
-    if (myLocalizationResponse.error != null || myLocalizationResponse.statusCode != 200
-       || myLocalizationResponse.body!.status != 'success'){
-      final message = getAppLocalizations().weWereUnableToDetermineTheServerAvailibility;
+    final myLocalizationResponse =
+        await _ipLocalizationCountryCodeService.getIpLoclization(null);
+    if (myLocalizationResponse.error != null ||
+        myLocalizationResponse.statusCode != 200 ||
+        myLocalizationResponse.body!.status != 'success') {
+      final message =
+          getAppLocalizations().weWereUnableToDetermineTheServerAvailibility;
       await popup('', message);
       return false;
     }
 
-    if (myLocalizationResponse.body!.countryCode != 'CN'){
+    if (myLocalizationResponse.body!.countryCode != 'CN') {
       return true;
     }
 
     var domainOrIp = _extractDomainOrIp(apiUrl!);
-    var serverLocalizationResponse = await _ipLocalizationCountryCodeService.getIpLoclization(domainOrIp);
+    var serverLocalizationResponse =
+        await _ipLocalizationCountryCodeService.getIpLoclization(domainOrIp);
 
-    if (serverLocalizationResponse.statusCode == 200 && serverLocalizationResponse.body!.status != 'success'
-        && domainOrIp.startsWith('www.')){
+    if (serverLocalizationResponse.statusCode == 200 &&
+        serverLocalizationResponse.body!.status != 'success' &&
+        domainOrIp.startsWith('www.')) {
       domainOrIp = domainOrIp.substring(4);
-      serverLocalizationResponse = await _ipLocalizationCountryCodeService.getIpLoclization(domainOrIp);
+      serverLocalizationResponse =
+          await _ipLocalizationCountryCodeService.getIpLoclization(domainOrIp);
     }
 
-    if (serverLocalizationResponse.error != null || serverLocalizationResponse.statusCode != 200
-    || serverLocalizationResponse.body!.status != 'success'){
-      final message = getAppLocalizations().weWereUnableToDetermineTheServerAvailibility;
+    if (serverLocalizationResponse.error != null ||
+        serverLocalizationResponse.statusCode != 200 ||
+        serverLocalizationResponse.body!.status != 'success') {
+      final message =
+          getAppLocalizations().weWereUnableToDetermineTheServerAvailibility;
       await popup('', message);
       return false;
     }
 
-    if (serverLocalizationResponse.body!.countryCode != "CN"){
-      final message = getAppLocalizations().theServerYouProvidedIsNotAllowedInYourLocation;
+    if (serverLocalizationResponse.body!.countryCode != "CN") {
+      final message =
+          getAppLocalizations().theServerYouProvidedIsNotAllowedInYourLocation;
       await popup('', message);
       return false;
     }
@@ -117,28 +133,27 @@ class LoginController extends ControllerBase {
   }
 
   String _extractDomainOrIp(String input) {
-  final uriString = input.contains('://') ? input : 'http://$input';
+    final uriString = input.contains('://') ? input : 'http://$input';
 
-  Uri? uri;
-  try {
-    uri = Uri.parse(uriString);
-  } catch (_) {
-    return '';
+    Uri? uri;
+    try {
+      uri = Uri.parse(uriString);
+    } catch (_) {
+      return '';
+    }
+
+    String? host = uri.host;
+
+    if (host == null || host.isEmpty) return '';
+
+    final ipRegex = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
+
+    if (ipRegex.hasMatch(host)) {
+      return host;
+    } else {
+      return host.startsWith('www.') ? host : 'www.$host';
+    }
   }
-
-  String? host = uri.host;
-
-  if (host == null || host.isEmpty) return '';
-
-  final ipRegex = RegExp(r'^(\d{1,3}\.){3}\d{1,3}$');
-
-  if (ipRegex.hasMatch(host)) {
-    return host;
-  } else {
-    return host.startsWith('www.') ? host : 'www.$host';
-  }
-}
-
 
   String? passwordValidator(String? value) {
     const int maxPasswordLength = 255;
@@ -191,8 +206,9 @@ class LoginController extends ControllerBase {
   }
 
   Future handleAPIResponse(APIResponse<String> apiResponse) async {
-    if (apiResponse.error?.runtimeType == DioException){
-      popup(getAppLocalizations().error, getAppLocalizations().serverNotResponding);
+    if (apiResponse.error?.runtimeType == DioException) {
+      popup(getAppLocalizations().error,
+          getAppLocalizations().serverNotResponding);
       return;
     }
 
@@ -207,13 +223,39 @@ class LoginController extends ControllerBase {
     }
 
     if (apiResponse.statusCode != 200) {
-      await handleSomethingWentWrong(getAppLocalizations().loginFailedServerRespondedWithStatusCode(apiResponse.statusCode!));
+      await handleSomethingWentWrong(getAppLocalizations()
+          .loginFailedServerRespondedWithStatusCode(apiResponse.statusCode!));
       return;
     }
     saveToken(apiResponse.body!);
+    if (model.value.timeZone != null) {
+      _storage.write(StudyTimeZone.storageKey, model.value.timeZone);
+    }
+    if (_timeZoneChangedForLogin) {
+      _storage.remove('surveysRowVersion');
+      await DatabaseHelper().clearAllSurveysRelatedTables();
+      _timeZoneChangedForLogin = false;
+    }
     var needInsertRespondentDataRes =
         await _needInsertRespondentDataUseCase.needInsertRespondentData();
     handle(needInsertRespondentDataRes);
+  }
+
+  /// If the device refuses to report its timezone (a known failure on some OEM ROMs/emulators),
+  /// we must not send a synthetic value: the backend would treat it as a real detected timezone
+  /// and, if it differs from what's stored, trigger a full resync. Leaving [model.value.timeZone]
+  /// unset instead makes the login request omit it, so the server keeps whatever was last stored.
+  Future<void> _attachDeviceTimeZone() async {
+    tzdata.initializeTimeZones();
+    final previousTimeZone = _storage.read<String>(StudyTimeZone.storageKey);
+    final timeZone = await StudyTimeZone.detectAndCache(_storage);
+    if (timeZone == null) {
+      _timeZoneChangedForLogin = false;
+      return;
+    }
+    model.value.timeZone = timeZone;
+    _timeZoneChangedForLogin =
+        previousTimeZone == null || previousTimeZone != timeZone;
   }
 
   void showInvalidCredentialsError() {

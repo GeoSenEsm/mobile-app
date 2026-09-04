@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -16,19 +18,21 @@ import 'package:survey_frontend/domain/models/create_survey_response_dto.dart';
 import 'package:survey_frontend/domain/models/localization_data.dart';
 import 'package:survey_frontend/domain/models/sensor_data.dart';
 import 'package:survey_frontend/domain/models/survey_participation_dto.dart';
+import 'package:survey_frontend/domain/models/survey_settings.dart';
 import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/l10n/get_localizations.dart';
 import 'package:survey_frontend/presentation/controllers/controller_base.dart';
 import 'package:survey_frontend/presentation/static/routes.dart';
+import 'package:survey_frontend/core/utils/study_time_zone.dart';
 
 class SurveyEndController extends ControllerBase {
   late CreateSurveyResponseDto dto;
   late Future<LocalizationData> localizationData;
-  late Future<SensorData?> futureSensorData;
   final SendLocationDataUsecase _sendLocationDataUsecase;
   final DatabaseHelper _databaseHelper;
   final SubmitSurveyUsecase _submitSurveyUsecase;
   final SurveyNotificationIdUsecase _surveyNotificationIdUsecase;
+  final SendSensorsDataUsecase _sendSensorsDataUsecase;
   late SurveyShortInfo surveyShortInfo;
   final GetStorage _storage;
   final AppState _appState;
@@ -40,7 +44,8 @@ class SurveyEndController extends ControllerBase {
       this._submitSurveyUsecase,
       this._surveyNotificationIdUsecase,
       this._storage,
-      this._appState);
+      this._appState,
+      this._sendSensorsDataUsecase);
 
   void endSurvey() async {
     if (isBusy.value) {
@@ -52,8 +57,12 @@ class SurveyEndController extends ControllerBase {
       final participation = await _submitToServer();
       //no need to await, let's do it in background
       _saveLocation(participation?.id);
-      final notificationId = _surveyNotificationIdUsecase.getFinishNotificationId(surveyShortInfo);
-      NotificationService.cancelNotification(notificationId);
+      final notificationCount =
+          await _databaseHelper.getSurveyNotificationCount(surveyShortInfo.id);
+      for (var i = 0; i < notificationCount; i++) {
+        NotificationService.cancelNotification(
+            _surveyNotificationIdUsecase.getNotificationId(surveyShortInfo, i));
+      }
       await _databaseHelper.markAsSubmited(dto.surveyId);
       _appState.justSubmitedSurvey = true;
       Get.until((route) => Get.currentRoute == Routes.home);
@@ -66,44 +75,249 @@ class SurveyEndController extends ControllerBase {
     }
   }
 
+  /// [SubmitSurveyUsecase.submitSurvey] already represents "queued for later" (no
+  /// connectivity, or the server rejected the request) as a plain `null` return rather than
+  /// an exception, so any exception reaching here is a genuinely unexpected failure. It is left
+  /// to propagate to [endSurvey]'s own try/catch, which surfaces the error without marking the
+  /// survey as submitted.
   Future<SurveyParticipationDto?> _submitToServer() async {
-    try {
-      final sensorData = await futureSensorData;
-      await _checkSensorDataRead(sensorData);
-      dto.sensorData = sensorData;
-      _clearDto();
-      dto.finishDate = DateTime.now().toUtc().toIso8601String();
-      final participation = _submitSurveyUsecase.submitSurvey(dto);
-      return participation;
-    } catch (e) {
-      popup(AppLocalizations.of(Get.context!)!.error,
-          AppLocalizations.of(Get.context!)!.mainPageTransitionError);
-      Sentry.captureException(e);
-      return null;
-    }
+    final sensorData =
+        await _collectManualSensorDataIfNeeded(await _resolveSensorData());
+    await _checkSensorDataRead(sensorData);
+    dto.sensorData = sensorData.isEmpty ? null : sensorData;
+    _clearDto();
+    dto.finishDate = StudyTimeZone.nowWithLocalOffsetIso8601();
+    return await _submitSurveyUsecase.submitSurvey(dto);
   }
 
-  Future<void> _checkSensorDataRead(SensorData? sensorData) async{
-    if (sensorData != null || !_isSensorSelected()){
+  /// Always attempts a fresh, authoritative read of every assigned sensor (see
+  /// [SendSensorsDataUsecase.readSensorData]) right before deciding whether manual entry is
+  /// needed, rather than trusting readings attributed to this survey earlier while it was open
+  /// (see [AppState.currentSurveySensorData]) at face value: a sensor that reported once early
+  /// in the survey and then disconnected would otherwise look "covered" forever, silently
+  /// suppressing the manual-entry prompt for the rest of the session. The fresh attempt's result
+  /// wins for any parameter it covers; session data only fills in parameters the fresh attempt
+  /// didn't answer for, so a sensor that already went quiet doesn't lose its last known reading
+  /// for a parameter no other attempt could supply.
+  Future<List<SensorData>> _resolveSensorData() async {
+    final freshData = await _sendSensorsDataUsecase.readSensorData();
+    final coveredByFreshData = freshData
+        .expand((data) => data.values)
+        .map((value) => value.parameterCode)
+        .toSet();
+    final sessionDataForUncoveredParameters = _appState.currentSurveySensorData
+        .toList()
+        .where((data) => data.values
+            .any((value) => !coveredByFreshData.contains(value.parameterCode)))
+        .toList();
+    return [...freshData, ...sessionDataForUncoveredParameters];
+  }
+
+  Future<void> _checkSensorDataRead(List<SensorData> sensorDataList) async {
+    if (sensorDataList.isNotEmpty || !_isSensorSelected()) {
       return;
     }
 
-    if (sensorData == null) {
-      await Get.defaultDialog(
+    await Get.defaultDialog(
         title: getAppLocalizations().sensorNotFoundDialogTitle,
         middleText: getAppLocalizations().sensorNotFoundDialogContent,
         textConfirm: getAppLocalizations().ok,
         confirmTextColor: Colors.white,
-        onConfirm: (){
+        onConfirm: () {
           Get.back();
-        }
-      );
+        });
+  }
+
+  /// Every used parameter is guaranteed a `manual` fallback source (wired automatically by the
+  /// backend whenever the parameter is created), so this prompts for every parameter the
+  /// automatic reading didn't already cover — including a respondent with no matching physical
+  /// sensor assigned at all, since such a parameter is never covered in the first place.
+  Future<List<SensorData>> _collectManualSensorDataIfNeeded(
+      List<SensorData> sensorDataList) async {
+    final setup = _readSensorSetup();
+    if (setup == null) {
+      return sensorDataList;
+    }
+
+    final coveredCodes = sensorDataList
+        .expand((data) => data.values)
+        .map((value) => value.parameterCode)
+        .toSet();
+    final parameters = setup.parameters
+        .where((parameter) => !coveredCodes.contains(parameter.code))
+        .toList();
+    if (parameters.isEmpty) {
+      return sensorDataList;
+    }
+
+    final controllers = {
+      for (final parameter in parameters)
+        parameter.code: TextEditingController()
+    };
+    final errors = <String, String?>{};
+    final shouldSubmit = await Get.dialog<bool>(
+      StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(getAppLocalizations().enterSensorDataManually),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: parameters
+                    .map((parameter) => Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: TextField(
+                            controller: controllers[parameter.code],
+                            keyboardType: _keyboardTypeFor(parameter),
+                            decoration: InputDecoration(
+                              labelText: _manualSensorLabel(parameter),
+                              errorText: errors[parameter.code],
+                            ),
+                          ),
+                        ))
+                    .toList(),
+              ),
+            ),
+            actions: [
+              TextButton(
+                  onPressed: () => Get.back(result: false),
+                  child: Text(getAppLocalizations().cancel)),
+              TextButton(
+                  onPressed: () {
+                    final nextErrors = {
+                      for (final parameter in parameters)
+                        parameter.code: _manualValueError(
+                            parameter, controllers[parameter.code]!.text)
+                    };
+                    if (nextErrors.values.any((error) => error != null)) {
+                      setState(() {
+                        errors
+                          ..clear()
+                          ..addAll(nextErrors);
+                      });
+                      return;
+                    }
+                    Get.back(result: true);
+                  },
+                  child: Text(getAppLocalizations().ok)),
+            ],
+          );
+        },
+      ),
+      barrierDismissible: false,
+    );
+
+    if (shouldSubmit != true) {
+      return sensorDataList;
+    }
+
+    // Every field was validated non-blank before the dialog could close (see _manualValueError),
+    // so every parameter here always yields a value.
+    final manualValues = parameters
+        .map((parameter) => SensorDataValue(
+              parameterCode: parameter.code,
+              value: _normalizedManualValue(
+                  parameter, controllers[parameter.code]!.text),
+            ))
+        .toList();
+
+    // Its own entry, source 'manual' — never merged into an automatic reading's values, so a
+    // manually-typed value is never misattributed to whichever sensor happened to report first.
+    return [
+      ...sensorDataList,
+      SensorData(
+          dateTime: DateTime.now().toUtc().toIso8601String(),
+          source: 'manual',
+          values: manualValues),
+    ];
+  }
+
+  String _manualSensorLabel(SensorParameterDefinition parameter) {
+    final name = parameter.unit == null
+        ? parameter.name
+        : '${parameter.name} (${parameter.unit})';
+    return '$name *';
+  }
+
+  TextInputType _keyboardTypeFor(SensorParameterDefinition parameter) {
+    switch (parameter.dataType) {
+      case 'decimal':
+        return const TextInputType.numberWithOptions(decimal: true);
+      case 'integer':
+        return TextInputType.number;
+      default:
+        return TextInputType.text;
     }
   }
 
-  bool _isSensorSelected(){
+  String? _manualValueError(
+      SensorParameterDefinition parameter, String rawValue) {
+    final value = rawValue.trim();
+    if (value.isEmpty) {
+      return getAppLocalizations().valueNotEmpty;
+    }
+
+    switch (parameter.dataType) {
+      case 'decimal':
+        return num.tryParse(value) == null
+            ? getAppLocalizations().pleaseEnterValidNumber
+            : null;
+      case 'integer':
+        return int.tryParse(value) == null
+            ? getAppLocalizations().pleaseEnterValidNumber
+            : null;
+      case 'boolean':
+        return _asBooleanDigit(value) == null
+            ? getAppLocalizations().pleaseEnterTrueOrFalse
+            : null;
+      default:
+        return null;
+    }
+  }
+
+  /// Normalizes to the "0"/"1" shape automatic readings produce: [SensorReading.values] is
+  /// `Map<String, num>`, and a `bool` advertisement object is decoded to 0/1 before
+  /// [SensorDataMapper] stringifies it. Storing a manual "true" here would leave two
+  /// incomparable representations of the same parameter in the export.
+  String _normalizedManualValue(
+      SensorParameterDefinition parameter, String rawValue) {
+    final value = rawValue.trim();
+    if (parameter.dataType != 'boolean') {
+      return value;
+    }
+    return _asBooleanDigit(value) ?? value;
+  }
+
+  /// Accepts the wire form ("1"/"0") and the human form ("true"/"false", any case), since both
+  /// reach this dialog: the former matches existing automatic rows, the latter the field's hint.
+  String? _asBooleanDigit(String value) {
+    switch (value.toLowerCase()) {
+      case 'true':
+      case '1':
+        return '1';
+      case 'false':
+      case '0':
+        return '0';
+      default:
+        return null;
+    }
+  }
+
+  MobileSensorSetup? _readSensorSetup() {
+    final raw = _storage.read<String>(MobileSensorSetup.storageKey);
+    if (raw == null) {
+      return null;
+    }
+    return MobileSensorSetup.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+  }
+
+  bool _isSensorSelected() {
     final selectedSensor = _storage.read<String>('selectedSensor');
-    return selectedSensor != null && selectedSensor != SensorKind.none;
+    final mode = _storage.read<String>(MobileSensorSetup.sensorModeKey);
+    return mode != MobileSensorSetup.noSensorData &&
+        selectedSensor != null &&
+        selectedSensor != SensorKind.none &&
+        selectedSensor != SensorKind.manual;
   }
 
   Future<void> _saveLocation(String? surveyParticipationId) async {
@@ -126,12 +340,12 @@ class SurveyEndController extends ControllerBase {
 
   void _clearDto() {
     for (final answer in dto.answers) {
-      if (answer.selectedOptions == null){
+      if (answer.selectedOptions == null) {
         continue;
       }
 
-      for (int i = 0; i < answer.selectedOptions!.length; i++){
-        if (answer.selectedOptions![i].optionId == null){
+      for (int i = 0; i < answer.selectedOptions!.length; i++) {
+        if (answer.selectedOptions![i].optionId == null) {
           answer.selectedOptions!.removeAt(i);
           i--;
         }
@@ -143,7 +357,8 @@ class SurveyEndController extends ControllerBase {
       return e.yesNoAnswer != null ||
           e.numericAnswer != null ||
           e.textAnswer != null ||
-          (e.selectedOptions != null && e.selectedOptions!.isNotEmpty &&
+          (e.selectedOptions != null &&
+              e.selectedOptions!.isNotEmpty &&
               e.selectedOptions!.every((e) => e.optionId != null));
     }).toList();
   }
@@ -151,7 +366,6 @@ class SurveyEndController extends ControllerBase {
   void readGetArgs() {
     dto = Get.arguments['responseModel'];
     localizationData = Get.arguments['localizationData'];
-    futureSensorData = Get.arguments['futureSensorData'];
     surveyShortInfo = Get.arguments['shortSurveyInfo'];
   }
 }

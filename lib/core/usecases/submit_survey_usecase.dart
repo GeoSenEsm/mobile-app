@@ -63,7 +63,7 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
       CreateSurveyResponseDto dto) async {
     final apiResponse = await _surveyResponseService.submitResponse(dto);
     if (apiResponse.statusCode == 201) {
-      await _saveSensorDataLocally([dto.sensorData]);
+      await _saveSensorDataLocally(dto.sensorData ?? const []);
       return apiResponse.body;
     }
 
@@ -71,13 +71,12 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
     return null;
   }
 
-  Future<void> _saveSensorDataLocally(List<SensorData?> sensorData) async {
+  Future<void> _saveSensorDataLocally(List<SensorData> sensorData) async {
     final models = sensorData
-        .where((d) => d != null)
         .map((d) => SensorDataModel(
-            dateTime: DateTime.parse(d!.dateTime),
-            temperature: d.temperature,
-            humidity: d.humidity,
+            dateTime: DateTime.parse(d.dateTime),
+            source: d.source,
+            values: d.values,
             sentToServer: true))
         .toList();
     for (final model in models) {
@@ -99,14 +98,30 @@ class SubmitSurveyUsecaseImpl implements SubmitSurveyUsecase {
 
     final apiResponse =
         await _surveyResponseService.submitResponses(currentlySaved);
-    if (apiResponse.statusCode == 201) {
-      await _storage.remove('savedResponses');
-      await _saveSensorDataLocally(currentlySaved.map((e) => e.sensorData).toList());
-      await _updateLocations(apiResponse.body!);
-      return true;
+    if (apiResponse.statusCode != 201 || apiResponse.body == null) {
+      return false;
     }
 
-    return false;
+    // The /offline endpoint always returns 201 even when some responses were
+    // silently rejected by server-side validation, so we must check the
+    // returned body to see which ones actually got saved before discarding
+    // anything from local storage.
+    final savedParticipations = apiResponse.body!;
+    final saved = <CreateSurveyResponseDto>[];
+    final notSaved = <CreateSurveyResponseDto>[];
+
+    for (final dto in currentlySaved) {
+      final wasSaved = savedParticipations.any((p) =>
+          p.surveyId == dto.surveyId && p.surveyStartDate == dto.startDate);
+      (wasSaved ? saved : notSaved).add(dto);
+    }
+
+    await _storage.write('savedResponses', notSaved);
+    await _saveSensorDataLocally(
+        saved.expand((e) => e.sensorData ?? const <SensorData>[]).toList());
+    await _updateLocations(savedParticipations);
+
+    return notSaved.isEmpty;
   }
 
   Future<void> _updateLocations(

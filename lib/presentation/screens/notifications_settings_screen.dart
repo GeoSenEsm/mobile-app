@@ -4,7 +4,8 @@ import 'package:survey_frontend/l10n/app_localizations.dart';
 import 'package:survey_frontend/presentation/app_styles.dart';
 import 'package:survey_frontend/presentation/controllers/notifications_settings_controller.dart';
 
-class NotificationsSettingsScreen extends GetView<NotificationsSettingsController>{
+class NotificationsSettingsScreen
+    extends GetView<NotificationsSettingsController> {
   const NotificationsSettingsScreen({super.key});
 
   @override
@@ -75,16 +76,13 @@ class NotificationsSettingsScreen extends GetView<NotificationsSettingsControlle
         ],
       ),
       bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppStyles.backgroundSecondary,
-          boxShadow: [
-            BoxShadow(
+        decoration:
+            BoxDecoration(color: AppStyles.backgroundSecondary, boxShadow: [
+          BoxShadow(
               color: Colors.black.withOpacity(0.2),
               blurRadius: 10,
-              offset: const Offset(0, -5)
-            )
-          ]
-        ),
+              offset: const Offset(0, -5))
+        ]),
         child: Padding(
           padding: const EdgeInsets.all(25),
           child: ElevatedButton(
@@ -95,5 +93,4 @@ class NotificationsSettingsScreen extends GetView<NotificationsSettingsControlle
       ),
     );
   }
-
 }

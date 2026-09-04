@@ -5,4 +5,4 @@ import 'package:survey_frontend/domain/models/respondent_data_dto.dart';
 abstract class RespondentDataService{
   Future<APIResponse<RespondentDataDto>> create(CreateRespondentDataDto dto);
   Future<APIResponse<RespondentDataDto>> getRespondentData();
-}
+}

@@ -3,7 +3,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:survey_frontend/data/models/short_survey.dart';
 import 'package:survey_frontend/presentation/functions/formatters.dart';
 
-
 class SurveyTile extends StatelessWidget {
   final SurveyShortInfo surveyShortInfo;
   final void Function() onPressed;
@@ -39,8 +38,7 @@ class SurveyTile extends StatelessWidget {
           trailing: SvgPicture.asset(
             'assets/bell.svg',
             height: 32, // Adjust the height as needed
-            colorFilter:
-                ColorFilter.mode(
+            colorFilter: ColorFilter.mode(
                 Theme.of(context).highlightColor, BlendMode.srcIn),
           ),
           title: Text(

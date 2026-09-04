@@ -145,26 +145,20 @@ class AppLocalizationsPl extends AppLocalizations {
   String get no => 'Nie';
 
   @override
-  String get usedSensor => 'Rodzaj czujnika temperatury';
-
-  @override
   String get save => 'Zapisz';
 
   @override
-  String get chooseATemperatureSensorYouReceived =>
-      'Wybierz otrzymany przez Ciebie czujnik temperatury';
+  String get manualSensor => 'Odczyty ręczne';
 
   @override
-  String get noSensor => 'Brak czujnika';
-
-  @override
-  String get xiaomiSensor => 'Czujnik Xiaomi';
+  String get noSensorsAssigned =>
+      'Do Twojego konta nie przypisano jeszcze żadnych czujników.';
 
   @override
   String get settings => 'Ustawienia';
 
   @override
-  String get editSensor => 'Edytuj czujnik';
+  String get editSensor => 'Moje czujniki';
 
   @override
   String get appSettings => 'Ustawienia aplikacji';
@@ -301,6 +295,9 @@ class AppLocalizationsPl extends AppLocalizations {
   String get ok => 'Ok';
 
   @override
+  String get cancel => 'Anuluj';
+
+  @override
   String get currentPasswordMustNotBeEmpty =>
       'Aktualne hasło nie może być puste';
 
@@ -340,6 +337,16 @@ class AppLocalizationsPl extends AppLocalizations {
   String get saveReading => 'Zapisz odczyt';
 
   @override
+  String get sensorReadingCannotBeStored =>
+      'Ten odczyt z czujnika nie pasuje do aktywnej konfiguracji danych sensorycznych. Skontaktuj się z administratorem badania.';
+
+  @override
+  String get enterSensorDataManually => 'Wprowadź dane z czujnika ręcznie';
+
+  @override
+  String get pleaseEnterTrueOrFalse => 'Wpisz prawda albo fałsz';
+
+  @override
   String get scanning => 'Skanowanie';
 
   @override
@@ -349,7 +356,35 @@ class AppLocalizationsPl extends AppLocalizations {
   String get sensorNotFound => 'Nie znaleziono czujnika';
 
   @override
+  String get sensorConnectionBusy =>
+      'Czujnik zajęty, spróbuj ponownie za chwilę';
+
+  @override
+  String get sensorConnectionLost =>
+      'Utracono połączenie podczas odczytu, dotknij aby powtórzyć';
+
+  @override
+  String get sensorProfileMismatch =>
+      'Niezgodność profilu czujnika, skontaktuj się z administratorem badania';
+
+  @override
+  String get sensorTapToConnect => 'Dotknij, aby połączyć';
+
+  @override
+  String get startScanning => 'Rozpocznij skanowanie';
+
+  @override
   String get sensorNotSpecified => 'Nie wybrano czujnika';
+
+  @override
+  String sensorSecondsRemaining(int seconds) {
+    return 'Pozostało ${seconds}s';
+  }
+
+  @override
+  String sensorReadsParameters(String parameters) {
+    return 'Odczyt: $parameters';
+  }
 
   @override
   String get sensorData => 'Dane z czujnika';
@@ -439,12 +474,6 @@ class AppLocalizationsPl extends AppLocalizations {
   String get enterResponse => 'Podaj odpowiedź';
 
   @override
-  String get kestrelDrop2 => 'Czujnik Kestrel Drop 2';
-
-  @override
-  String get sensorId => 'Id sensora';
-
-  @override
   String get serverNotResponding =>
       'Serwer nie odpowiada. Upewnij się, że podałeś poprawny adres API. Jeśli tak, spróbuj ponownie później.';
 
@@ -462,18 +491,11 @@ class AppLocalizationsPl extends AppLocalizations {
   String get sensorMac => 'Adres MAC czujnika';
 
   @override
-  String get sensorIdServerNotFound =>
-      'Id czujnika nie zostało znalezione na serwerze';
-
-  @override
   String get noInternetConnection => 'Brak połączenia z internetem';
 
   @override
   String get betterExperienceTurnOnInternet =>
       'Dla lepszego doświadczenia z użytkowania, proszę włączyć połączenie z internetem';
-
-  @override
-  String get loadingMacFailed => 'Błąd ładowania adresu MAC';
 
   @override
   String get sensorNotFoundDialogTitle => 'Nie znaleziono czujnika';
@@ -532,12 +554,15 @@ class AppLocalizationsPl extends AppLocalizations {
   String get couldNotMakeCall => 'Nie udało się wykonać połączenia.';
 
   @override
-  String get warning => 'Ostrzeżenie';
+  String get surveyStartDate => 'Data rozpoczęcia ankiety';
 
   @override
-  String get noSensorSelected =>
-      'Nie wybrano czujnika temperatury. Dane sensoryczne nie zostaną zapisane po wypełnieniu ankiety. Sugerujemy przejście do ustawień, aby wybrać czujnik.';
+  String get surveyEndDate => 'Data zakończenia ankiety';
 
   @override
-  String get continueWithoutSensor => 'Kontunuuj bez czujnika';
+  String get timeZone => 'Strefa czasowa';
+
+  @override
+  String get pullToRefreshHint =>
+      'Przesuń w dół, aby zsynchronizować dane z serwerem';
 }
