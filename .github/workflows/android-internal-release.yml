@@ -1,0 +1,63 @@
+name: Android internal release (GeoSenEsm)
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: android-internal-release
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      PACKAGE_NAME: com.example.survey_frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Restore keystore and key.properties
+        env:
+          GEOSENESM_KEYSTORE_BASE64: ${{ secrets.GEOSENESM_KEYSTORE_BASE64 }}
+          GEOSENESM_STORE_PASSWORD: ${{ secrets.GEOSENESM_STORE_PASSWORD }}
+          GEOSENESM_KEY_PASSWORD: ${{ secrets.GEOSENESM_KEY_PASSWORD }}
+          GEOSENESM_KEY_ALIAS: ${{ secrets.GEOSENESM_KEY_ALIAS }}
+        run: |
+          keystore_path="$RUNNER_TEMP/geosenesm.jks"
+          echo "$GEOSENESM_KEYSTORE_BASE64" | base64 -d > "$keystore_path"
+          {
+            echo "geosenesm.storePassword=$GEOSENESM_STORE_PASSWORD"
+            echo "geosenesm.keyPassword=$GEOSENESM_KEY_PASSWORD"
+            echo "geosenesm.keyAlias=$GEOSENESM_KEY_ALIAS"
+            echo "geosenesm.storeFile=$keystore_path"
+          } > android/key.properties
+
+      - run: flutter pub get
+
+      - name: Build signed app bundle
+        run: bash scripts/build-android-geosenesm.sh appbundle
+
+      - name: Upload to Google Play (internal testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ env.PACKAGE_NAME }}
+          releaseFiles: build/app/outputs/bundle/release/app-geosenesm-release.aab
+          track: internal
+          status: completed
+
+      - name: Cleanup secrets
+        if: always()
+        run: rm -f android/key.properties "$RUNNER_TEMP/geosenesm.jks"
