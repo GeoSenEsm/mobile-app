@@ -48,7 +48,11 @@ jobs:
       - run: flutter pub get
 
       - name: Build signed app bundle
-        run: bash scripts/build-android-geosenesm.sh appbundle
+        env:
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          printf 'SENTRY_DSN=%s\n' "$SENTRY_DSN" > .env
+          bash scripts/build-android-geosenesm.sh appbundle
 
       - name: Upload to Google Play (internal testing)
         uses: r0adkll/upload-google-play@v1
@@ -61,4 +65,4 @@ jobs:
 
       - name: Cleanup secrets
         if: always()
-        run: rm -f android/key.properties "$RUNNER_TEMP/geosenesm.jks"
+        run: rm -f .env android/key.properties "$RUNNER_TEMP/geosenesm.jks"
