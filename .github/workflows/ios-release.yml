@@ -57,7 +57,9 @@ jobs:
                 -authenticationKeyIssuerID "$ASC_ISSUER_ID")
           xcodebuild archive \
             -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release \
-            -archivePath build/ios/Runner.xcarchive "${auth[@]}"
+            -destination 'generic/platform=iOS' \
+            -archivePath build/ios/Runner.xcarchive \
+            CODE_SIGNING_ALLOWED=NO
           xcodebuild -exportArchive \
             -archivePath build/ios/Runner.xcarchive \
             -exportOptionsPlist ios/ExportOptions.plist \
