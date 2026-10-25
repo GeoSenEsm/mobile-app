@@ -1,16 +1,16 @@
-name: Android internal release (GeoSenEsm)
+name: Store release (GeoSenEsm)
 
 on:
   push:
-    branches: [master]
+    tags: ['v*']
   workflow_dispatch:
 
 concurrency:
-  group: android-internal-release
+  group: store-release
   cancel-in-progress: false
 
 jobs:
-  build-and-publish:
+  android:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
@@ -60,9 +60,53 @@ jobs:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }}
           releaseFiles: build/app/outputs/bundle/release/app-geosenesm-release.aab
-          track: internal
+          tracks: internal
           status: completed
 
       - name: Cleanup secrets
         if: always()
         run: rm -f .env android/key.properties "$RUNNER_TEMP/geosenesm.jks"
+
+  ios:
+    runs-on: macos-15
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.35.7'
+          cache: true
+
+      - name: Restore App Store Connect API key and .env
+        env:
+          ASC_KEY_P8_BASE64: ${{ secrets.ASC_KEY_P8_BASE64 }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+        run: |
+          echo "$ASC_KEY_P8_BASE64" | base64 -d > "$RUNNER_TEMP/AuthKey.p8"
+          printf 'SENTRY_DSN=%s\n' "$SENTRY_DSN" > .env
+
+      - run: flutter pub get
+
+      - run: flutter build ios --release --config-only --dart-define=APP_TYPE=geosenesm
+
+      - run: pod install
+        working-directory: ios
+
+      - name: Archive, sign and upload to TestFlight
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          auth=(-allowProvisioningUpdates
+                -authenticationKeyPath "$RUNNER_TEMP/AuthKey.p8"
+                -authenticationKeyID "$ASC_KEY_ID"
+                -authenticationKeyIssuerID "$ASC_ISSUER_ID")
+          xcodebuild archive \
+            -workspace ios/Runner.xcworkspace -scheme Runner -configuration Release \
+            -archivePath build/ios/Runner.xcarchive "${auth[@]}"
+          xcodebuild -exportArchive \
+            -archivePath build/ios/Runner.xcarchive \
+            -exportOptionsPlist ios/ExportOptions.plist \
+            -exportPath build/ios/ipa "${auth[@]}"
