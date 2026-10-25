@@ -36,7 +36,7 @@ def appType = (project.findProperty('appType') ?: System.getenv('APP_TYPE') ?: '
 def appConfigs = [
         geosenesm: [
         appName      : 'GeoSenEsm',
-        applicationId: 'com.example.survey_frontend',
+        applicationId: 'urbeat.site.app',
         ],
         urbeat    : [
         appName      : 'UrbEaT',
